@@ -1,0 +1,7 @@
+{
+  "APP_FLAVOR": "dev",
+  "SUPABASE_URL": "https://YOUR-DEV-PROJECT-REF.supabase.co",
+  "SUPABASE_ANON_KEY": "YOUR-DEV-PUBLIC-ANON-KEY",
+  "SENTRY_DSN": "",
+  "SENTRY_RELEASE": "com.krishnaailinks.marutiwater.dev"
+}

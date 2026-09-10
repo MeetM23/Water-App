@@ -1,0 +1,651 @@
+{
+  "@@locale": "gu",
+  "appName": "મારુતિ વોટર",
+  "actionRetry": "ફરી પ્રયાસ કરો",
+  "actionCancel": "રદ કરો",
+  "actionSignOut": "સાઇન આઉટ",
+  "actionRefresh": "તાજું કરો",
+  "actionContinue": "આગળ વધો",
+  "errorGenericTitle": "કંઈક ખોટું થયું",
+  "errorGenericBody": "અત્યારે આ પૂર્ણ થઈ શક્યું નથી. કૃપા કરી ફરી પ્રયાસ કરો.",
+  "errorNetworkTitle": "ઇન્ટરનેટ કનેક્શન નથી",
+  "errorNetworkBody": "તમારો મોબાઇલ ડેટા અથવા વાઇ-ફાઇ તપાસો અને ફરી પ્રયાસ કરો.",
+  "errorServerTitle": "મારુતિ વોટર જવાબ આપતું નથી",
+  "errorServerBody": "સેવા થોડા સમય માટે ઉપલબ્ધ નથી. કૃપા કરી થોડી વારે પ્રયાસ કરો.",
+  "errorRateLimitedTitle": "ઘણા બધા પ્રયાસો",
+  "errorRateLimitedBody": "કૃપા કરી થોડી મિનિટ રાહ જોઈને ફરી પ્રયાસ કરો.",
+  "errorSessionExpiredTitle": "તમને સાઇન આઉટ કરવામાં આવ્યા છે",
+  "errorSessionExpiredBody": "તમારું સત્ર સમાપ્ત થયું છે. કૃપા કરી ફરી સાઇન ઇન કરો.",
+  "validationRequired": "{field} જરૂરી છે",
+  "@validationRequired": {
+    "placeholders": {
+      "field": {
+        "type": "String"
+      }
+    }
+  },
+  "validationEmail": "માન્ય ઇમેઇલ સરનામું દાખલ કરો",
+  "validationPhone": "10 અંકનો મોબાઇલ નંબર દાખલ કરો",
+  "validationPassword": "ઓછામાં ઓછા 8 અક્ષરો વાપરો",
+  "validationGst": "માન્ય 15 અક્ષરનો GST નંબર દાખલ કરો",
+  "validationTooShort": "ઓછામાં ઓછા {count} અક્ષરો દાખલ કરો",
+  "@validationTooShort": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "loginTitle": "સાઇન ઇન",
+  "loginSubtitle": "મારુતિ વોટર સોલ્યુશન ડીલર પોર્ટલ",
+  "loginSubmit": "સાઇન ઇન",
+  "loginNoAccount": "નવા ડીલર છો?",
+  "loginCreateAccount": "ખાતું બનાવો",
+  "loginFailed": "ઇમેઇલ અથવા પાસવર્ડ ખોટો છે.",
+  "signupTitle": "તમારું ખાતું બનાવો",
+  "signupSubtitle": "ખાતું ચાલુ થાય તે પહેલાં મારુતિ વોટર સોલ્યુશન દરેક નવા ડીલરની ચકાસણી કરે છે.",
+  "signupSubmit": "ખાતું બનાવો",
+  "signupHaveAccount": "પહેલેથી નોંધાયેલા છો?",
+  "signupSignIn": "સાઇન ઇન",
+  "signupEmailTaken": "આ ઇમેઇલ સરનામા માટે ખાતું પહેલેથી છે.",
+  "signupAccountType": "ખાતાનો પ્રકાર",
+  "signupSectionAccount": "ખાતું",
+  "signupSectionBusiness": "વ્યવસાયની વિગતો",
+  "fieldFullName": "પૂરું નામ",
+  "fieldFirmName": "પેઢીનું નામ",
+  "fieldPhone": "ફોન નંબર",
+  "fieldEmail": "ઇમેઇલ",
+  "fieldPassword": "પાસવર્ડ",
+  "fieldCity": "શહેર",
+  "fieldState": "રાજ્ય",
+  "fieldGstNumber": "GST નંબર",
+  "fieldOptional": "વૈકલ્પિક",
+  "hintPhone": "10 અંકનો મોબાઇલ નંબર",
+  "hintGstNumber": "24ABCDE1234F1Z5",
+  "roleWholesaler": "જથ્થાબંધ વેપારી",
+  "roleWholesalerHelp": "તમને જથ્થાબંધ ભાવ દેખાશે",
+  "roleRetailer": "છૂટક વેપારી",
+  "roleRetailerHelp": "તમને છૂટક ભાવ દેખાશે",
+  "pendingTitle": "મંજૂરીની રાહ જોવાઈ રહી છે",
+  "pendingBody": "મારુતિ વોટર સોલ્યુશન દરેક નવા ડીલર ખાતાની જાતે ચકાસણી કરે છે. તમારું ખાતું મંજૂર થતાં જ તમે સાઇન ઇન કરી શકશો.",
+  "pendingFirmLabel": "નોંધાયેલી પેઢી",
+  "pendingCheckStatus": "સ્થિતિ તપાસો",
+  "pendingStillWaiting": "તમારું ખાતું હજી મંજૂરીની રાહમાં છે.",
+  "rejectedTitle": "ખાતું મંજૂર થયું નથી",
+  "rejectedBody": "મારુતિ વોટર સોલ્યુશને આ ખાતું મંજૂર કર્યું નથી.",
+  "rejectedReasonLabel": "આપેલું કારણ",
+  "rejectedNoReason": "કોઈ કારણ નોંધાયું નથી.",
+  "suspendedTitle": "ખાતું સ્થગિત કરાયું છે",
+  "suspendedBody": "મારુતિ વોટર સોલ્યુશને આ ખાતાની પહોંચ થોભાવી છે. તેને ફરી ચાલુ કરાવવા સંપર્ક કરો.",
+  "contactWhatsApp": "વોટ્સએપ પર સંપર્ક કરો",
+  "contactUnavailable": "આ ઉપકરણ પર વોટ્સએપ ખોલી શકાયું નથી.",
+  "signOutConfirmTitle": "સાઇન આઉટ કરવું છે?",
+  "signOutConfirmBody": "ફરી સાઇન ઇન કરવા માટે તમારે ઇમેઇલ અને પાસવર્ડની જરૂર પડશે.",
+  "emptyDefaultTitle": "અહીં હજી કંઈ નથી",
+  "emptyDefaultBody": "બતાવવા જેવું કંઈક હશે ત્યારે તે અહીં દેખાશે.",
+  "actionShow": "બતાવો",
+  "actionHide": "છુપાવો",
+  "actionClear": "સાફ કરો",
+  "homeTitle": "ખાતું",
+  "homeSignedInTitle": "તમે સાઇન ઇન છો",
+  "homeSignedInBody": "તમારું ખાતું મંજૂર થયું છે. કેટલોગ આગામી રિલીઝમાં આવશે.",
+  "labelRole": "ભૂમિકા",
+  "labelStatus": "સ્થિતિ",
+  "labelFirm": "પેઢી",
+  "labelPhone": "ફોન",
+  "labelCity": "શહેર",
+  "roleOwner": "માલિક",
+  "statusPending": "બાકી",
+  "statusApproved": "મંજૂર",
+  "statusRejected": "નામંજૂર",
+  "statusSuspended": "સ્થગિત",
+  "hintEmail": "name@example.com",
+  "navDashboard": "ડેશબોર્ડ",
+  "navProducts": "ઉત્પાદનો",
+  "navDealers": "ડીલરો",
+  "navMore": "વધુ",
+  "actionSave": "સાચવો",
+  "actionDelete": "કાઢી નાખો",
+  "actionEdit": "ફેરફાર કરો",
+  "actionApply": "લાગુ કરો",
+  "actionReset": "રીસેટ કરો",
+  "actionCopy": "કૉપિ કરો",
+  "actionShare": "શેર કરો",
+  "actionPrint": "પ્રિન્ટ કરો",
+  "actionDone": "થઈ ગયું",
+  "actionRemove": "દૂર કરો",
+  "actionViewAll": "બધું જુઓ",
+  "statTotalProducts": "ઉત્પાદનો",
+  "statOutOfStock": "સ્ટોકમાં નથી",
+  "statInactive": "નિષ્ક્રિય",
+  "statPendingDealers": "બાકી ડીલરો",
+  "dashboardQuickActions": "ઝડપી ક્રિયાઓ",
+  "dashboardRecentProducts": "તાજેતરમાં ઉમેરાયેલા",
+  "actionAddProduct": "ઉત્પાદન ઉમેરો",
+  "actionPrintLabels": "લેબલ પ્રિન્ટ કરો",
+  "actionReviewDealers": "ડીલરો તપાસો",
+  "productsTitle": "ઉત્પાદનો",
+  "searchProductsHint": "નામ, મોડેલ કે કોડ શોધો",
+  "filterTitle": "ફિલ્ટર અને ક્રમ",
+  "filterCategory": "શ્રેણી",
+  "filterStatus": "ઉપલબ્ધતા",
+  "filterSort": "આ પ્રમાણે ગોઠવો",
+  "categoryAll": "બધી શ્રેણીઓ",
+  "categoryDomestic": "ઘરેલું",
+  "categoryCommercial": "વાણિજ્યિક",
+  "categoryIndustrial": "ઔદ્યોગિક",
+  "categorySparePart": "સ્પેર પાર્ટ",
+  "categoryAccessory": "એક્સેસરી",
+  "statusAll": "બધા",
+  "statusActive": "સક્રિય",
+  "statusInactiveFilter": "નિષ્ક્રિય",
+  "statusOutOfStockFilter": "સ્ટોકમાં નથી",
+  "sortNewest": "નવીનતમ પહેલાં",
+  "sortName": "નામ",
+  "sortPriceLowHigh": "ભાવ, ઓછાથી વધુ",
+  "sortPriceHighLow": "ભાવ, વધુથી ઓછા",
+  "labelWholesale": "જથ્થાબંધ",
+  "labelRetail": "છૂટક",
+  "labelMrp": "MRP",
+  "labelMargin": "ડીલર માર્જિન",
+  "badgeInStock": "સ્ટોકમાં",
+  "badgeOutOfStock": "સ્ટોકમાં નથી",
+  "badgeInactive": "નિષ્ક્રિય",
+  "productsEmptyTitle": "હજી કોઈ ઉત્પાદન નથી",
+  "productsEmptyBody": "તમારું પહેલું ઉત્પાદન ઉમેરો, ડેટાબેઝ તેનો કાયમી બારકોડ આપશે.",
+  "productsNoResultsTitle": "એવું કંઈ મળ્યું નથી",
+  "productsNoResultsBody": "બીજો શબ્દ શોધો, અથવા આખું કેટલોગ જોવા ફિલ્ટર સાફ કરો.",
+  "productsClearFilters": "ફિલ્ટર સાફ કરો",
+  "quickToggleStock": "સ્ટોક બદલો",
+  "quickToggleActive": "સક્રિય બદલો",
+  "quickDuplicate": "નકલ કરો",
+  "deleteProductTitle": "ઉત્પાદન કાઢી નાખવું છે?",
+  "deleteProductBody": "{name} તેના ફોટા સાથે કેટલોગમાંથી દૂર થશે. આ પાછું લાવી શકાશે નહીં.",
+  "@deleteProductBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "productDeleted": "{name} કાઢી નાખ્યું",
+  "@productDeleted": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "productDuplicated": "{name} ની નકલ થઈ",
+  "@productDuplicated": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "productSaved": "ઉત્પાદન સાચવ્યું",
+  "formNewTitle": "નવું ઉત્પાદન",
+  "formEditTitle": "ઉત્પાદનમાં ફેરફાર",
+  "sectionPhotos": "ફોટા",
+  "sectionBasics": "મૂળ વિગતો",
+  "sectionSpecifications": "વિશિષ્ટતાઓ",
+  "sectionPricing": "ભાવ",
+  "sectionAvailability": "ઉપલબ્ધતા",
+  "photosHelp": "વધુમાં વધુ {count} ફોટા. પહેલો ફોટો કેટલોગ કાર્ડ પર વપરાય છે.",
+  "@photosHelp": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "photosAdd": "ફોટો ઉમેરો",
+  "photosPrimary": "મુખ્ય",
+  "photosSetPrimary": "મુખ્ય બનાવો",
+  "photosRemoveTitle": "ફોટો દૂર કરવો છે?",
+  "photosRemoveBody": "આ ફોટો ઉત્પાદન સાથે સાચવવામાં આવશે નહીં.",
+  "photosLimitReached": "તમે વધુમાં વધુ {count} ફોટા જોડી શકો છો.",
+  "@photosLimitReached": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "photosUploadFailed": "આ ફોટો અપલોડ થઈ શક્યો નથી. ફરી પ્રયાસ કરવા ટૅપ કરો.",
+  "photosReorderHint": "ક્રમ બદલવા ફોટો દબાવી રાખો.",
+  "chooseSourceTitle": "ફોટો ઉમેરો",
+  "sourceCamera": "ફોટો પાડો",
+  "sourceGallery": "ગેલેરીમાંથી પસંદ કરો",
+  "permissionCameraTitle": "કૅમેરાની પરવાનગી બંધ છે",
+  "permissionCameraBody": "ઉત્પાદનનો ફોટો પાડવા મારુતિ વોટરને કૅમેરાની જરૂર છે. તમે સેટિંગ્સમાં તે ચાલુ કરી શકો છો.",
+  "permissionOpenSettings": "સેટિંગ્સ ખોલો",
+  "permissionSettingsFailed": "આ ઉપકરણ પર સેટિંગ્સ ખોલી શકાયું નથી.",
+  "fieldProductName": "ઉત્પાદનનું નામ",
+  "fieldModelNumber": "મોડેલ નંબર",
+  "fieldCategoryLabel": "શ્રેણી",
+  "fieldDescription": "વર્ણન",
+  "fieldCapacity": "ક્ષમતા",
+  "capacityHelp": "ઉદાહરણ: 25 LPH, અથવા 12 L",
+  "fieldWarrantyMonths": "વોરંટી (મહિના)",
+  "fieldMrpLabel": "MRP",
+  "fieldWholesaleLabel": "જથ્થાબંધ ભાવ",
+  "fieldRetailLabel": "છૂટક ભાવ",
+  "specDetailsLabel": "વિગતવાર વિશિષ્ટતાઓ",
+  "specAddRow": "વિશિષ્ટતા ઉમેરો",
+  "specKeyHint": "સ્ટેજ",
+  "specValueHint": "7",
+  "specEmpty": "હજી કોઈ વિશિષ્ટતા નથી. મેમ્બ્રેન કે બોડી મટીરિયલ જેવી પંક્તિઓ ઉમેરો.",
+  "fieldInStockLabel": "સ્ટોકમાં",
+  "fieldInStockHelp": "ડીલરોને આ ઉત્પાદન ઓર્ડર માટે ઉપલબ્ધ દેખાશે.",
+  "fieldActiveLabel": "સક્રિય",
+  "fieldActiveHelp": "નિષ્ક્રિય ઉત્પાદનો દરેક ડીલર કેટલોગમાંથી છુપાયેલા રહે છે.",
+  "priceErrorRetailBelowWholesale": "છૂટક ભાવ જથ્થાબંધ ભાવ કરતાં ઓછો ન હોઈ શકે",
+  "priceErrorNotPositive": "શૂન્યથી વધુ રકમ દાખલ કરો",
+  "priceWarningAboveMrp": "આ ભાવ તમે દાખલ કરેલા MRP કરતાં વધારે છે",
+  "priceWarningZeroMargin": "છૂટક ભાવ જથ્થાબંધ જેટલો જ છે, ડીલરને કંઈ મળશે નહીં",
+  "marginChip": "{amount} માર્જિન ({percent}%)",
+  "@marginChip": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      },
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "marginUnavailable": "માર્જિન જોવા બંને ભાવ દાખલ કરો",
+  "unsavedTitle": "ફેરફારો છોડી દેવા છે?",
+  "unsavedBody": "આ ઉત્પાદનમાં કરેલા તમારા ફેરફારો સાચવ્યા નથી.",
+  "unsavedDiscard": "છોડી દો",
+  "unsavedKeepEditing": "ફેરફાર ચાલુ રાખો",
+  "formUploadsInFlight": "ફોટા અપલોડ થાય ત્યાં સુધી રાહ જુઓ",
+  "createdTitle": "ઉત્પાદન બન્યું",
+  "createdBody": "આ કોડ કાયમી છે અને હવે આ ઉત્પાદનના દરેક લેબલ પર છપાય છે.",
+  "createdCodeLabel": "ઉત્પાદન કોડ",
+  "createdCopied": "ઉત્પાદન કોડ કૉપિ થયો",
+  "barcodeCode128": "Code 128",
+  "barcodeQr": "QR",
+  "detailScanCount": "{count} સ્કેન",
+  "@detailScanCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "detailSpecifications": "વિશિષ્ટતાઓ",
+  "detailNoSpecifications": "કોઈ વિશિષ્ટતા નોંધાઈ નથી.",
+  "detailDescription": "વર્ણન",
+  "detailPricing": "ભાવ",
+  "detailWarranty": "{count} મહિનાની વોરંટી",
+  "@detailWarranty": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "detailNoImages": "હજી કોઈ ફોટો નથી",
+  "labelsTitle": "લેબલ પ્રિન્ટ કરો",
+  "labelsSelectProducts": "ઉત્પાદનો પસંદ કરો",
+  "labelsLayout": "શીટ લેઆઉટ",
+  "labelsQuantity": "ઉત્પાદન દીઠ લેબલ",
+  "labelsSelectedCount": "{count} પસંદ થયા",
+  "@labelsSelectedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "labelsSummary": "{sheets} શીટ પર {labels} લેબલ",
+  "@labelsSummary": {
+    "placeholders": {
+      "labels": {
+        "type": "int"
+      },
+      "sheets": {
+        "type": "int"
+      }
+    }
+  },
+  "labelsPreview": "પૂર્વાવલોકન",
+  "labelsEmptyTitle": "લેબલ માટે ઉત્પાદનો પસંદ કરો",
+  "labelsEmptyBody": "એક કે વધુ ઉત્પાદન પસંદ કરો અને દરેકને કેટલા લેબલ જોઈએ તે નક્કી કરો.",
+  "labelsNoProductsTitle": "લેબલ માટે કોઈ ઉત્પાદન નથી",
+  "labelsNoProductsBody": "પહેલાં ઉત્પાદન ઉમેરો, તે અહીં પ્રિન્ટ માટે તૈયાર દેખાશે.",
+  "labelsBarcodeTooFine": "આ સ્ટોક પર બાર {width} મિમી છપાય છે. હેન્ડહેલ્ડ સ્કેનરને આશરે {minimum} મિમી જોઈએ, તેથી આખો પ્રિન્ટ ચલાવતાં પહેલાં એક ટેસ્ટ લેબલ સ્કેન કરો.",
+  "labelsFilterNotice": "તમારા કેટલોગ ફિલ્ટર સાથે મેળ ખાતી પ્રોડક્ટ બતાવાય છે. બધું જોવા માટે પ્રોડક્ટ ટેબ પર ફિલ્ટર સાફ કરો.",
+  "labelsGenerateFailed": "લેબલ શીટ બની શકી નથી.",
+  "dealersTitle": "ડીલરો",
+  "dealersTabPending": "બાકી",
+  "dealersTabApproved": "મંજૂર",
+  "dealersTabRejected": "નામંજૂર",
+  "dealersTabSuspended": "સ્થગિત",
+  "dealersEmptyPendingTitle": "કોઈ રાહ જોતું નથી",
+  "dealersEmptyPendingBody": "નવા ડીલર નોંધણી અહીં દેખાશે, જ્યાં તમે મંજૂર કે નામંજૂર કરી શકશો.",
+  "dealersEmptyTitle": "આ યાદીમાં કંઈ નથી",
+  "dealersEmptyBody": "તમે જે ડીલરોને આ સ્થિતિમાં મૂકશો તે અહીં દેખાશે.",
+  "dealerApprove": "મંજૂર કરો",
+  "dealerReject": "નામંજૂર કરો",
+  "dealerSuspend": "સ્થગિત કરો",
+  "dealerReactivate": "ફરી ચાલુ કરો",
+  "dealerApproveTitle": "કઈ ભૂમિકા તરીકે મંજૂર કરવું?",
+  "dealerApproveBody": "{name} ને તમે પસંદ કરેલી ભૂમિકાના ભાવ જ દેખાશે, બીજું કંઈ નહીં.",
+  "@dealerApproveBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "dealerRejectTitle": "{name} ને નામંજૂર કરવું છે?",
+  "@dealerRejectTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "dealerRejectBody": "તેઓ આગલી વખતે એપ ખોલશે ત્યારે તમે આપેલું કારણ જોશે.",
+  "dealerRejectReason": "કારણ",
+  "dealerRejectReasonHint": "ઉદાહરણ: પેઢીની વિગતો ચકાસી શકાઈ નથી",
+  "dealerSuspendTitle": "{name} ને સ્થગિત કરવું છે?",
+  "@dealerSuspendTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "dealerSuspendBody": "તેમની કેટલોગ પહોંચ તરત બંધ થશે, પહેલેથી સાઇન ઇન કરેલા ઉપકરણ પર પણ.",
+  "dealerReactivateTitle": "{name} ને ફરી ચાલુ કરવું છે?",
+  "@dealerReactivateTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "dealerReactivateBody": "તેમની પહેલાંની ભૂમિકા સાથે કેટલોગ પહોંચ પાછી મળશે.",
+  "dealerApproved": "{name} મંજૂર થયા",
+  "@dealerApproved": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "dealerRejectedToast": "{name} નામંજૂર થયા",
+  "@dealerRejectedToast": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "dealerSuspendedToast": "{name} સ્થગિત થયા",
+  "@dealerSuspendedToast": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "dealerReactivatedToast": "{name} ફરી ચાલુ થયા",
+  "@dealerReactivatedToast": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "dealerGstLabel": "GST",
+  "dealerNoGst": "આપેલું નથી",
+  "moreTitle": "વધુ",
+  "moreAccount": "ખાતું",
+  "moreTools": "સાધનો",
+  "moreAbout": "વિશે",
+  "moreVersion": "આવૃત્તિ {version}",
+  "@moreVersion": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "requestsTitle": "મંજૂરી વિનંતીઓ",
+  "requestsSubtitle": "{count, plural, =0{કંઈ બાકી નથી} =1{1 ડીલર તમારી રાહ જુએ છે} other{{count} ડીલર તમારી રાહ જુએ છે}}",
+  "requestsEmptyTitle": "કંઈ બાકી નથી",
+  "requestsEmptyBody": "નવી ડીલર નોંધણી તમારા નિર્ણય માટે અહીં દેખાશે.",
+  "requestsTimeAgo": "{age} વિનંતી કરી",
+  "actionCall": "કૉલ",
+  "actionWhatsApp": "વોટ્સએપ",
+  "requestedRole": "માગેલી ભૂમિકા",
+  "approveSheetTitle": "{firm} ને મંજૂરી આપો",
+  "approveSheetBody": "તેમણે {role} તરીકે માગ્યું છે. તેની પુષ્ટિ કરો અથવા બદલો - ભૂમિકા નક્કી કરે છે કે તેમને કયો ભાવ દેખાશે.",
+  "approveSheetWarning": "આ તેમણે જાતે પસંદ કર્યું છે. મંજૂરી પહેલાં ચકાસો કે તે યોગ્ય છે.",
+  "approveSheetConfirm": "{role} તરીકે મંજૂરી આપો",
+  "rejectSheetTitle": "{firm} ને નકારો",
+  "rejectSheetBody": "કારણ પસંદ કરો. ડીલર આ વાંચશે, તેથી સરળ રાખો.",
+  "rejectReasonNotBusiness": "નોંધાયેલ વ્યવસાય નથી",
+  "rejectReasonDuplicate": "ડુપ્લિકેટ ખાતું",
+  "rejectReasonOutsideArea": "સેવા વિસ્તારની બહાર",
+  "rejectReasonOther": "અન્ય",
+  "rejectNotesLabel": "વધુ કંઈ ઉમેરવું છે",
+  "rejectNotesHint": "ડીલર માટે વૈકલ્પિક વિગત",
+  "rejectPickReason": "પહેલાં કારણ પસંદ કરો",
+  "rejectNeedsNote": "કારણ જણાવો",
+  "actionConfirmReject": "ડીલર નકારો",
+  "directorySegmentAll": "બધા",
+  "directorySegmentWholesalers": "જથ્થાબંધ",
+  "directorySegmentRetailers": "છૂટક",
+  "directorySegmentSuspended": "સ્થગિત",
+  "directorySearchHint": "પેઢી, નામ, ફોન કે શહેર શોધો",
+  "directoryEmptyTitle": "હજી કોઈ ડીલર નથી",
+  "directoryEmptyBody": "મંજૂર થયેલા ડીલર આ યાદીમાં દેખાશે.",
+  "directoryNoResultsTitle": "કોઈ મેળ નથી",
+  "directoryNoResultsBody": "બીજું પેઢીનું નામ, ફોન નંબર કે શહેર અજમાવો.",
+  "directoryPendingBanner": "{count, plural, =1{1 ડીલર મંજૂરીની રાહ જુએ છે} other{{count} ડીલર મંજૂરીની રાહ જુએ છે}}",
+  "dealerDetailTitle": "ડીલર",
+  "dealerApprovedOn": "મંજૂરી તારીખ",
+  "dealerApprovedBy": "મંજૂરી આપનાર",
+  "dealerApprovedByYou": "તમે",
+  "dealerRegisteredOn": "નોંધણી તારીખ",
+  "dealerTotalScans": "કુલ સ્કેન",
+  "dealerLastActive": "છેલ્લે સક્રિય",
+  "dealerNeverActive": "એપ ક્યારેય વાપરી નથી",
+  "dealerAddressLabel": "સરનામું",
+  "dealerNoAddress": "આપેલ નથી",
+  "dealerChangeRole": "ભૂમિકા બદલો",
+  "dealerChangeRoleTitle": "{firm} ની ભૂમિકા બદલો",
+  "dealerChangeRoleBody": "આનાથી તેમના આગલા સાઇન-ઇનથી કયો ભાવ દેખાશે તે બદલાશે.",
+  "dealerRoleChanged": "{firm} હવે {role} છે",
+  "dealerResetPassword": "પાસવર્ડ રીસેટ મોકલો",
+  "dealerResetPasswordTitle": "રીસેટ લિંક મોકલવી?",
+  "dealerResetPasswordBody": "{firm} ને નવો પાસવર્ડ સેટ કરવાની લિંક સાથે ઈમેલ મળશે. તમને પાસવર્ડ દેખાશે નહિં.",
+  "dealerResetPasswordSent": "રીસેટ લિંક મોકલી",
+  "dashboardTitle": "ડેશબોર્ડ",
+  "dashboardNeedsAttention": "તમારું ધ્યાન જરૂરી",
+  "dashboardPendingCta": "{count, plural, =1{1 ડીલર રાહ જુએ છે} other{{count} ડીલર રાહ જુએ છે}}",
+  "dashboardPendingClear": "કોઈ વિનંતી બાકી નથી",
+  "dashboardCatalogue": "કેટલોગ",
+  "dashboardNetwork": "ડીલર નેટવર્ક",
+  "dashboardTopScanned": "છેલ્લા 30 દિવસમાં સૅથી વધુ સ્કેન",
+  "dashboardTopScannedEmpty": "હજી કોઈ સ્કેન નોંધાયું નથી. ડીલર સ્કેન કરવાનું શરૂ કરે એટલે ગણતરી દેખાશે.",
+  "dashboardScanCount": "{count, plural, =1{1 સ્કેન} other{{count} સ્કેન}}",
+  "dashboardRecentlyAdded": "તાજેતરમાં ઉમેરેલ",
+  "dashboardActivity": "તાજેતરની ડીલર પ્રવૃત્તિ",
+  "dashboardActivityEmpty": "હજી કોઈ ડીલર નિર્ણય નથી.",
+  "dashboardCardFailed": "આ લોડ થઈ શક્યું નહિં",
+  "statActiveProducts": "સક્રિય",
+  "statWholesalers": "જથ્થાબંધ",
+  "statRetailers": "છૂટક",
+  "statSuspended": "સ્થગિત",
+  "actionViewRequests": "વિનંતીઓ જુઓ",
+  "activityApproved": "{firm} ને મંજૂરી મળી",
+  "activityRejected": "{firm} નકારાયું",
+  "activitySuspended": "{firm} સ્થગિત",
+  "activityReactivated": "{firm} ફરી સક્રિય",
+  "activityRoleChanged": "{firm} ની ભૂમિકા બદલાઈ",
+  "timeJustNow": "હમણાં જ",
+  "timeMinutes": "{count, plural, =1{1 મિનિટ પહેલાં} other{{count} મિનિટ પહેલાં}}",
+  "timeHours": "{count, plural, =1{1 કલાક પહેલાં} other{{count} કલાક પહેલાં}}",
+  "timeDays": "{count, plural, =1{ગઈકાલે} other{{count} દિવસ પહેલાં}}",
+  "moreProfile": "તમારી પ્રોફાઇલ",
+  "moreChangePassword": "પાસવર્ડ બદલો",
+  "moreBusinessDetails": "વ્યવસાયની વિગતો",
+  "moreBusinessDetailsHelp": "લેબલ અને નિકાસ પર છપાય છે",
+  "moreLanguage": "ભાષા",
+  "moreLanguageSystem": "ઉપકરણની ભાષા",
+  "moreExportCatalogue": "કેટલોગ નિકાસ (PDF)",
+  "moreExportCatalogueHelp": "બંને ભાવ કૉલમ. ડીલર સાથે શેર ન કરો.",
+  "moreExportDealers": "ડીલર યાદી નિકાસ (CSV)",
+  "moreSupport": "Krishna AI Links નો સંપર્ક કરો",
+  "moreSupportHelp": "એપ સપોર્ટ અને ફેરફારો",
+  "moreExportEmpty": "નિકાસ કરવા માટે હજી કંઈ નથી.",
+  "moreExportFailed": "નિકાસ બનાવી શકાઈ નહિં.",
+  "businessTitle": "વ્યવસાયની વિગતો",
+  "businessIntro": "આ દરેક છપાયેલા લેબલ અને કેટલોગ નિકાસ પર દેખાય છે. અહીં બદલવાથી તમે આગળ જે છાપશો તે અપડેટ થશે.",
+  "businessNameLabel": "વ્યવસાયનું નામ",
+  "businessPhoneLabel": "ફોન",
+  "businessAddressLabel": "સરનામું",
+  "businessSaved": "વ્યવસાયની વિગતો સાચવી",
+  "businessPreview": "લેબલ પૂર્વાવલોકન",
+  "profileTitle": "તમારી પ્રોફાઇલ",
+  "passwordTitle": "પાસવર્ડ બદલો",
+  "passwordNewLabel": "નવો પાસવર્ડ",
+  "passwordConfirmLabel": "નવો પાસવર્ડ ફરી લખો",
+  "passwordMismatch": "બંને પાસવર્ડ મેળ ખાતા નથી",
+  "passwordChanged": "પાસવર્ડ બદલાયો",
+  "languageTitle": "એપ ભાષા",
+  "languageEnglish": "English",
+  "languageGujarati": "ગુજરાતી",
+  "errorRevokedTitle": "તમારું ખાતું હવે સક્રિય નથી",
+  "errorRevokedBody": "મારુતિ વોટર સોલ્યુશને તમારો પ્રવેશ થોભાવ્યો છે. પુનઃ ચાલુ કરવા તેમનો સંપર્ક કરો.",
+  "navCatalogue": "કેટલોગ",
+  "navScan": "સ્કેન",
+  "navSaved": "સાચવેલ",
+  "navAccount": "ખાતું",
+  "catalogueTitle": "કેટલોગ",
+  "catalogueSearchHint": "નામ, મોડેલ કે કોડથી શોધો",
+  "catalogueEmptyTitle": "કેટલોગમાં હજી કંઈ નથી",
+  "catalogueEmptyBody": "મારુતિ વોટર સોલ્યુશન ઉમેરે તે પ્રોડક્ટ અહીં દેખાશે.",
+  "catalogueNoResultsTitle": "કોઈ મેળ ખાતી પ્રોડક્ટ નથી",
+  "catalogueNoResultsBody": "બીજું નામ, મોડેલ નંબર કે શ્રેણી અજમાવો.",
+  "labelWholesalePrice": "જથ્થાબંધ ભાવ",
+  "labelRetailPrice": "છૂટક ભાવ",
+  "catalogueSortName": "નામ",
+  "catalogueSortPriceLow": "ભાવ: ઓછાથી વધુ",
+  "catalogueSortPriceHigh": "ભાવ: વધુથી ઓછા",
+  "catalogueSortLabel": "ક્રમ",
+  "catalogueCountLabel": "{count, plural, =1{1 પ્રોડક્ટ} other{{count} પ્રોડક્ટ}}",
+  "offlineBannerTitle": "ઓફલાઇન — સાચવેલ કેટલોગ બતાવાય છે",
+  "offlineBannerUpdated": "છેલ્લે અપડેટ {age}",
+  "offlineExpiredTitle": "સાચવેલ કેટલોગ જૂનો છે",
+  "offlineExpiredBody": "આ કેટલોગ 7 દિવસથી જૂનો છે, તેથી ભાવ બદલાયા હોઈ શકે. તાજું કરવા ઇન્ટરનેટ સાથે જોડાઓ.",
+  "offlineRefreshing": "પૃષ્ઠભૂમિમાં તાજું થાય છે",
+  "scanTitle": "પ્રોડક્ટ સ્કેન કરો",
+  "scanHint": "લેબલ પરના બારકોડ કે QR કોડ પર કેમેરા રાખો",
+  "scanTorchOn": "લાઇટ ચાલુ કરો",
+  "scanTorchOff": "લાઇટ બંધ કરો",
+  "scanFlipCamera": "કેમેરા બદલો",
+  "scanManualEntry": "કોડ જાતે લખો",
+  "scanManualTitle": "પ્રોડક્ટ કોડ લખો",
+  "scanManualHint": "MWS-DOM-001042-Z",
+  "scanManualHelp": "કોડ લેબલ પર બારકોડ નીચે છપાયેલો છે.",
+  "scanInvalidCode": "આ કોડ મારુતિ વોટર સોલ્યુશનનો પ્રોડક્ટ કોડ નથી",
+  "scanUnknownCode": "કોડ સાચો છે પણ તેની સાથે કોઈ પ્રોડક્ટ મળતી નથી",
+  "scanLookupFailed": "શોધી શકાયું નહિં. તમારું જોડાણ તપાસો.",
+  "scanPermissionTitle": "સ્કેન કરવા કેમેરાની પરવાનગી જોઈએ",
+  "scanPermissionBody": "એપ લેબલ પરના બારકોડ વાંચી શકે તે માટે કેમેરાની પરવાનગી આપો.",
+  "scanPermissionDeniedBody": "આ એપ માટે કેમેરા બંધ છે. સ્કેન કરવા સેટિંગ્સમાં ચાલુ કરો.",
+  "scanCameraFailed": "કેમેરા શરૂ થઈ શક્યો નહિં",
+  "scanSearching": "કોડ શોધાય છે",
+  "productDetailTitle": "પ્રોડક્ટ",
+  "productNoImages": "આ પ્રોડક્ટ માટે ફોટો નથી",
+  "productSpecifications": "વિશિષ્ટતાઓ",
+  "productNoSpecifications": "કોઈ વિશિષ્ટતા આપેલ નથી",
+  "productWarranty": "{count, plural, =1{1 મહિનાની વોરંટી} other{{count} મહિનાની વોરંટી}}",
+  "productDescription": "વર્ણન",
+  "actionSaved": "સાચવેલ",
+  "productSavedToast": "{name} સાચવ્યું",
+  "productUnsavedToast": "{name} સાચવેલમાંથી દૂર કર્યું",
+  "actionEnquire": "પૂછપરછ",
+  "productShareFailed": "શેર શીટ ખૂલી શકી નહિં",
+  "productZoomHint": "ઝૂમ કરવા પિંચ કરો",
+  "shareHeading": "{business} — પ્રોડક્ટ વિગત",
+  "shareCodeLabel": "કોડ",
+  "sharePriceLabel": "ભાવ",
+  "shareEnquiry": "નમસ્તે, મારે {name} ({code}) વિશે પૂછપરછ કરવી છે.",
+  "savedTitle": "સાચવેલ પ્રોડક્ટ",
+  "savedSearchHint": "સાચવેલ પ્રોડક્ટ શોધો",
+  "savedEmptyTitle": "હજી કંઈ સાચવ્યું નથી",
+  "savedEmptyBody": "કેટલોગમાંથી પ્રોડક્ટ સાચવો, તે અહીં ભાવપત્રક માટે તૈયાર દેખાશે.",
+  "savedRemove": "દૂર કરો",
+  "savedExportPdf": "PDF તરીકે નિકાસ કરો",
+  "savedExportFailed": "ભાવપત્રક બનાવી શકાયું નહિં",
+  "savedCount": "{count, plural, =1{1 સાચવેલ પ્રોડક્ટ} other{{count} સાચવેલ પ્રોડક્ટ}}",
+  "quotationTitle": "ભાવપત્રક",
+  "accountTitle": "ખાતું",
+  "accountCacheSection": "ઓફલાઇન કેટલોગ",
+  "accountCacheStatus": "આ ફોનમાં {count} પ્રોડક્ટ સાચવેલી, {size}",
+  "accountCacheEmpty": "ઓફલાઇન વપરાશ માટે હજી કંઈ સાચવ્યું નથી",
+  "accountCacheUpdated": "અપડેટ {age}",
+  "accountClearCache": "ઓફલાઇન કેટલોગ સાફ કરો",
+  "accountClearCacheTitle": "ઓફલાઇન કેટલોગ સાફ કરવો?",
+  "accountClearCacheBody": "આગલી વખતે સિગ્નલ મળે ત્યારે કેટલોગ ફરી ડાઉનલોડ થશે. તમારી સાચવેલ પ્રોડક્ટ રહેશે.",
+  "accountCacheCleared": "ઓફલાઇન કેટલોગ સાફ કર્યો",
+  "actionClose": "બંધ કરો",
+  "scanPermissionAllow": "કેમેરાની પરવાનગી આપો",
+  "savedNoResultsTitle": "કોઈ મેળ ખાતી સાચવેલ પ્રોડક્ટ નથી",
+  "savedNoResultsBody": "બીજું નામ, મોડેલ નંબર કે કોડ અજમાવો.",
+  "scanManualFieldLabel": "પ્રોડક્ટ કોડ",
+  "unitDetailsTitle": "પ્રોડક્ટ યુનિટ વિગત",
+  "unitNotFoundTitle": "પ્રોડક્ટ યુનિટ મળ્યું નથી",
+  "unitNotFoundBody": "આ યુનિટ સીરિયલ કોડ મારુતિ વોટર સોલ્યુશન ડેટાબેઝમાં મળ્યો નથી.",
+  "unitActionRaiseComplaint": "સર્વિસ ફરિયાદ કરો",
+  "unitSectionMachineTitle": "મશીનની માહિતી",
+  "unitLabelSerialNumber": "સીરિયલ નંબર",
+  "unitLabelManufacturedAt": "ઉત્પાદન તારીખ",
+  "unitSerialCopied": "સીરિયલ નંબર કોપી થયો",
+  "unitSectionWarrantyTitle": "વોરંટી સ્થિતિ",
+  "warrantyStatusActive": "સક્રિય",
+  "warrantyStatusExpired": "પૂર્ણ થયેલ",
+  "warrantyStatusUnactivated": "માનક વોરંટી",
+  "warrantyLabelStandardCoverage": "માનક સમગ્રીતા",
+  "unitMonths": "મહિના",
+  "warrantyLabelCustomerName": "ગ્રાહકનું નામ",
+  "warrantyLabelCustomerPhone": "ગ્રાહકનો ફોન",
+  "warrantyLabelInstallationDate": "ઇન્સ્ટોલેશન તારીખ",
+  "warrantyLabelEndDate": "વોરંટી પૂર્ણ તારીખ",
+  "warrantyLabelInvoiceNumber": "ઇન્વોઇસ નંબર",
+  "warrantyUnactivatedHelp": "માનક ફેક્ટરી વોરંટી લાગુ થાય છે. ઇન્સ્ટોલેશન વખતે વોરંટી સક્રિય થશે.",
+  "manageBannersTitle": "બેનર મેનેજ કરો",
+  "manageBannersSubtitle": "હોમ ડેશબોર્ડ સ્લાઇડર બેનર મેનેજ કરો",
+  "actionAddBanner": "બેનર ઉમેરો",
+  "bannerStatusActive": "સક્રિય",
+  "bannerStatusInactive": "નિષ્ક્રિય",
+  "bannerActionReplace": "ઇમેજ બદલો",
+  "bannerActionMoveUp": "ઉપર ખસેડો",
+  "bannerActionMoveDown": "નીચે ખસેડો",
+  "bannerActionDelete": "બેનર કાઢી નાખો",
+  "bannerDeleteConfirmTitle": "બેનર કાઢી નાખવું છે?",
+  "bannerDeleteConfirmBody": "શું તમે ખરેખર આ બેનર કાઢી નાખવા માંગો છો?",
+  "bannerRecommendedHint": "ભલામણ કરેલ ફોર્મેટ: 16:7 આસ્પેક્ટ રેશિયો પોહળું બેનર.",
+  "bannerEmptyTitle": "કોઈ બેનર ઉમેરેલ નથી",
+  "bannerEmptyBody": "યુઝર ડેશબોર્ડ સ્લાઇડર માટે બેનર ઉમેરવા બેનર ઉમેરો પર ટેપ કરો.",
+  "bannerUploadSuccess": "બેનર સફળતાપૂર્વક અપલોડ થયું",
+  "bannerDeleteSuccess": "બેનર કાઢી નાખવામાં આવ્યું",
+  "scanOptionRegisterProduct": "પ્રોડક્ટ રજીસ્ટર કરો",
+  "scanOptionClaimWarranty": "ક્લેમ / વોરંટી",
+  "scanOptionScanCode": "કોડ સ્કેન કરો",
+  "scanFromGallery": "ગેલેરીમાંથી સ્કેન કરો",
+  "scanNoQrFound": "આ ઇમેજમાં કોઈ QR કોડ મળ્યો નથી.",
+  "scanMultipleQrFound": "એક કરતાં વધુ QR કોડ મળ્યા. કૃપા કરીને એક QR કોડ ધરાવતી ઇમેજ પસંદ કરો.",
+  "scanInvalidCode": "અમાન્ય કોડ."
+}
+

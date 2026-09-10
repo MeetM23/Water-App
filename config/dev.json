@@ -1,0 +1,7 @@
+{
+  "APP_FLAVOR": "dev",
+  "SUPABASE_URL": "https://werwkbfyuwntaanlknje.supabase.co",
+  "SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndlcndrYmZ5dXdudGFhbmxrbmplIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgwNzg4MDAsImV4cCI6MjEwMzY1NDgwMH0.n4u8Hr4J-_zEAZjQSxx96IL_DEILZmiIpBDwobkpFWg",
+  "SENTRY_DSN": "",
+  "SENTRY_RELEASE": "com.krishnaailinks.marutiwater.dev"
+}

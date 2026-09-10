@@ -1,0 +1,2340 @@
+{
+  "@@locale": "en",
+  "appName": "Maruti Water",
+  "@appName": {
+    "description": "Application name shown on the launcher and app bars."
+  },
+  "actionRetry": "Retry",
+  "@actionRetry": {
+    "description": "Button that re-runs a failed operation."
+  },
+  "actionCancel": "Cancel",
+  "@actionCancel": {
+    "description": "Dismisses a dialog without acting."
+  },
+  "actionSignOut": "Sign out",
+  "@actionSignOut": {
+    "description": "Ends the current session."
+  },
+  "actionRefresh": "Refresh",
+  "@actionRefresh": {
+    "description": "Reloads the current screen."
+  },
+  "actionContinue": "Continue",
+  "@actionContinue": {
+    "description": "Confirms and proceeds."
+  },
+  "errorGenericTitle": "Something went wrong",
+  "@errorGenericTitle": {
+    "description": "Headline for an unclassified failure."
+  },
+  "errorGenericBody": "We could not complete that just now. Please try again.",
+  "@errorGenericBody": {
+    "description": "Body text for an unclassified failure."
+  },
+  "errorNetworkTitle": "No internet connection",
+  "@errorNetworkTitle": {
+    "description": "Headline shown when the device is offline."
+  },
+  "errorNetworkBody": "Check your mobile data or Wi-Fi, then try again.",
+  "@errorNetworkBody": {
+    "description": "Body text shown when the device is offline."
+  },
+  "errorServerTitle": "Maruti Water is not responding",
+  "@errorServerTitle": {
+    "description": "Headline for a backend failure."
+  },
+  "errorServerBody": "The service is temporarily unavailable. Please try again in a moment.",
+  "@errorServerBody": {
+    "description": "Body text for a backend failure."
+  },
+  "errorRateLimitedTitle": "Too many attempts",
+  "@errorRateLimitedTitle": {
+    "description": "Headline when the server refuses for rate limiting."
+  },
+  "errorRateLimitedBody": "Please wait a few minutes before trying again.",
+  "@errorRateLimitedBody": {
+    "description": "Body text when the server refuses for rate limiting."
+  },
+  "errorSessionExpiredTitle": "You have been signed out",
+  "@errorSessionExpiredTitle": {
+    "description": "Headline when the auth token could not be refreshed."
+  },
+  "errorSessionExpiredBody": "Your session expired. Please sign in again.",
+  "@errorSessionExpiredBody": {
+    "description": "Body text when the auth token could not be refreshed."
+  },
+  "validationRequired": "{field} is required",
+  "@validationRequired": {
+    "description": "Inline error under an empty required field.",
+    "placeholders": {
+      "field": {
+        "type": "String",
+        "example": "Full name"
+      }
+    }
+  },
+  "validationEmail": "Enter a valid email address",
+  "@validationEmail": {
+    "description": "Inline error for a malformed email."
+  },
+  "validationPhone": "Enter a 10-digit mobile number",
+  "@validationPhone": {
+    "description": "Inline error for a malformed Indian mobile number."
+  },
+  "validationPassword": "Use at least 8 characters",
+  "@validationPassword": {
+    "description": "Inline error for a short password."
+  },
+  "validationGst": "Enter a valid 15-character GST number",
+  "@validationGst": {
+    "description": "Inline error for a malformed GSTIN."
+  },
+  "validationTooShort": "Enter at least {count} characters",
+  "@validationTooShort": {
+    "description": "Inline error for a field below its minimum length.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "2"
+      }
+    }
+  },
+  "loginTitle": "Sign in",
+  "@loginTitle": {
+    "description": "Login screen headline."
+  },
+  "loginSubtitle": "Maruti Water Solution dealer portal",
+  "@loginSubtitle": {
+    "description": "Login screen supporting line."
+  },
+  "loginSubmit": "Sign in",
+  "@loginSubmit": {
+    "description": "Login submit button."
+  },
+  "loginNoAccount": "New dealer?",
+  "@loginNoAccount": {
+    "description": "Prompt above the sign-up link."
+  },
+  "loginCreateAccount": "Create an account",
+  "@loginCreateAccount": {
+    "description": "Link to the sign-up screen."
+  },
+  "loginFailed": "Email or password is incorrect.",
+  "@loginFailed": {
+    "description": "Shown when credentials are rejected."
+  },
+  "signupTitle": "Create your account",
+  "@signupTitle": {
+    "description": "Sign-up screen headline."
+  },
+  "signupSubtitle": "Maruti Water Solution reviews every new dealer before the account is activated.",
+  "@signupSubtitle": {
+    "description": "Sign-up screen supporting line setting the approval expectation."
+  },
+  "signupSubmit": "Create account",
+  "@signupSubmit": {
+    "description": "Sign-up submit button."
+  },
+  "signupHaveAccount": "Already registered?",
+  "@signupHaveAccount": {
+    "description": "Prompt above the sign-in link."
+  },
+  "signupSignIn": "Sign in",
+  "@signupSignIn": {
+    "description": "Link back to the login screen."
+  },
+  "signupEmailTaken": "An account already exists for this email address.",
+  "@signupEmailTaken": {
+    "description": "Shown when the email is already registered."
+  },
+  "signupAccountType": "Account type",
+  "@signupAccountType": {
+    "description": "Label above the role selector."
+  },
+  "signupSectionAccount": "Account",
+  "@signupSectionAccount": {
+    "description": "Section header for credential fields."
+  },
+  "signupSectionBusiness": "Business details",
+  "@signupSectionBusiness": {
+    "description": "Section header for firm fields."
+  },
+  "fieldFullName": "Full name",
+  "@fieldFullName": {
+    "description": "Sign-up field label."
+  },
+  "fieldFirmName": "Firm name",
+  "@fieldFirmName": {
+    "description": "Sign-up field label for the business name."
+  },
+  "fieldPhone": "Phone number",
+  "@fieldPhone": {
+    "description": "Sign-up field label."
+  },
+  "fieldEmail": "Email",
+  "@fieldEmail": {
+    "description": "Login and sign-up field label."
+  },
+  "fieldPassword": "Password",
+  "@fieldPassword": {
+    "description": "Login and sign-up field label."
+  },
+  "fieldCity": "City",
+  "@fieldCity": {
+    "description": "Sign-up field label."
+  },
+  "fieldState": "State",
+  "@fieldState": {
+    "description": "Sign-up field label."
+  },
+  "fieldGstNumber": "GST number",
+  "@fieldGstNumber": {
+    "description": "Sign-up field label for the optional GSTIN."
+  },
+  "fieldOptional": "Optional",
+  "@fieldOptional": {
+    "description": "Suffix marking a field as not required."
+  },
+  "hintPhone": "10-digit mobile number",
+  "@hintPhone": {
+    "description": "Placeholder inside the phone field."
+  },
+  "hintGstNumber": "24ABCDE1234F1Z5",
+  "@hintGstNumber": {
+    "description": "Placeholder showing GSTIN shape."
+  },
+  "roleWholesaler": "Wholesaler",
+  "@roleWholesaler": {
+    "description": "Role name."
+  },
+  "roleWholesalerHelp": "You will see wholesale pricing",
+  "@roleWholesalerHelp": {
+    "description": "Explains what the wholesaler role grants."
+  },
+  "roleRetailer": "Retailer",
+  "@roleRetailer": {
+    "description": "Role name."
+  },
+  "roleRetailerHelp": "You will see retail pricing",
+  "@roleRetailerHelp": {
+    "description": "Explains what the retailer role grants."
+  },
+  "pendingTitle": "Waiting for approval",
+  "@pendingTitle": {
+    "description": "Headline on the pending-approval screen."
+  },
+  "pendingBody": "Maruti Water Solution checks every new dealer account by hand. You will be able to sign in as soon as yours is approved.",
+  "@pendingBody": {
+    "description": "Calm explanation of why access is withheld."
+  },
+  "pendingFirmLabel": "Registered firm",
+  "@pendingFirmLabel": {
+    "description": "Label above the firm name the user signed up with."
+  },
+  "pendingCheckStatus": "Check status",
+  "@pendingCheckStatus": {
+    "description": "Refreshes the account status from the server."
+  },
+  "pendingStillWaiting": "Your account is still awaiting approval.",
+  "@pendingStillWaiting": {
+    "description": "Result of a status check that found no change."
+  },
+  "rejectedTitle": "Account not approved",
+  "@rejectedTitle": {
+    "description": "Headline on the rejected screen."
+  },
+  "rejectedBody": "Maruti Water Solution did not approve this account.",
+  "@rejectedBody": {
+    "description": "Body text on the rejected screen."
+  },
+  "rejectedReasonLabel": "Reason given",
+  "@rejectedReasonLabel": {
+    "description": "Label above the owner-supplied rejection reason."
+  },
+  "rejectedNoReason": "No reason was recorded.",
+  "@rejectedNoReason": {
+    "description": "Fallback when the owner left no reason."
+  },
+  "suspendedTitle": "Account suspended",
+  "@suspendedTitle": {
+    "description": "Headline on the suspended screen."
+  },
+  "suspendedBody": "Access to this account has been paused by Maruti Water Solution. Get in touch to have it restored.",
+  "@suspendedBody": {
+    "description": "Body text on the suspended screen."
+  },
+  "contactWhatsApp": "Contact us on WhatsApp",
+  "@contactWhatsApp": {
+    "description": "Opens a WhatsApp chat with the client."
+  },
+  "contactUnavailable": "WhatsApp could not be opened on this device.",
+  "@contactUnavailable": {
+    "description": "Shown when no WhatsApp handler is installed."
+  },
+  "signOutConfirmTitle": "Sign out?",
+  "@signOutConfirmTitle": {
+    "description": "Confirmation dialog title."
+  },
+  "signOutConfirmBody": "You will need your email and password to sign in again.",
+  "@signOutConfirmBody": {
+    "description": "Confirmation dialog body."
+  },
+  "emptyDefaultTitle": "Nothing here yet",
+  "@emptyDefaultTitle": {
+    "description": "Default empty-state headline."
+  },
+  "emptyDefaultBody": "Once there is something to show, it will appear here.",
+  "@emptyDefaultBody": {
+    "description": "Default empty-state body."
+  },
+  "actionShow": "Show",
+  "@actionShow": {
+    "description": "Reveals a hidden password."
+  },
+  "actionHide": "Hide",
+  "@actionHide": {
+    "description": "Hides a revealed password."
+  },
+  "actionClear": "Clear",
+  "@actionClear": {
+    "description": "Empties the search box."
+  },
+  "homeTitle": "Account",
+  "@homeTitle": {
+    "description": "App bar title on the signed-in overview."
+  },
+  "homeSignedInTitle": "You are signed in",
+  "@homeSignedInTitle": {
+    "description": "Confirms the session is active and approved."
+  },
+  "homeSignedInBody": "Your account is approved. The catalogue arrives in the next release.",
+  "@homeSignedInBody": {
+    "description": "Explains what an approved dealer can expect next."
+  },
+  "labelRole": "Role",
+  "@labelRole": {
+    "description": "Field label on the account overview."
+  },
+  "labelStatus": "Status",
+  "@labelStatus": {
+    "description": "Field label on the account overview."
+  },
+  "labelFirm": "Firm",
+  "@labelFirm": {
+    "description": "Field label on the account overview."
+  },
+  "labelPhone": "Phone",
+  "@labelPhone": {
+    "description": "Field label on the account overview."
+  },
+  "labelCity": "City",
+  "@labelCity": {
+    "description": "Field label on the account overview."
+  },
+  "roleOwner": "Owner",
+  "@roleOwner": {
+    "description": "Role name for Maruti Water Solution staff."
+  },
+  "statusPending": "Pending",
+  "@statusPending": {
+    "description": "Account status badge."
+  },
+  "statusApproved": "Approved",
+  "@statusApproved": {
+    "description": "Account status badge."
+  },
+  "statusRejected": "Rejected",
+  "@statusRejected": {
+    "description": "Account status badge."
+  },
+  "statusSuspended": "Suspended",
+  "@statusSuspended": {
+    "description": "Account status badge."
+  },
+  "hintEmail": "name@example.com",
+  "@hintEmail": {
+    "description": "Placeholder inside the email field."
+  },
+  "navDashboard": "Dashboard",
+  "@navDashboard": {
+    "description": "Bottom navigation label."
+  },
+  "navProducts": "Products",
+  "@navProducts": {
+    "description": "Bottom navigation label."
+  },
+  "navDealers": "Dealers",
+  "@navDealers": {
+    "description": "Bottom navigation label."
+  },
+  "navMore": "More",
+  "@navMore": {
+    "description": "Bottom navigation label."
+  },
+  "actionSave": "Save",
+  "@actionSave": {
+    "description": "Submits a form."
+  },
+  "actionDelete": "Delete",
+  "@actionDelete": {
+    "description": "Confirms a destructive action."
+  },
+  "actionEdit": "Edit",
+  "@actionEdit": {
+    "description": "Opens the edit form."
+  },
+  "actionApply": "Apply",
+  "@actionApply": {
+    "description": "Applies the chosen filters."
+  },
+  "actionReset": "Reset",
+  "@actionReset": {
+    "description": "Clears the chosen filters."
+  },
+  "actionCopy": "Copy",
+  "@actionCopy": {
+    "description": "Copies a value to the clipboard."
+  },
+  "actionShare": "Share",
+  "@actionShare": {
+    "description": "Shares a file with another app."
+  },
+  "actionPrint": "Print",
+  "@actionPrint": {
+    "description": "Opens the system print dialog."
+  },
+  "actionDone": "Done",
+  "@actionDone": {
+    "description": "Dismisses a completion sheet."
+  },
+  "actionRemove": "Remove",
+  "@actionRemove": {
+    "description": "Removes an item from a list."
+  },
+  "actionViewAll": "View all",
+  "@actionViewAll": {
+    "description": "Opens the full list."
+  },
+  "statTotalProducts": "Products",
+  "@statTotalProducts": {
+    "description": "Dashboard stat tile label."
+  },
+  "statOutOfStock": "Out of stock",
+  "@statOutOfStock": {
+    "description": "Dashboard stat tile label."
+  },
+  "statInactive": "Inactive",
+  "@statInactive": {
+    "description": "Dashboard stat tile label."
+  },
+  "statPendingDealers": "Pending dealers",
+  "@statPendingDealers": {
+    "description": "Dashboard stat tile label."
+  },
+  "dashboardQuickActions": "Quick actions",
+  "@dashboardQuickActions": {
+    "description": "Section header on the dashboard."
+  },
+  "dashboardRecentProducts": "Recently added",
+  "@dashboardRecentProducts": {
+    "description": "Section header on the dashboard."
+  },
+  "actionAddProduct": "Add product",
+  "@actionAddProduct": {
+    "description": "Opens the new-product form."
+  },
+  "actionPrintLabels": "Print labels",
+  "@actionPrintLabels": {
+    "description": "Opens the label printing screen."
+  },
+  "actionReviewDealers": "Review dealers",
+  "@actionReviewDealers": {
+    "description": "Opens the dealer list."
+  },
+  "productsTitle": "Products",
+  "@productsTitle": {
+    "description": "App bar title on the product list."
+  },
+  "searchProductsHint": "Search name, model or code",
+  "@searchProductsHint": {
+    "description": "Placeholder in the product search field."
+  },
+  "filterTitle": "Filter and sort",
+  "@filterTitle": {
+    "description": "Title of the filter bottom sheet."
+  },
+  "filterCategory": "Category",
+  "@filterCategory": {
+    "description": "Filter group label."
+  },
+  "filterStatus": "Availability",
+  "@filterStatus": {
+    "description": "Filter group label."
+  },
+  "filterSort": "Sort by",
+  "@filterSort": {
+    "description": "Filter group label."
+  },
+  "categoryAll": "All categories",
+  "@categoryAll": {
+    "description": "Filter chip covering every category."
+  },
+  "categoryDomestic": "Domestic",
+  "@categoryDomestic": {
+    "description": "Product category name."
+  },
+  "categoryCommercial": "Commercial",
+  "@categoryCommercial": {
+    "description": "Product category name."
+  },
+  "categoryIndustrial": "Industrial",
+  "@categoryIndustrial": {
+    "description": "Product category name."
+  },
+  "categorySparePart": "Spare part",
+  "@categorySparePart": {
+    "description": "Product category name."
+  },
+  "categoryAccessory": "Accessory",
+  "@categoryAccessory": {
+    "description": "Product category name."
+  },
+  "statusAll": "All",
+  "@statusAll": {
+    "description": "Availability filter option."
+  },
+  "statusActive": "Active",
+  "@statusActive": {
+    "description": "Availability filter option."
+  },
+  "statusInactiveFilter": "Inactive",
+  "@statusInactiveFilter": {
+    "description": "Availability filter option."
+  },
+  "statusOutOfStockFilter": "Out of stock",
+  "@statusOutOfStockFilter": {
+    "description": "Availability filter option."
+  },
+  "sortNewest": "Newest first",
+  "@sortNewest": {
+    "description": "Sort option."
+  },
+  "sortName": "Name",
+  "@sortName": {
+    "description": "Sort option."
+  },
+  "sortPriceLowHigh": "Price, low to high",
+  "@sortPriceLowHigh": {
+    "description": "Sort option."
+  },
+  "sortPriceHighLow": "Price, high to low",
+  "@sortPriceHighLow": {
+    "description": "Sort option."
+  },
+  "labelWholesale": "Wholesale",
+  "@labelWholesale": {
+    "description": "Price label on a product card."
+  },
+  "labelRetail": "Retail",
+  "@labelRetail": {
+    "description": "Price label on a product card."
+  },
+  "labelMrp": "MRP",
+  "@labelMrp": {
+    "description": "Maximum retail price label."
+  },
+  "labelMargin": "Dealer margin",
+  "@labelMargin": {
+    "description": "Label above the calculated margin."
+  },
+  "badgeInStock": "In stock",
+  "@badgeInStock": {
+    "description": "Availability badge."
+  },
+  "badgeOutOfStock": "Out of stock",
+  "@badgeOutOfStock": {
+    "description": "Availability badge."
+  },
+  "badgeInactive": "Inactive",
+  "@badgeInactive": {
+    "description": "Status badge for a hidden product."
+  },
+  "productsEmptyTitle": "No products yet",
+  "@productsEmptyTitle": {
+    "description": "Empty state headline on the product list."
+  },
+  "productsEmptyBody": "Add your first product and the database will issue its permanent barcode.",
+  "@productsEmptyBody": {
+    "description": "Empty state body on the product list."
+  },
+  "productsNoResultsTitle": "Nothing matches that",
+  "@productsNoResultsTitle": {
+    "description": "Empty state headline when filters exclude everything."
+  },
+  "productsNoResultsBody": "Try a different search term, or clear the filters to see the whole catalogue.",
+  "@productsNoResultsBody": {
+    "description": "Empty state body when filters exclude everything."
+  },
+  "productsClearFilters": "Clear filters",
+  "@productsClearFilters": {
+    "description": "Resets search and filters."
+  },
+  "quickToggleStock": "Toggle stock",
+  "@quickToggleStock": {
+    "description": "Quick action on a product card."
+  },
+  "quickToggleActive": "Toggle active",
+  "@quickToggleActive": {
+    "description": "Quick action on a product card."
+  },
+  "quickDuplicate": "Duplicate",
+  "@quickDuplicate": {
+    "description": "Quick action on a product card."
+  },
+  "deleteProductTitle": "Delete product?",
+  "@deleteProductTitle": {
+    "description": "Confirmation dialog title."
+  },
+  "deleteProductBody": "{name} will be removed from the catalogue along with its photos. This cannot be undone.",
+  "@deleteProductBody": {
+    "description": "Confirmation dialog body naming the product.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Aqua Grand"
+      }
+    }
+  },
+  "productDeleted": "{name} deleted",
+  "@productDeleted": {
+    "description": "Snackbar after deleting a product.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Aqua Grand"
+      }
+    }
+  },
+  "productDuplicated": "{name} duplicated",
+  "@productDuplicated": {
+    "description": "Snackbar after duplicating a product.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Aqua Grand"
+      }
+    }
+  },
+  "productSaved": "Product saved",
+  "@productSaved": {
+    "description": "Snackbar after an edit is stored."
+  },
+  "formNewTitle": "New product",
+  "@formNewTitle": {
+    "description": "App bar title when creating."
+  },
+  "formEditTitle": "Edit product",
+  "@formEditTitle": {
+    "description": "App bar title when editing."
+  },
+  "sectionPhotos": "Photos",
+  "@sectionPhotos": {
+    "description": "Form section header."
+  },
+  "sectionBasics": "Basic details",
+  "@sectionBasics": {
+    "description": "Form section header."
+  },
+  "sectionSpecifications": "Specifications",
+  "@sectionSpecifications": {
+    "description": "Form section header."
+  },
+  "sectionPricing": "Pricing",
+  "@sectionPricing": {
+    "description": "Form section header."
+  },
+  "sectionAvailability": "Availability",
+  "@sectionAvailability": {
+    "description": "Form section header."
+  },
+  "photosHelp": "Up to {count} photos. The first is used on the catalogue card.",
+  "@photosHelp": {
+    "description": "Helper text under the photo grid.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "3"
+      }
+    }
+  },
+  "photosAdd": "Add photo",
+  "@photosAdd": {
+    "description": "Opens the camera or gallery chooser."
+  },
+  "photosPrimary": "Primary",
+  "@photosPrimary": {
+    "description": "Badge on the image used as the product thumbnail."
+  },
+  "photosSetPrimary": "Set as primary",
+  "@photosSetPrimary": {
+    "description": "Makes an image the product thumbnail."
+  },
+  "photosRemoveTitle": "Remove photo?",
+  "@photosRemoveTitle": {
+    "description": "Confirmation dialog title."
+  },
+  "photosRemoveBody": "This photo will not be saved with the product.",
+  "@photosRemoveBody": {
+    "description": "Confirmation dialog body."
+  },
+  "photosLimitReached": "You can attach up to {count} photos.",
+  "@photosLimitReached": {
+    "description": "Shown when the photo limit is hit.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "3"
+      }
+    }
+  },
+  "photosUploadFailed": "That photo could not be uploaded. Tap to try again.",
+  "@photosUploadFailed": {
+    "description": "Shown on a failed image upload."
+  },
+  "photosReorderHint": "Press and hold a photo to reorder.",
+  "@photosReorderHint": {
+    "description": "Helper text explaining drag to reorder."
+  },
+  "chooseSourceTitle": "Add a photo",
+  "@chooseSourceTitle": {
+    "description": "Title of the camera or gallery chooser sheet."
+  },
+  "sourceCamera": "Take a photo",
+  "@sourceCamera": {
+    "description": "Chooser option."
+  },
+  "sourceGallery": "Choose from gallery",
+  "@sourceGallery": {
+    "description": "Chooser option."
+  },
+  "permissionCameraTitle": "Camera access is off",
+  "@permissionCameraTitle": {
+    "description": "Headline when the camera permission is refused."
+  },
+  "permissionCameraBody": "Maruti Water needs the camera to photograph a product. You can turn it on in Settings.",
+  "@permissionCameraBody": {
+    "description": "Body explaining why the camera is needed."
+  },
+  "permissionOpenSettings": "Open settings",
+  "@permissionOpenSettings": {
+    "description": "Sends the user to the system settings page."
+  },
+  "permissionSettingsFailed": "Settings could not be opened on this device.",
+  "@permissionSettingsFailed": {
+    "description": "Shown when the settings screen will not open."
+  },
+  "fieldProductName": "Product name",
+  "@fieldProductName": {
+    "description": "Form field label."
+  },
+  "fieldModelNumber": "Model number",
+  "@fieldModelNumber": {
+    "description": "Form field label."
+  },
+  "fieldCategoryLabel": "Category",
+  "@fieldCategoryLabel": {
+    "description": "Form field label."
+  },
+  "fieldDescription": "Description",
+  "@fieldDescription": {
+    "description": "Form field label."
+  },
+  "fieldCapacity": "Capacity",
+  "@fieldCapacity": {
+    "description": "Form field label."
+  },
+  "capacityHelp": "For example 25 LPH, or 12 L",
+  "@capacityHelp": {
+    "description": "Helper text under the capacity field."
+  },
+  "fieldWarrantyMonths": "Warranty (months)",
+  "@fieldWarrantyMonths": {
+    "description": "Stepper field label."
+  },
+  "fieldMrpLabel": "MRP",
+  "@fieldMrpLabel": {
+    "description": "Price field label."
+  },
+  "fieldWholesaleLabel": "Wholesale price",
+  "@fieldWholesaleLabel": {
+    "description": "Price field label."
+  },
+  "fieldRetailLabel": "Retail price",
+  "@fieldRetailLabel": {
+    "description": "Price field label."
+  },
+  "specDetailsLabel": "Detailed specifications",
+  "@specDetailsLabel": {
+    "description": "Sub-heading above the key and value rows."
+  },
+  "specAddRow": "Add specification",
+  "@specAddRow": {
+    "description": "Adds an empty key and value row."
+  },
+  "specKeyHint": "Stages",
+  "@specKeyHint": {
+    "description": "Placeholder for a specification name."
+  },
+  "specValueHint": "7",
+  "@specValueHint": {
+    "description": "Placeholder for a specification value."
+  },
+  "specEmpty": "No specifications yet. Add rows such as Membrane or Body material.",
+  "@specEmpty": {
+    "description": "Empty state inside the specifications section."
+  },
+  "fieldInStockLabel": "In stock",
+  "@fieldInStockLabel": {
+    "description": "Toggle label."
+  },
+  "fieldInStockHelp": "Dealers see this product as available to order.",
+  "@fieldInStockHelp": {
+    "description": "Toggle helper text."
+  },
+  "fieldActiveLabel": "Active",
+  "@fieldActiveLabel": {
+    "description": "Toggle label."
+  },
+  "fieldActiveHelp": "Inactive products are hidden from every dealer catalogue.",
+  "@fieldActiveHelp": {
+    "description": "Toggle helper text."
+  },
+  "priceErrorRetailBelowWholesale": "Retail price cannot be below the wholesale price",
+  "@priceErrorRetailBelowWholesale": {
+    "description": "Blocking price error."
+  },
+  "priceErrorNotPositive": "Enter an amount greater than zero",
+  "@priceErrorNotPositive": {
+    "description": "Blocking price error."
+  },
+  "priceWarningAboveMrp": "This price is above the MRP you entered",
+  "@priceWarningAboveMrp": {
+    "description": "Non-blocking price warning."
+  },
+  "priceWarningZeroMargin": "Retail equals wholesale, so the dealer earns nothing",
+  "@priceWarningZeroMargin": {
+    "description": "Non-blocking price warning."
+  },
+  "marginChip": "{amount} margin ({percent}%)",
+  "@marginChip": {
+    "description": "Live dealer margin chip on the pricing section.",
+    "placeholders": {
+      "amount": {
+        "type": "String",
+        "example": "₹4,700"
+      },
+      "percent": {
+        "type": "String",
+        "example": "29.6"
+      }
+    }
+  },
+  "marginUnavailable": "Enter both prices to see the margin",
+  "@marginUnavailable": {
+    "description": "Shown while the margin cannot be computed."
+  },
+  "unsavedTitle": "Discard changes?",
+  "@unsavedTitle": {
+    "description": "Confirmation on leaving a dirty form."
+  },
+  "unsavedBody": "Your edits to this product have not been saved.",
+  "@unsavedBody": {
+    "description": "Body of the discard confirmation."
+  },
+  "unsavedDiscard": "Discard",
+  "@unsavedDiscard": {
+    "description": "Leaves the form and loses the edits."
+  },
+  "unsavedKeepEditing": "Keep editing",
+  "@unsavedKeepEditing": {
+    "description": "Stays on the form."
+  },
+  "formUploadsInFlight": "Wait for the photos to finish uploading",
+  "@formUploadsInFlight": {
+    "description": "Explains why save is disabled."
+  },
+  "createdTitle": "Product created",
+  "@createdTitle": {
+    "description": "Headline of the success sheet."
+  },
+  "createdBody": "This code is permanent and is now printed on every label for this product.",
+  "@createdBody": {
+    "description": "Explains what the code is for."
+  },
+  "createdCodeLabel": "Product code",
+  "@createdCodeLabel": {
+    "description": "Label above the generated code."
+  },
+  "createdCopied": "Product code copied",
+  "@createdCopied": {
+    "description": "Snackbar after copying the code."
+  },
+  "barcodeCode128": "Code 128",
+  "@barcodeCode128": {
+    "description": "Caption under the linear barcode."
+  },
+  "barcodeQr": "QR",
+  "@barcodeQr": {
+    "description": "Caption under the QR code."
+  },
+  "detailScanCount": "{count} scans",
+  "@detailScanCount": {
+    "description": "Number of times dealers scanned this product.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "3"
+      }
+    }
+  },
+  "detailSpecifications": "Specifications",
+  "@detailSpecifications": {
+    "description": "Section header on the detail screen."
+  },
+  "detailNoSpecifications": "No specifications recorded.",
+  "@detailNoSpecifications": {
+    "description": "Shown when the jsonb map is empty."
+  },
+  "detailDescription": "Description",
+  "@detailDescription": {
+    "description": "Section header on the detail screen."
+  },
+  "detailPricing": "Pricing",
+  "@detailPricing": {
+    "description": "Section header on the detail screen."
+  },
+  "detailWarranty": "{count} months warranty",
+  "@detailWarranty": {
+    "description": "Warranty summary.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "3"
+      }
+    }
+  },
+  "detailNoImages": "No photos yet",
+  "@detailNoImages": {
+    "description": "Empty state in the image gallery."
+  },
+  "labelsTitle": "Print labels",
+  "@labelsTitle": {
+    "description": "App bar title on the label screen."
+  },
+  "labelsSelectProducts": "Select products",
+  "@labelsSelectProducts": {
+    "description": "Section header."
+  },
+  "labelsLayout": "Sheet layout",
+  "@labelsLayout": {
+    "description": "Section header."
+  },
+  "labelsQuantity": "Labels per product",
+  "@labelsQuantity": {
+    "description": "Quantity stepper label."
+  },
+  "labelsSelectedCount": "{count} selected",
+  "@labelsSelectedCount": {
+    "description": "How many products are chosen.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "3"
+      }
+    }
+  },
+  "labelsSummary": "{labels} labels across {sheets} sheets",
+  "@labelsSummary": {
+    "description": "Summary of the generated job.",
+    "placeholders": {
+      "labels": {
+        "type": "int"
+      },
+      "sheets": {
+        "type": "int"
+      }
+    }
+  },
+  "labelsPreview": "Preview",
+  "@labelsPreview": {
+    "description": "Opens the PDF preview."
+  },
+  "labelsEmptyTitle": "Choose products to label",
+  "@labelsEmptyTitle": {
+    "description": "Empty state headline."
+  },
+  "labelsEmptyBody": "Pick one or more products and set how many labels each one needs.",
+  "@labelsEmptyBody": {
+    "description": "Empty state body."
+  },
+  "labelsNoProductsTitle": "No products to label",
+  "@labelsNoProductsTitle": {
+    "description": "Empty state when the catalogue is empty."
+  },
+  "labelsNoProductsBody": "Add a product first and it will appear here ready to print.",
+  "@labelsNoProductsBody": {
+    "description": "Empty state body when the catalogue is empty."
+  },
+  "labelsBarcodeTooFine": "Bars print at {width} mm on this stock. Handheld scanners need about {minimum} mm, so scan a test label before printing a full run.",
+  "@labelsBarcodeTooFine": {
+    "description": "Caution on a layout whose barcode is too fine to scan reliably.",
+    "placeholders": {
+      "width": {
+        "type": "String",
+        "example": "0.17"
+      },
+      "minimum": {
+        "type": "String",
+        "example": "0.19"
+      }
+    }
+  },
+  "labelsFilterNotice": "Showing the products your catalogue filters currently match. Clear them on the Products tab to see everything.",
+  "@labelsFilterNotice": {
+    "description": "Shown when the label list inherits an active catalogue filter."
+  },
+  "labelsGenerateFailed": "The label sheet could not be generated.",
+  "@labelsGenerateFailed": {
+    "description": "Shown when PDF building fails."
+  },
+  "dealersTitle": "Dealers",
+  "@dealersTitle": {
+    "description": "App bar title on the dealer screen."
+  },
+  "dealersTabPending": "Pending",
+  "@dealersTabPending": {
+    "description": "Dealer list tab."
+  },
+  "dealersTabApproved": "Approved",
+  "@dealersTabApproved": {
+    "description": "Dealer list tab."
+  },
+  "dealersTabRejected": "Rejected",
+  "@dealersTabRejected": {
+    "description": "Dealer list tab."
+  },
+  "dealersTabSuspended": "Suspended",
+  "@dealersTabSuspended": {
+    "description": "Dealer list tab."
+  },
+  "dealersEmptyPendingTitle": "No one is waiting",
+  "@dealersEmptyPendingTitle": {
+    "description": "Empty state headline for the pending tab."
+  },
+  "dealersEmptyPendingBody": "New dealer sign-ups will appear here for you to approve or turn down.",
+  "@dealersEmptyPendingBody": {
+    "description": "Empty state body for the pending tab."
+  },
+  "dealersEmptyTitle": "Nothing in this list",
+  "@dealersEmptyTitle": {
+    "description": "Empty state headline for the other tabs."
+  },
+  "dealersEmptyBody": "Dealers you move into this state will be listed here.",
+  "@dealersEmptyBody": {
+    "description": "Empty state body for the other tabs."
+  },
+  "dealerApprove": "Approve",
+  "@dealerApprove": {
+    "description": "Approves a dealer."
+  },
+  "dealerReject": "Reject",
+  "@dealerReject": {
+    "description": "Turns a dealer down."
+  },
+  "dealerSuspend": "Suspend",
+  "@dealerSuspend": {
+    "description": "Pauses an approved dealer."
+  },
+  "dealerReactivate": "Reactivate",
+  "@dealerReactivate": {
+    "description": "Restores a dealer."
+  },
+  "dealerApproveTitle": "Approve as which role?",
+  "@dealerApproveTitle": {
+    "description": "Title of the approve sheet."
+  },
+  "dealerApproveBody": "{name} will see the prices for the role you pick, and nothing else.",
+  "@dealerApproveBody": {
+    "description": "Explains the consequence of the role choice.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Aqua Grand"
+      }
+    }
+  },
+  "dealerRejectTitle": "Reject {name}?",
+  "@dealerRejectTitle": {
+    "description": "Title of the reject dialog.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Aqua Grand"
+      }
+    }
+  },
+  "dealerRejectBody": "They will see the reason you give here when they next open the app.",
+  "@dealerRejectBody": {
+    "description": "Body of the reject dialog."
+  },
+  "dealerRejectReason": "Reason",
+  "@dealerRejectReason": {
+    "description": "Field label for the rejection reason."
+  },
+  "dealerRejectReasonHint": "For example: firm details could not be verified",
+  "@dealerRejectReasonHint": {
+    "description": "Placeholder for the rejection reason."
+  },
+  "dealerSuspendTitle": "Suspend {name}?",
+  "@dealerSuspendTitle": {
+    "description": "Title of the suspend dialog.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Aqua Grand"
+      }
+    }
+  },
+  "dealerSuspendBody": "They lose catalogue access immediately, including on any device they are already signed in to.",
+  "@dealerSuspendBody": {
+    "description": "Body of the suspend dialog."
+  },
+  "dealerReactivateTitle": "Reactivate {name}?",
+  "@dealerReactivateTitle": {
+    "description": "Title of the reactivate dialog.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Aqua Grand"
+      }
+    }
+  },
+  "dealerReactivateBody": "Catalogue access is restored at the role they held before.",
+  "@dealerReactivateBody": {
+    "description": "Body of the reactivate dialog."
+  },
+  "dealerApproved": "{name} approved",
+  "@dealerApproved": {
+    "description": "Snackbar after approving.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Aqua Grand"
+      }
+    }
+  },
+  "dealerRejectedToast": "{name} rejected",
+  "@dealerRejectedToast": {
+    "description": "Snackbar after rejecting.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Aqua Grand"
+      }
+    }
+  },
+  "dealerSuspendedToast": "{name} suspended",
+  "@dealerSuspendedToast": {
+    "description": "Snackbar after suspending.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Aqua Grand"
+      }
+    }
+  },
+  "dealerReactivatedToast": "{name} reactivated",
+  "@dealerReactivatedToast": {
+    "description": "Snackbar after reactivating.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Aqua Grand"
+      }
+    }
+  },
+  "dealerGstLabel": "GST",
+  "@dealerGstLabel": {
+    "description": "Label for the dealer GST number."
+  },
+  "dealerNoGst": "Not provided",
+  "@dealerNoGst": {
+    "description": "Shown when a dealer left GST blank."
+  },
+  "moreTitle": "More",
+  "@moreTitle": {
+    "description": "App bar title on the More tab."
+  },
+  "moreAccount": "Account",
+  "@moreAccount": {
+    "description": "Section header on the More tab."
+  },
+  "moreTools": "Tools",
+  "@moreTools": {
+    "description": "Section header on the More tab."
+  },
+  "moreAbout": "About",
+  "@moreAbout": {
+    "description": "Section header on the More tab."
+  },
+  "moreVersion": "Version {version}",
+  "@moreVersion": {
+    "description": "App version row.",
+    "placeholders": {
+      "version": {
+        "type": "String",
+        "example": "0.1.0"
+      }
+    }
+  },
+  "requestsTitle": "Approval requests",
+  "@requestsTitle": {
+    "description": "App bar title on the approval queue."
+  },
+  "requestsSubtitle": "{count, plural, =0{Nothing waiting} =1{1 dealer waiting on you} other{{count} dealers waiting on you}}",
+  "@requestsSubtitle": {
+    "description": "Count line above the queue.",
+    "placeholders": {
+      "count": {
+        "type": "num",
+        "format": "compact"
+      }
+    }
+  },
+  "requestsEmptyTitle": "Nothing waiting",
+  "@requestsEmptyTitle": {
+    "description": "Empty state headline for the queue."
+  },
+  "requestsEmptyBody": "New dealer registrations will appear here for your decision.",
+  "@requestsEmptyBody": {
+    "description": "Empty state body."
+  },
+  "requestsTimeAgo": "Requested {age}",
+  "@requestsTimeAgo": {
+    "description": "Time since the request was made.",
+    "placeholders": {
+      "age": {
+        "type": "String",
+        "example": "2 days ago"
+      }
+    }
+  },
+  "actionCall": "Call",
+  "@actionCall": {
+    "description": "Dials the dealer."
+  },
+  "actionWhatsApp": "WhatsApp",
+  "@actionWhatsApp": {
+    "description": "Opens a WhatsApp chat with the dealer."
+  },
+  "requestedRole": "Asked for",
+  "@requestedRole": {
+    "description": "Label above the role the dealer selected at signup."
+  },
+  "approveSheetTitle": "Approve {firm}",
+  "@approveSheetTitle": {
+    "description": "Approval confirmation sheet title.",
+    "placeholders": {
+      "firm": {
+        "type": "String",
+        "example": "Aqua Grand"
+      }
+    }
+  },
+  "approveSheetBody": "They asked to be a {role}. Confirm that, or change it - the role decides which price list they see.",
+  "@approveSheetBody": {
+    "description": "Explains the role choice.",
+    "placeholders": {
+      "role": {
+        "type": "String",
+        "example": "wholesaler"
+      }
+    }
+  },
+  "approveSheetWarning": "They picked this themselves. Check it is right before approving.",
+  "@approveSheetWarning": {
+    "description": "Caution shown when the dealer self-selected wholesaler."
+  },
+  "approveSheetConfirm": "Approve as {role}",
+  "@approveSheetConfirm": {
+    "description": "Confirm button on the approval sheet.",
+    "placeholders": {
+      "role": {
+        "type": "String",
+        "example": "Retailer"
+      }
+    }
+  },
+  "rejectSheetTitle": "Reject {firm}",
+  "@rejectSheetTitle": {
+    "description": "Rejection sheet title.",
+    "placeholders": {
+      "firm": {
+        "type": "String",
+        "example": "Aqua Grand"
+      }
+    }
+  },
+  "rejectSheetBody": "Choose a reason. The dealer sees this, so keep it plain.",
+  "@rejectSheetBody": {
+    "description": "Rejection sheet body."
+  },
+  "rejectReasonNotBusiness": "Not a registered business",
+  "@rejectReasonNotBusiness": {
+    "description": "Preset rejection reason."
+  },
+  "rejectReasonDuplicate": "Duplicate account",
+  "@rejectReasonDuplicate": {
+    "description": "Preset rejection reason."
+  },
+  "rejectReasonOutsideArea": "Outside service area",
+  "@rejectReasonOutsideArea": {
+    "description": "Preset rejection reason."
+  },
+  "rejectReasonOther": "Other",
+  "@rejectReasonOther": {
+    "description": "Preset rejection reason."
+  },
+  "rejectNotesLabel": "Anything to add",
+  "@rejectNotesLabel": {
+    "description": "Label for the optional free-text note."
+  },
+  "rejectNotesHint": "Optional detail for the dealer",
+  "@rejectNotesHint": {
+    "description": "Placeholder for the note field."
+  },
+  "rejectPickReason": "Choose a reason first",
+  "@rejectPickReason": {
+    "description": "Shown when reject is tapped with no reason selected."
+  },
+  "rejectNeedsNote": "Describe the reason",
+  "@rejectNeedsNote": {
+    "description": "Shown when Other is chosen with no note."
+  },
+  "actionConfirmReject": "Reject dealer",
+  "@actionConfirmReject": {
+    "description": "Confirm button on the rejection sheet."
+  },
+  "directorySegmentAll": "All",
+  "@directorySegmentAll": {
+    "description": "Segmented control option."
+  },
+  "directorySegmentWholesalers": "Wholesalers",
+  "@directorySegmentWholesalers": {
+    "description": "Segmented control option."
+  },
+  "directorySegmentRetailers": "Retailers",
+  "@directorySegmentRetailers": {
+    "description": "Segmented control option."
+  },
+  "directorySegmentSuspended": "Suspended",
+  "@directorySegmentSuspended": {
+    "description": "Segmented control option."
+  },
+  "directorySearchHint": "Search firm, name, phone or city",
+  "@directorySearchHint": {
+    "description": "Search field placeholder."
+  },
+  "directoryEmptyTitle": "No dealers here yet",
+  "@directoryEmptyTitle": {
+    "description": "Empty state headline."
+  },
+  "directoryEmptyBody": "Approved dealers appear in this list.",
+  "@directoryEmptyBody": {
+    "description": "Empty state body."
+  },
+  "directoryNoResultsTitle": "No matches",
+  "@directoryNoResultsTitle": {
+    "description": "Empty state when a search returns nothing."
+  },
+  "directoryNoResultsBody": "Try a different firm name, phone number or city.",
+  "@directoryNoResultsBody": {
+    "description": "Empty search body."
+  },
+  "directoryPendingBanner": "{count, plural, =1{1 dealer is waiting for approval} other{{count} dealers are waiting for approval}}",
+  "@directoryPendingBanner": {
+    "description": "Banner linking to the queue.",
+    "placeholders": {
+      "count": {
+        "type": "num",
+        "format": "compact"
+      }
+    }
+  },
+  "dealerDetailTitle": "Dealer",
+  "@dealerDetailTitle": {
+    "description": "App bar title on the dealer detail screen."
+  },
+  "dealerApprovedOn": "Approved on",
+  "@dealerApprovedOn": {
+    "description": "Label for the approval date."
+  },
+  "dealerApprovedBy": "Approved by",
+  "@dealerApprovedBy": {
+    "description": "Label for who approved."
+  },
+  "dealerApprovedByYou": "You",
+  "@dealerApprovedByYou": {
+    "description": "Shown when the current owner approved the dealer."
+  },
+  "dealerRegisteredOn": "Registered on",
+  "@dealerRegisteredOn": {
+    "description": "Label for the signup date."
+  },
+  "dealerTotalScans": "Total scans",
+  "@dealerTotalScans": {
+    "description": "Label for lifetime scan count."
+  },
+  "dealerLastActive": "Last active",
+  "@dealerLastActive": {
+    "description": "Label for the most recent scan."
+  },
+  "dealerNeverActive": "Never used the app",
+  "@dealerNeverActive": {
+    "description": "Shown when a dealer has no scans at all."
+  },
+  "dealerAddressLabel": "Address",
+  "@dealerAddressLabel": {
+    "description": "Label for the dealer address."
+  },
+  "dealerNoAddress": "Not provided",
+  "@dealerNoAddress": {
+    "description": "Shown when an optional field is blank."
+  },
+  "dealerChangeRole": "Change role",
+  "@dealerChangeRole": {
+    "description": "Action on the dealer detail screen."
+  },
+  "dealerChangeRoleTitle": "Change role for {firm}",
+  "@dealerChangeRoleTitle": {
+    "description": "Role change sheet title.",
+    "placeholders": {
+      "firm": {
+        "type": "String",
+        "example": "Aqua Grand"
+      }
+    }
+  },
+  "dealerChangeRoleBody": "This changes which price list they see from their next sign-in.",
+  "@dealerChangeRoleBody": {
+    "description": "Role change sheet body."
+  },
+  "dealerRoleChanged": "{firm} is now a {role}",
+  "@dealerRoleChanged": {
+    "description": "Snackbar after a role change.",
+    "placeholders": {
+      "firm": {
+        "type": "String",
+        "example": "Aqua Grand"
+      },
+      "role": {
+        "type": "String",
+        "example": "retailer"
+      }
+    }
+  },
+  "dealerResetPassword": "Send password reset",
+  "@dealerResetPassword": {
+    "description": "Action that emails a reset link."
+  },
+  "dealerResetPasswordTitle": "Send a reset link?",
+  "@dealerResetPasswordTitle": {
+    "description": "Confirmation title."
+  },
+  "dealerResetPasswordBody": "{firm} will get an email with a link to set a new password. You will not see the password.",
+  "@dealerResetPasswordBody": {
+    "description": "Confirmation body.",
+    "placeholders": {
+      "firm": {
+        "type": "String",
+        "example": "Aqua Grand"
+      }
+    }
+  },
+  "dealerResetPasswordSent": "Reset link sent",
+  "@dealerResetPasswordSent": {
+    "description": "Snackbar after sending a reset email."
+  },
+  "dashboardTitle": "Dashboard",
+  "@dashboardTitle": {
+    "description": "App bar title."
+  },
+  "dashboardNeedsAttention": "Needs your attention",
+  "@dashboardNeedsAttention": {
+    "description": "Section header above the pending card."
+  },
+  "dashboardPendingCta": "{count, plural, =1{1 dealer waiting} other{{count} dealers waiting}}",
+  "@dashboardPendingCta": {
+    "description": "Pending approvals card.",
+    "placeholders": {
+      "count": {
+        "type": "num",
+        "format": "compact"
+      }
+    }
+  },
+  "dashboardPendingClear": "No requests waiting",
+  "@dashboardPendingClear": {
+    "description": "Pending card when the queue is empty."
+  },
+  "dashboardCatalogue": "Catalogue",
+  "@dashboardCatalogue": {
+    "description": "Section header above the product counts."
+  },
+  "dashboardNetwork": "Dealer network",
+  "@dashboardNetwork": {
+    "description": "Section header above the dealer counts."
+  },
+  "dashboardTopScanned": "Most scanned, last 30 days",
+  "@dashboardTopScanned": {
+    "description": "Section header."
+  },
+  "dashboardTopScannedEmpty": "No scans recorded yet. Counts appear once dealers start scanning.",
+  "@dashboardTopScannedEmpty": {
+    "description": "Empty state for the scan table."
+  },
+  "dashboardScanCount": "{count, plural, =1{1 scan} other{{count} scans}}",
+  "@dashboardScanCount": {
+    "description": "Scan count beside a product.",
+    "placeholders": {
+      "count": {
+        "type": "num",
+        "format": "compact"
+      }
+    }
+  },
+  "dashboardRecentlyAdded": "Recently added",
+  "@dashboardRecentlyAdded": {
+    "description": "Section header above the horizontal product strip."
+  },
+  "dashboardActivity": "Recent dealer activity",
+  "@dashboardActivity": {
+    "description": "Section header above the audit feed."
+  },
+  "dashboardActivityEmpty": "No dealer decisions yet.",
+  "@dashboardActivityEmpty": {
+    "description": "Empty state for the activity feed."
+  },
+  "dashboardCardFailed": "Could not load this",
+  "@dashboardCardFailed": {
+    "description": "Inline error inside one dashboard card."
+  },
+  "statActiveProducts": "Active",
+  "@statActiveProducts": {
+    "description": "Stat tile label."
+  },
+  "statWholesalers": "Wholesalers",
+  "@statWholesalers": {
+    "description": "Stat tile label."
+  },
+  "statRetailers": "Retailers",
+  "@statRetailers": {
+    "description": "Stat tile label."
+  },
+  "statSuspended": "Suspended",
+  "@statSuspended": {
+    "description": "Stat tile label."
+  },
+  "actionViewRequests": "View requests",
+  "@actionViewRequests": {
+    "description": "Quick action on the dashboard."
+  },
+  "activityApproved": "{firm} approved",
+  "@activityApproved": {
+    "description": "Audit feed line.",
+    "placeholders": {
+      "firm": {
+        "type": "String",
+        "example": "Aqua Grand"
+      }
+    }
+  },
+  "activityRejected": "{firm} rejected",
+  "@activityRejected": {
+    "description": "Audit feed line.",
+    "placeholders": {
+      "firm": {
+        "type": "String",
+        "example": "Aqua Grand"
+      }
+    }
+  },
+  "activitySuspended": "{firm} suspended",
+  "@activitySuspended": {
+    "description": "Audit feed line.",
+    "placeholders": {
+      "firm": {
+        "type": "String",
+        "example": "Aqua Grand"
+      }
+    }
+  },
+  "activityReactivated": "{firm} reactivated",
+  "@activityReactivated": {
+    "description": "Audit feed line.",
+    "placeholders": {
+      "firm": {
+        "type": "String",
+        "example": "Aqua Grand"
+      }
+    }
+  },
+  "activityRoleChanged": "{firm} role changed",
+  "@activityRoleChanged": {
+    "description": "Audit feed line.",
+    "placeholders": {
+      "firm": {
+        "type": "String",
+        "example": "Aqua Grand"
+      }
+    }
+  },
+  "timeJustNow": "just now",
+  "@timeJustNow": {
+    "description": "Relative timestamp."
+  },
+  "timeMinutes": "{count, plural, =1{1 minute ago} other{{count} minutes ago}}",
+  "@timeMinutes": {
+    "description": "Relative timestamp.",
+    "placeholders": {
+      "count": {
+        "type": "num",
+        "format": "compact"
+      }
+    }
+  },
+  "timeHours": "{count, plural, =1{1 hour ago} other{{count} hours ago}}",
+  "@timeHours": {
+    "description": "Relative timestamp.",
+    "placeholders": {
+      "count": {
+        "type": "num",
+        "format": "compact"
+      }
+    }
+  },
+  "timeDays": "{count, plural, =1{yesterday} other{{count} days ago}}",
+  "@timeDays": {
+    "description": "Relative timestamp.",
+    "placeholders": {
+      "count": {
+        "type": "num",
+        "format": "compact"
+      }
+    }
+  },
+  "moreProfile": "Your profile",
+  "@moreProfile": {
+    "description": "Row opening the owner profile screen."
+  },
+  "moreChangePassword": "Change password",
+  "@moreChangePassword": {
+    "description": "Row opening the password screen."
+  },
+  "moreBusinessDetails": "Business details",
+  "@moreBusinessDetails": {
+    "description": "Row opening the label footer settings."
+  },
+  "moreBusinessDetailsHelp": "Printed on labels and exports",
+  "@moreBusinessDetailsHelp": {
+    "description": "Subtitle under the business details row."
+  },
+  "moreLanguage": "Language",
+  "@moreLanguage": {
+    "description": "Row opening the language picker."
+  },
+  "moreLanguageSystem": "Device language",
+  "@moreLanguageSystem": {
+    "description": "Language option that follows the phone."
+  },
+  "moreExportCatalogue": "Export catalogue (PDF)",
+  "@moreExportCatalogue": {
+    "description": "Row that exports the owner price list."
+  },
+  "moreExportCatalogueHelp": "Both price columns. Do not share with dealers.",
+  "@moreExportCatalogueHelp": {
+    "description": "Subtitle warning about the owner export."
+  },
+  "moreExportDealers": "Export dealer list (CSV)",
+  "@moreExportDealers": {
+    "description": "Row that exports the dealer list."
+  },
+  "moreSupport": "Contact Krishna AI Links",
+  "@moreSupport": {
+    "description": "Support row."
+  },
+  "moreSupportHelp": "App support and changes",
+  "@moreSupportHelp": {
+    "description": "Subtitle under the support row."
+  },
+  "moreExportEmpty": "There is nothing to export yet.",
+  "@moreExportEmpty": {
+    "description": "Shown when an export would be empty."
+  },
+  "moreExportFailed": "The export could not be created.",
+  "@moreExportFailed": {
+    "description": "Shown when an export fails."
+  },
+  "businessTitle": "Business details",
+  "@businessTitle": {
+    "description": "App bar title."
+  },
+  "businessIntro": "These appear on every printed label and on the catalogue export. Changing them here updates the next thing you print.",
+  "@businessIntro": {
+    "description": "Explanatory paragraph."
+  },
+  "businessNameLabel": "Business name",
+  "@businessNameLabel": {
+    "description": "Field label."
+  },
+  "businessPhoneLabel": "Phone",
+  "@businessPhoneLabel": {
+    "description": "Field label."
+  },
+  "businessAddressLabel": "Address",
+  "@businessAddressLabel": {
+    "description": "Field label."
+  },
+  "businessSaved": "Business details saved",
+  "@businessSaved": {
+    "description": "Snackbar after saving."
+  },
+  "businessPreview": "Label preview",
+  "@businessPreview": {
+    "description": "Header above the live label preview."
+  },
+  "profileTitle": "Your profile",
+  "@profileTitle": {
+    "description": "App bar title."
+  },
+  "passwordTitle": "Change password",
+  "@passwordTitle": {
+    "description": "App bar title."
+  },
+  "passwordNewLabel": "New password",
+  "@passwordNewLabel": {
+    "description": "Field label."
+  },
+  "passwordConfirmLabel": "Confirm new password",
+  "@passwordConfirmLabel": {
+    "description": "Field label."
+  },
+  "passwordMismatch": "The two passwords do not match",
+  "@passwordMismatch": {
+    "description": "Validation error."
+  },
+  "passwordChanged": "Password changed",
+  "@passwordChanged": {
+    "description": "Snackbar after a successful change."
+  },
+  "languageTitle": "App language",
+  "@languageTitle": {
+    "description": "Language picker title."
+  },
+  "languageEnglish": "English",
+  "@languageEnglish": {
+    "description": "Language option."
+  },
+  "languageGujarati": "ગુજરાતી",
+  "@languageGujarati": {
+    "description": "Language option, always shown in Gujarati."
+  },
+  "errorRevokedTitle": "Your account is no longer active",
+  "@errorRevokedTitle": {
+    "description": "Shown when the owner suspended the account mid-session."
+  },
+  "errorRevokedBody": "Maruti Water Solution has paused your access. Contact them to restore it.",
+  "@errorRevokedBody": {
+    "description": "Body for the revoked-session error."
+  },
+  "navCatalogue": "Catalogue",
+  "@navCatalogue": {
+    "description": "Bottom navigation label."
+  },
+  "navScan": "Scan",
+  "@navScan": {
+    "description": "Bottom navigation label."
+  },
+  "navSaved": "Saved",
+  "@navSaved": {
+    "description": "Bottom navigation label."
+  },
+  "navAccount": "Account",
+  "@navAccount": {
+    "description": "Bottom navigation label."
+  },
+  "catalogueTitle": "Catalogue",
+  "@catalogueTitle": {
+    "description": "App bar title."
+  },
+  "catalogueSearchHint": "Search by name, model or code",
+  "@catalogueSearchHint": {
+    "description": "Search placeholder."
+  },
+  "catalogueEmptyTitle": "Nothing in the catalogue yet",
+  "@catalogueEmptyTitle": {
+    "description": "Empty state headline."
+  },
+  "catalogueEmptyBody": "Products added by Maruti Water Solution will appear here.",
+  "@catalogueEmptyBody": {
+    "description": "Empty state body."
+  },
+  "catalogueNoResultsTitle": "No matching products",
+  "@catalogueNoResultsTitle": {
+    "description": "Empty search headline."
+  },
+  "catalogueNoResultsBody": "Try a different name, model number or category.",
+  "@catalogueNoResultsBody": {
+    "description": "Empty search body."
+  },
+  "labelWholesalePrice": "Wholesale price",
+  "@labelWholesalePrice": {
+    "description": "The single price label shown to a wholesaler."
+  },
+  "labelRetailPrice": "Retail price",
+  "@labelRetailPrice": {
+    "description": "The single price label shown to a retailer."
+  },
+  "catalogueSortName": "Name",
+  "@catalogueSortName": {
+    "description": "Sort option."
+  },
+  "catalogueSortPriceLow": "Price: low to high",
+  "@catalogueSortPriceLow": {
+    "description": "Sort option."
+  },
+  "catalogueSortPriceHigh": "Price: high to low",
+  "@catalogueSortPriceHigh": {
+    "description": "Sort option."
+  },
+  "catalogueSortLabel": "Sort",
+  "@catalogueSortLabel": {
+    "description": "Sort sheet title."
+  },
+  "catalogueCountLabel": "{count, plural, =1{1 product} other{{count} products}}",
+  "@catalogueCountLabel": {
+    "description": "Row count above the grid.",
+    "placeholders": {
+      "count": {
+        "type": "num",
+        "format": "compact"
+      }
+    }
+  },
+  "offlineBannerTitle": "Offline — showing saved catalogue",
+  "@offlineBannerTitle": {
+    "description": "Offline banner headline."
+  },
+  "offlineBannerUpdated": "Last updated {age}",
+  "@offlineBannerUpdated": {
+    "description": "Offline banner age line.",
+    "placeholders": {
+      "age": {
+        "type": "String",
+        "example": "2 hours ago"
+      }
+    }
+  },
+  "offlineExpiredTitle": "Saved catalogue is out of date",
+  "@offlineExpiredTitle": {
+    "description": "Shown when the cache is older than the lifetime."
+  },
+  "offlineExpiredBody": "This catalogue is more than 7 days old, so prices may have changed. Connect to the internet to refresh it.",
+  "@offlineExpiredBody": {
+    "description": "Body for the expired cache state."
+  },
+  "offlineRefreshing": "Refreshing in the background",
+  "@offlineRefreshing": {
+    "description": "Shown while a silent refresh runs."
+  },
+  "scanTitle": "Scan a product",
+  "@scanTitle": {
+    "description": "Scanner screen title."
+  },
+  "scanHint": "Point the camera at the barcode or QR code on the label",
+  "@scanHint": {
+    "description": "Instruction under the scan window."
+  },
+  "scanTorchOn": "Turn on the light",
+  "@scanTorchOn": {
+    "description": "Torch button tooltip."
+  },
+  "scanTorchOff": "Turn off the light",
+  "@scanTorchOff": {
+    "description": "Torch button tooltip."
+  },
+  "scanFlipCamera": "Switch camera",
+  "@scanFlipCamera": {
+    "description": "Camera flip tooltip."
+  },
+  "scanManualEntry": "Enter code manually",
+  "@scanManualEntry": {
+    "description": "Opens the manual entry sheet."
+  },
+  "scanManualTitle": "Enter the product code",
+  "@scanManualTitle": {
+    "description": "Manual entry sheet title."
+  },
+  "scanManualHint": "MWS-DOM-001042-Z",
+  "@scanManualHint": {
+    "description": "Placeholder showing the code shape."
+  },
+  "scanManualHelp": "The code is printed under the barcode on the label.",
+  "@scanManualHelp": {
+    "description": "Helper text on the manual entry field."
+  },
+  "scanInvalidCode": "This code is not a Maruti Water Solution product code",
+  "@scanInvalidCode": {
+    "description": "Shown for a code that fails the format or check character."
+  },
+  "scanUnknownCode": "That code is valid but no product matches it",
+  "@scanUnknownCode": {
+    "description": "Shown for a well-formed code with no product."
+  },
+  "scanLookupFailed": "Could not look that up. Check your connection.",
+  "@scanLookupFailed": {
+    "description": "Shown when the lookup itself failed."
+  },
+  "scanPermissionTitle": "Camera access is needed to scan",
+  "@scanPermissionTitle": {
+    "description": "Permission prompt title."
+  },
+  "scanPermissionBody": "Allow camera access so the app can read barcodes on your product labels.",
+  "@scanPermissionBody": {
+    "description": "Permission prompt body."
+  },
+  "scanPermissionDeniedBody": "Camera access is turned off for this app. Turn it on in Settings to scan.",
+  "@scanPermissionDeniedBody": {
+    "description": "Body when permission is permanently denied."
+  },
+  "scanCameraFailed": "The camera could not be started",
+  "@scanCameraFailed": {
+    "description": "Shown when mobile_scanner reports a generic failure."
+  },
+  "scanSearching": "Looking up the code",
+  "@scanSearching": {
+    "description": "Shown while a lookup is in flight."
+  },
+  "productDetailTitle": "Product",
+  "@productDetailTitle": {
+    "description": "Detail screen title."
+  },
+  "productNoImages": "No photos for this product",
+  "@productNoImages": {
+    "description": "Gallery empty state."
+  },
+  "productSpecifications": "Specifications",
+  "@productSpecifications": {
+    "description": "Section header."
+  },
+  "productNoSpecifications": "No specifications listed",
+  "@productNoSpecifications": {
+    "description": "Shown when the jsonb is empty."
+  },
+  "productWarranty": "{count, plural, =1{1 month warranty} other{{count} months warranty}}",
+  "@productWarranty": {
+    "description": "Warranty badge.",
+    "placeholders": {
+      "count": {
+        "type": "num",
+        "format": "compact"
+      }
+    }
+  },
+  "productDescription": "Description",
+  "@productDescription": {
+    "description": "Section header."
+  },
+  "actionSaved": "Saved",
+  "@actionSaved": {
+    "description": "Shown when the product is already saved."
+  },
+  "productSavedToast": "{name} saved",
+  "@productSavedToast": {
+    "description": "Snackbar after saving.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Aqua Pure 25"
+      }
+    }
+  },
+  "productUnsavedToast": "{name} removed from saved",
+  "@productUnsavedToast": {
+    "description": "Snackbar after unsaving.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Aqua Pure 25"
+      }
+    }
+  },
+  "actionEnquire": "Enquire",
+  "@actionEnquire": {
+    "description": "Opens WhatsApp to the client's number."
+  },
+  "productShareFailed": "Could not open the share sheet",
+  "@productShareFailed": {
+    "description": "Shown when sharing fails."
+  },
+  "productZoomHint": "Pinch to zoom",
+  "@productZoomHint": {
+    "description": "Hint on the full-screen image viewer."
+  },
+  "shareHeading": "{business} — product details",
+  "@shareHeading": {
+    "description": "First line of the shared WhatsApp message.",
+    "placeholders": {
+      "business": {
+        "type": "String",
+        "example": "Maruti Water Solution"
+      }
+    }
+  },
+  "shareCodeLabel": "Code",
+  "@shareCodeLabel": {
+    "description": "Label inside the shared message."
+  },
+  "sharePriceLabel": "Price",
+  "@sharePriceLabel": {
+    "description": "Label inside the shared message."
+  },
+  "shareEnquiry": "Hello, I would like to enquire about {name} ({code}).",
+  "@shareEnquiry": {
+    "description": "Pre-filled enquiry message.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Aqua Pure 25"
+      },
+      "code": {
+        "type": "String",
+        "example": "MWS-DOM-001042-Z"
+      }
+    }
+  },
+  "savedTitle": "Saved products",
+  "@savedTitle": {
+    "description": "Saved tab title."
+  },
+  "savedSearchHint": "Search saved products",
+  "@savedSearchHint": {
+    "description": "Search placeholder."
+  },
+  "savedEmptyTitle": "Nothing saved yet",
+  "@savedEmptyTitle": {
+    "description": "Empty state headline."
+  },
+  "savedEmptyBody": "Save a product from the catalogue and it will appear here, ready to quote.",
+  "@savedEmptyBody": {
+    "description": "Empty state body."
+  },
+  "savedRemove": "Remove",
+  "@savedRemove": {
+    "description": "Removes a product from the saved list."
+  },
+  "savedExportPdf": "Export as PDF",
+  "@savedExportPdf": {
+    "description": "Builds the quotation sheet."
+  },
+  "savedExportFailed": "The quotation could not be created",
+  "@savedExportFailed": {
+    "description": "Shown when PDF generation fails."
+  },
+  "savedCount": "{count, plural, =1{1 saved product} other{{count} saved products}}",
+  "@savedCount": {
+    "description": "Count above the saved list.",
+    "placeholders": {
+      "count": {
+        "type": "num",
+        "format": "compact"
+      }
+    }
+  },
+  "quotationTitle": "Quotation",
+  "@quotationTitle": {
+    "description": "Heading on the generated PDF."
+  },
+  "accountTitle": "Account",
+  "@accountTitle": {
+    "description": "Account tab title."
+  },
+  "accountCacheSection": "Offline catalogue",
+  "@accountCacheSection": {
+    "description": "Section header on the account tab."
+  },
+  "accountCacheStatus": "{count} products saved on this phone, {size}",
+  "@accountCacheStatus": {
+    "description": "Cache status line.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "42"
+      },
+      "size": {
+        "type": "String",
+        "example": "3.2 MB"
+      }
+    }
+  },
+  "accountCacheEmpty": "Nothing saved for offline use yet",
+  "@accountCacheEmpty": {
+    "description": "Cache status when the cache is empty."
+  },
+  "accountCacheUpdated": "Updated {age}",
+  "@accountCacheUpdated": {
+    "description": "When the cache was last refreshed.",
+    "placeholders": {
+      "age": {
+        "type": "String",
+        "example": "2 hours ago"
+      }
+    }
+  },
+  "accountClearCache": "Clear offline catalogue",
+  "@accountClearCache": {
+    "description": "Action that empties the cache."
+  },
+  "accountClearCacheTitle": "Clear the offline catalogue?",
+  "@accountClearCacheTitle": {
+    "description": "Confirmation title."
+  },
+  "accountClearCacheBody": "The catalogue will be downloaded again next time you have signal. Your saved products are kept.",
+  "@accountClearCacheBody": {
+    "description": "Confirmation body."
+  },
+  "accountCacheCleared": "Offline catalogue cleared",
+  "@accountCacheCleared": {
+    "description": "Snackbar after clearing."
+  },
+  "actionClose": "Close",
+  "@actionClose": {
+    "description": "Dismisses the full-screen image viewer."
+  },
+  "scanPermissionAllow": "Allow camera access",
+  "@scanPermissionAllow": {
+    "description": "Button that re-asks for camera permission after a soft denial."
+  },
+  "savedNoResultsTitle": "No matching saved products",
+  "@savedNoResultsTitle": {
+    "description": "Empty state when a search over the saved list returns nothing."
+  },
+  "savedNoResultsBody": "Try a different name, model number or code.",
+  "@savedNoResultsBody": {
+    "description": "Body for the empty saved-search state."
+  },
+  "scanManualFieldLabel": "Product code",
+  "@scanManualFieldLabel": {
+    "description": "Label on the manual code entry field."
+  },
+  "complaintsTitle": "Complaints & Support",
+  "@complaintsTitle": {
+    "description": "Title for complaints section"
+  },
+  "complaintsSubtitle": "Track and submit issues or service requests",
+  "@complaintsSubtitle": {
+    "description": "Subtitle for complaints section"
+  },
+  "complaintNewButton": "New Complaint",
+  "@complaintNewButton": {
+    "description": "Button to open complaint creation form"
+  },
+  "complaintFieldSubject": "Subject / Title",
+  "@complaintFieldSubject": {
+    "description": "Form label for complaint subject"
+  },
+  "complaintFieldCategory": "Category",
+  "@complaintFieldCategory": {
+    "description": "Form label for complaint category"
+  },
+  "complaintFieldProduct": "Related Product (Optional)",
+  "@complaintFieldProduct": {
+    "description": "Form label for related product"
+  },
+  "complaintFieldReference": "Order / Invoice Reference (Optional)",
+  "@complaintFieldReference": {
+    "description": "Form label for order reference"
+  },
+  "complaintFieldPriority": "Priority",
+  "@complaintFieldPriority": {
+    "description": "Form label for complaint priority"
+  },
+  "complaintFieldDescription": "Description",
+  "@complaintFieldDescription": {
+    "description": "Form label for complaint description"
+  },
+  "complaintFieldAttachments": "Attachments / Photos",
+  "@complaintFieldAttachments": {
+    "description": "Form section for attachments"
+  },
+  "complaintAddPhoto": "Add Photo",
+  "@complaintAddPhoto": {
+    "description": "Button to pick photo attachment"
+  },
+  "complaintSubmitButton": "Submit Complaint",
+  "@complaintSubmitButton": {
+    "description": "Button to submit complaint"
+  },
+  "complaintSubmittedTitle": "Complaint Submitted",
+  "@complaintSubmittedTitle": {
+    "description": "Dialog title after submission"
+  },
+  "complaintSubmittedBody": "Your complaint has been logged under ticket number {ticketNumber}.",
+  "@complaintSubmittedBody": {
+    "description": "Confirmation message after complaint submission.",
+    "placeholders": {
+      "ticketNumber": {
+        "type": "String",
+        "example": "CMP-2026-00001"
+      }
+    }
+  },
+  "complaintEmptyTitle": "No Complaints Found",
+  "@complaintEmptyTitle": {
+    "description": "Empty state title for user complaints list"
+  },
+  "complaintEmptyBody": "You have not submitted any complaints yet.",
+  "@complaintEmptyBody": {
+    "description": "Empty state body for user complaints list"
+  },
+  "complaintCategoryProductIssue": "Product Issue",
+  "@complaintCategoryProductIssue": {
+    "description": "Category enum option"
+  },
+  "complaintCategoryInstallationIssue": "Installation Issue",
+  "@complaintCategoryInstallationIssue": {
+    "description": "Category enum option"
+  },
+  "complaintCategoryWarrantyIssue": "Warranty Issue",
+  "@complaintCategoryWarrantyIssue": {
+    "description": "Category enum option"
+  },
+  "complaintCategoryDeliveryIssue": "Delivery Issue",
+  "@complaintCategoryDeliveryIssue": {
+    "description": "Category enum option"
+  },
+  "complaintCategoryBillingIssue": "Billing Issue",
+  "@complaintCategoryBillingIssue": {
+    "description": "Category enum option"
+  },
+  "complaintCategoryTechnicalIssue": "Technical Issue",
+  "@complaintCategoryTechnicalIssue": {
+    "description": "Category enum option"
+  },
+  "complaintCategoryOther": "Other",
+  "@complaintCategoryOther": {
+    "description": "Category enum option"
+  },
+  "complaintPriorityLow": "Low",
+  "@complaintPriorityLow": {
+    "description": "Priority enum option"
+  },
+  "complaintPriorityMedium": "Medium",
+  "@complaintPriorityMedium": {
+    "description": "Priority enum option"
+  },
+  "complaintPriorityHigh": "High",
+  "@complaintPriorityHigh": {
+    "description": "Priority enum option"
+  },
+  "complaintPriorityUrgent": "Urgent",
+  "@complaintPriorityUrgent": {
+    "description": "Priority enum option"
+  },
+  "complaintStatusOpen": "Open",
+  "@complaintStatusOpen": {
+    "description": "Status enum option"
+  },
+  "complaintStatusInProgress": "In Progress",
+  "@complaintStatusInProgress": {
+    "description": "Status enum option"
+  },
+  "complaintStatusResolved": "Resolved",
+  "@complaintStatusResolved": {
+    "description": "Status enum option"
+  },
+  "complaintStatusClosed": "Closed",
+  "@complaintStatusClosed": {
+    "description": "Status enum option"
+  },
+  "complaintMessagesHeader": "Updates & Messages",
+  "@complaintMessagesHeader": {
+    "description": "Header for messages timeline"
+  },
+  "complaintAddMessageHint": "Type a message or response...",
+  "@complaintAddMessageHint": {
+    "description": "Placeholder for reply input"
+  },
+  "complaintSendButton": "Send",
+  "@complaintSendButton": {
+    "description": "Send button for messages"
+  },
+  "complaintInternalNoteLabel": "Internal Admin Note (Owner only)",
+  "@complaintInternalNoteLabel": {
+    "description": "Checkbox label for internal note"
+  },
+  "ownerComplaintsTitle": "Complaint Management",
+  "@ownerComplaintsTitle": {
+    "description": "Owner title for complaints section"
+  },
+  "ownerComplaintsSubtitle": "Manage dealer service tickets and responses",
+  "@ownerComplaintsSubtitle": {
+    "description": "Owner subtitle for complaints section"
+  },
+  "unitDetailsTitle": "Product Unit Details",
+  "unitNotFoundTitle": "Product Unit Not Found",
+  "unitNotFoundBody": "That unit serial code was not found in Maruti Water Solution database.",
+  "unitActionRaiseComplaint": "Raise Service Complaint",
+  "unitSectionMachineTitle": "Machine Information",
+  "unitLabelSerialNumber": "Serial Number",
+  "unitLabelManufacturedAt": "Manufactured Date",
+  "unitSerialCopied": "Serial number copied to clipboard",
+  "unitSectionWarrantyTitle": "Warranty Status",
+  "warrantyStatusActive": "Active",
+  "warrantyStatusExpired": "Expired",
+  "warrantyStatusUnactivated": "Standard Warranty",
+  "warrantyLabelStandardCoverage": "Standard Coverage",
+  "unitMonths": "Months",
+  "warrantyLabelCustomerName": "Customer Name",
+  "warrantyLabelCustomerPhone": "Customer Phone",
+  "warrantyLabelInstallationDate": "Installation Date",
+  "warrantyLabelEndDate": "Warranty Expiry Date",
+  "warrantyLabelInvoiceNumber": "Invoice Number",
+  "warrantyUnactivatedHelp": "Standard factory warranty applies. Warranty registration will be activated upon unit installation.",
+  "manageBannersTitle": "Manage Banners",
+  "manageBannersSubtitle": "Manage home dashboard promotional carousel banners",
+  "actionAddBanner": "Add Banner",
+  "bannerStatusActive": "Active",
+  "bannerStatusInactive": "Inactive",
+  "bannerActionReplace": "Replace Image",
+  "bannerActionMoveUp": "Move Up",
+  "bannerActionMoveDown": "Move Down",
+  "bannerActionDelete": "Delete Banner",
+  "bannerDeleteConfirmTitle": "Delete Banner?",
+  "bannerDeleteConfirmBody": "Are you sure you want to delete this banner? This action cannot be undone.",
+  "bannerRecommendedHint": "Recommended format: 16:7 aspect ratio wide banner image.",
+  "bannerEmptyTitle": "No Banners Added",
+  "bannerEmptyBody": "Tap Add Banner to upload promotional slider images for the user dashboard.",
+  "bannerUploadSuccess": "Banner uploaded successfully",
+  "bannerDeleteSuccess": "Banner deleted successfully",
+  "scanOptionRegisterProduct": "Register Product",
+  "scanOptionClaimWarranty": "Claim / Warranty",
+  "scanOptionScanCode": "Scan Code",
+  "scanFromGallery": "Scan from Gallery",
+  "scanNoQrFound": "No QR code found in this image.",
+  "scanMultipleQrFound": "Multiple QR codes found. Please select an image containing one QR code.",
+  "scanInvalidCode": "Invalid code."
+}
+
+
