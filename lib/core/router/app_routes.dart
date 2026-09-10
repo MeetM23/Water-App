@@ -54,6 +54,13 @@ abstract final class AppRoutes {
   /// Owner banner management screen.
   static const String ownerBanners = '/owner/banners';
 
+  /// Owner product registrations management screen.
+  static const String ownerRegistrations = '/owner/registrations';
+
+  /// Owner warranty claims management screen.
+  static const String ownerClaims = '/owner/claims';
+
+
 
 
 

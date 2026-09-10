@@ -48,6 +48,8 @@ import '../../features/shared/unit/presentation/product_registration_screen.dart
 import '../../features/shared/unit/presentation/unit_detail_screen.dart';
 import '../../features/shared/unit/presentation/warranty_claim_screen.dart';
 import '../../features/wholesaler/wholesaler_experience.dart';
+import '../../features/owner/claims/presentation/admin_claims_screen.dart';
+import '../../features/owner/registrations/presentation/admin_registrations_screen.dart';
 import 'app_routes.dart';
 import 'router_refresh_notifier.dart';
 
@@ -150,6 +152,15 @@ GoRouter appRouter(Ref<GoRouter> ref) {
         path: AppRoutes.ownerBanners,
         builder: (_, __) => const ManageBannersScreen(),
       ),
+      GoRoute(
+        path: AppRoutes.ownerRegistrations,
+        builder: (_, __) => const AdminRegistrationsScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.ownerClaims,
+        builder: (_, __) => const AdminWarrantyClaimsScreen(),
+      ),
+
 
       // The owner area is a four-branch shell. Each branch keeps its own
       // navigation stack, so switching tabs does not lose a scroll position or
@@ -371,8 +382,7 @@ String? _redirect(Ref<GoRouter> ref, String location) {
     // Hold on the splash screen until the restored session has resolved, so no
     // screen belonging to the wrong role is ever shown, even briefly.
     loading: () => location == AppRoutes.splash ? null : AppRoutes.splash,
-    error: (Object _, StackTrace __) =>
-        location == AppRoutes.splash ? null : AppRoutes.splash,
+    error: (Object _, StackTrace __) => _redirectForSignedOut(location),
     data: (SessionState sessionState) => switch (sessionState) {
       SessionSignedOut() => _redirectForSignedOut(location),
       SessionSignedIn(:final profile) => _redirectForProfile(profile, location),
@@ -428,6 +438,7 @@ String? _redirectForProfile(Profile profile, String location) {
         fromUri.path == AppRoutes.complaints ||
         fromUri.path.startsWith('/complaint') ||
         fromUri.path.startsWith('/unit') ||
+        fromUri.path == AppRoutes.productRegistration ||
         fromUri.path == AppRoutes.warrantyClaim) {
       return fromParam;
     }
@@ -442,6 +453,7 @@ String? _redirectForProfile(Profile profile, String location) {
       uri.path == AppRoutes.complaints ||
       uri.path.startsWith('/complaint') ||
       uri.path.startsWith('/unit') ||
+      uri.path == AppRoutes.productRegistration ||
       uri.path == AppRoutes.warrantyClaim) {
     return null;
   }

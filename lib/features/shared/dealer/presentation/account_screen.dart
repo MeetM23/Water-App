@@ -24,9 +24,12 @@ import '../../../../domain/models/profile.dart';
 import '../../../auth/application/auth_controller.dart';
 import '../../../auth/application/session_controller.dart';
 import '../../../owner/settings/application/locale_controller.dart';
+import '../../unit/presentation/user_claims_screen.dart';
+import '../../unit/presentation/user_registrations_screen.dart';
 import '../application/cache_status_controller.dart';
 import '../application/catalogue_controller.dart';
 import '../domain/dealer_experience.dart';
+
 
 /// The dealer's own account: who they are, how the app behaves, and the way
 /// out of it.
@@ -147,12 +150,39 @@ class DealerAccountScreen extends ConsumerWidget {
                     : context.push(AppRoutes.complaints),
               ),
               _Row(
+                icon: Icons.app_registration_rounded,
+                label: 'My Registered Units',
+                subtitle: 'View your registered physical machines',
+                onTap: () => profile == null
+                    ? context.push(AppRoutes.login)
+                    : Navigator.push(
+                        context,
+                        MaterialPageRoute<void>(
+                          builder: (_) => const UserRegistrationsScreen(),
+                        ),
+                      ),
+              ),
+              _Row(
+                icon: Icons.verified_outlined,
+                label: 'My Warranty Claims',
+                subtitle: 'View status of your submitted warranty claims',
+                onTap: () => profile == null
+                    ? context.push(AppRoutes.login)
+                    : Navigator.push(
+                        context,
+                        MaterialPageRoute<void>(
+                          builder: (_) => const UserWarrantyClaimsScreen(),
+                        ),
+                      ),
+              ),
+              _Row(
                 icon: Icons.lock_outline_rounded,
                 label: l10n.moreChangePassword,
                 onTap: () => profile == null
                     ? context.push(AppRoutes.login)
                     : context.push(experience.passwordRoute),
               ),
+
               _Row(
                 icon: Icons.translate_rounded,
                 label: l10n.moreLanguage,

@@ -200,13 +200,16 @@ alter table public.unit_registrations enable row level security;
 alter table public.unit_services enable row level security;
 
 -- Policies for product_units
+drop policy if exists product_units_select on public.product_units;
 create policy product_units_select on public.product_units
   for select using (public.is_approved() or auth.uid() is null);
 
+drop policy if exists product_units_owner on public.product_units;
 create policy product_units_owner on public.product_units
   for all using (public.is_owner());
 
 -- Policies for unit_registrations
+drop policy if exists unit_registrations_select on public.unit_registrations;
 create policy unit_registrations_select on public.unit_registrations
   for select using (
     public.is_owner() or
@@ -214,13 +217,16 @@ create policy unit_registrations_select on public.unit_registrations
     public.is_approved()
   );
 
+drop policy if exists unit_registrations_insert on public.unit_registrations;
 create policy unit_registrations_insert on public.unit_registrations
   for insert with check (public.is_approved());
 
 -- Policies for unit_services
+drop policy if exists unit_services_select on public.unit_services;
 create policy unit_services_select on public.unit_services
   for select using (public.is_approved());
 
+drop policy if exists unit_services_insert on public.unit_services;
 create policy unit_services_insert on public.unit_services
   for insert with check (public.is_approved());
 

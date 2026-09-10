@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -277,42 +276,39 @@ class _CatalogueScreenState extends ConsumerState<CatalogueScreen> {
                       ),
                     ),
                   ),
-                  SliverLayoutBuilder(
-                    builder: (BuildContext context, SliverConstraints constraints) {
-                      final width = constraints.crossAxisExtent;
-                      return SliverPadding(
-                        padding: const EdgeInsets.fromLTRB(
-                          Spacing.x4,
-                          0,
-                          Spacing.x4,
-                          Spacing.x8,
+                  SliverPadding(
+                    padding: const EdgeInsets.fromLTRB(
+                      Spacing.x4,
+                      0,
+                      Spacing.x4,
+                      Spacing.x8,
+                    ),
+                    sliver: SliverGrid(
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: CatalogueGridMetrics.columnsFor(
+                          MediaQuery.sizeOf(context).width,
                         ),
-                        sliver: SliverGrid(
-                          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: CatalogueGridMetrics.columnsFor(width),
-                            crossAxisSpacing: Spacing.x3,
-                            mainAxisSpacing: Spacing.x3,
-                            mainAxisExtent: CatalogueGridMetrics.tileExtent(
-                              context,
-                              width,
+                        crossAxisSpacing: Spacing.x3,
+                        mainAxisSpacing: Spacing.x3,
+                        mainAxisExtent: CatalogueGridMetrics.tileExtent(
+                          context,
+                          MediaQuery.sizeOf(context).width,
+                        ),
+                      ),
+                      delegate: SliverChildBuilderDelegate(
+                        (BuildContext context, int index) {
+                          final product = products[index];
+                          return CatalogueCard(
+                            product: product,
+                            priceLabel: widget.experience.priceLabel(l10n),
+                            onTap: () => context.push(
+                              widget.experience.productRoute(product.productCode),
                             ),
-                          ),
-                          delegate: SliverChildBuilderDelegate(
-                            (BuildContext context, int index) {
-                              final product = products[index];
-                              return CatalogueCard(
-                                product: product,
-                                priceLabel: widget.experience.priceLabel(l10n),
-                                onTap: () => context.push(
-                                  widget.experience.productRoute(product.productCode),
-                                ),
-                              );
-                            },
-                            childCount: products.length,
-                          ),
-                        ),
-                      );
-                    },
+                          );
+                        },
+                        childCount: products.length,
+                      ),
+                    ),
                   ),
                 ];
               },

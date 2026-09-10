@@ -220,11 +220,24 @@ class MoreScreen extends ConsumerWidget {
                 onTap: () => context.push(AppRoutes.ownerBanners),
               ),
               _Row(
+                icon: Icons.app_registration_rounded,
+                label: 'Product Registrations',
+                subtitle: 'View registered RO units and customer warranties',
+                onTap: () => context.push(AppRoutes.ownerRegistrations),
+              ),
+              _Row(
+                icon: Icons.verified_outlined,
+                label: 'Warranty Claims',
+                subtitle: 'Manage dealer warranty claim requests',
+                onTap: () => context.push(AppRoutes.ownerClaims),
+              ),
+              _Row(
                 icon: Icons.storefront_outlined,
                 label: l10n.moreBusinessDetails,
                 subtitle: l10n.moreBusinessDetailsHelp,
                 onTap: () => context.push(AppRoutes.ownerBusiness),
               ),
+
 
 
               _Row(
