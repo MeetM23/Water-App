@@ -150,18 +150,18 @@ dependencies {
 //
 // Deliberately conservative: if the task names name no flavour, or name both,
 // every variant stays enabled and Android Studio's sync sees the whole project.
-// androidComponents {
-//     val requested = gradle.startParameter.taskNames
-//         .joinToString(" ")
-//         .lowercase()
-//     val named = listOf("dev", "prod").filter { requested.contains(it) }
-// 
-//     if (named.size == 1) {
-//         val keep = named.single()
-//         beforeVariants { variant ->
-//             if (!variant.flavorName.equals(keep, ignoreCase = true)) {
-//                 variant.enable = false
-//             }
-//         }
-//     }
-// }
+androidComponents {
+    val requested = gradle.startParameter.taskNames
+        .joinToString(" ")
+        .lowercase()
+    val named = listOf("dev", "prod").filter { requested.contains(it) }
+
+    if (named.size == 1) {
+        val keep = named.single()
+        beforeVariants { variant ->
+            if (!variant.flavorName.equals(keep, ignoreCase = true)) {
+                variant.enable = false
+            }
+        }
+    }
+}

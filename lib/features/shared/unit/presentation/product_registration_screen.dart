@@ -12,6 +12,7 @@ import '../../../../core/widgets/app_snackbar.dart';
 import '../../../../core/errors/failure_presentation.dart';
 import '../../../../data/repositories/supabase_unit_repository.dart';
 import '../../../../domain/models/product_unit.dart';
+import '../../scanner/presentation/scanner_screen.dart';
 
 
 
@@ -186,6 +187,35 @@ class _ProductRegistrationScreenState
 
 
 
+  Future<void> _scanSerialWithCamera() async {
+    final scannedCode = await showModalBottomSheet<String>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (sheetContext) => Scaffold(
+        appBar: AppBar(
+          title: const Text('Scan Physical Unit Serial'),
+          leading: IconButton(
+            icon: const Icon(Icons.close),
+            onPressed: () => Navigator.pop(sheetContext),
+          ),
+        ),
+        body: ScannerScreen(
+          onClose: () => Navigator.pop(sheetContext),
+          productRoute: (code) {
+            Navigator.pop(sheetContext, code);
+            return '';
+          },
+        ),
+      ),
+    );
+
+    if (scannedCode != null && scannedCode.trim().isNotEmpty) {
+      _serialController.text = scannedCode.trim().toUpperCase();
+      _lookupUnit(scannedCode.trim());
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final isAlreadyRegistered = _foundUnit?.registration != null;
@@ -241,7 +271,7 @@ class _ProductRegistrationScreenState
                             ),
                           ),
                           IconButton.filledTonal(
-                            onPressed: () => context.push(AppRoutes.retailerScan),
+                            onPressed: _scanSerialWithCamera,
                             icon: const Icon(Icons.qr_code_scanner_rounded),
                             tooltip: 'Scan QR Code',
                           ),
