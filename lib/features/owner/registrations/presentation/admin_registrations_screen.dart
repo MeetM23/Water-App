@@ -5,6 +5,7 @@ import '../../../../core/extensions/build_context_x.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/widgets/app_card.dart';
+import '../../../../core/widgets/app_empty_state.dart';
 import '../../../../data/repositories/supabase_unit_repository.dart';
 import '../../../../domain/models/product_unit.dart';
 
@@ -89,21 +90,22 @@ class _AdminRegistrationsScreenState
                 final filtered = units.where((unit) {
                   if (_searchQuery.isEmpty) return true;
                   final reg = unit.registration;
-                  final matchName = reg?.customerName.toLowerCase().contains(_searchQuery) ?? false;
-                  final matchPhone = reg?.customerPhone.toLowerCase().contains(_searchQuery) ?? false;
+                  final matchName = reg?.customerName?.toLowerCase().contains(_searchQuery) ?? false;
+                  final matchPhone = reg?.customerPhone?.toLowerCase().contains(_searchQuery) ?? false;
                   final matchSerial = unit.serialNumber.toLowerCase().contains(_searchQuery);
                   final matchProduct = unit.productName.toLowerCase().contains(_searchQuery);
                   return matchName || matchPhone || matchSerial || matchProduct;
                 }).toList();
 
                 if (filtered.isEmpty) {
-                  return Center(
-                    child: Text(
-                      _searchQuery.isEmpty
-                          ? 'No product registrations found'
-                          : 'No matching registrations',
-                      style: context.textTheme.bodyLarge?.copyWith(color: Colors.grey),
-                    ),
+                  return AppEmptyState(
+                    icon: Icons.assignment_turned_in_outlined,
+                    title: _searchQuery.isEmpty
+                        ? 'No Product Registrations Found'
+                        : 'No Matching Registrations',
+                    message: _searchQuery.isEmpty
+                        ? 'Registered machine units will appear here once dealers submit customer installation records.'
+                        : 'No registration records match your search "$_searchQuery".',
                   );
                 }
 

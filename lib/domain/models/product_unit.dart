@@ -32,8 +32,8 @@ class UnitRegistrationInfo with _$UnitRegistrationInfo {
   /// Creates unit registration info.
   const factory UnitRegistrationInfo({
     required String id,
-    required String customerName,
-    required String customerPhone,
+    String? customerName,
+    String? customerPhone,
     required DateTime purchaseDate,
     required DateTime installationDate,
     required DateTime warrantyStartDate,

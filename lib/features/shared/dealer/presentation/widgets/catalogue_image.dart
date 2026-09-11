@@ -80,17 +80,21 @@ class CatalogueImage extends ConsumerWidget {
     if (path.startsWith('/') ||
         path.startsWith('file://') ||
         File(path).existsSync()) {
-      final cleanPath =
-          path.startsWith('file://') ? Uri.parse(path).toFilePath() : path;
-      final file = File(cleanPath);
-      if (file.existsSync()) {
-        return Image.file(
-          file,
-          fit: fit,
-          cacheWidth: 640,
-          gaplessPlayback: true,
-          errorBuilder: (_, __, ___) => const _Placeholder(),
-        );
+      try {
+        final cleanPath =
+            path.startsWith('file://') ? Uri.parse(path).toFilePath() : path;
+        final file = File(cleanPath);
+        if (file.existsSync()) {
+          return Image.file(
+            file,
+            fit: fit,
+            cacheWidth: 640,
+            gaplessPlayback: true,
+            errorBuilder: (_, __, ___) => const _Placeholder(),
+          );
+        }
+      } catch (_) {
+        // Fall through to provider lookup
       }
     }
 

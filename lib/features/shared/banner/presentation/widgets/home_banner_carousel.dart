@@ -7,6 +7,7 @@ import '../../../../../core/theme/app_colors.dart';
 import '../../../../../core/theme/app_radius.dart';
 import '../../../../../core/theme/app_spacing.dart';
 import '../../../../../domain/models/dashboard_banner.dart';
+import '../../../dealer/presentation/widgets/catalogue_image.dart';
 
 /// A stable, production-grade promotional banner carousel for the User Dashboard.
 ///
@@ -207,6 +208,14 @@ class _BannerImageTile extends StatelessWidget {
           );
         },
         errorBuilder: (_, __, ___) => _renderTestBanner(index),
+      );
+    }
+
+    // 4. Supabase Storage Path
+    if (path.isNotEmpty && !path.startsWith('test_banner_')) {
+      return CatalogueImage(
+        storagePath: path,
+        fit: BoxFit.cover,
       );
     }
 

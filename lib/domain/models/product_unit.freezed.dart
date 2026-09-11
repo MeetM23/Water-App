@@ -371,8 +371,8 @@ UnitRegistrationInfo _$UnitRegistrationInfoFromJson(Map<String, dynamic> json) {
 /// @nodoc
 mixin _$UnitRegistrationInfo {
   String get id => throw _privateConstructorUsedError;
-  String get customerName => throw _privateConstructorUsedError;
-  String get customerPhone => throw _privateConstructorUsedError;
+  String? get customerName => throw _privateConstructorUsedError;
+  String? get customerPhone => throw _privateConstructorUsedError;
   DateTime get purchaseDate => throw _privateConstructorUsedError;
   DateTime get installationDate => throw _privateConstructorUsedError;
   DateTime get warrantyStartDate => throw _privateConstructorUsedError;
@@ -402,8 +402,8 @@ abstract class $UnitRegistrationInfoCopyWith<$Res> {
   @useResult
   $Res call(
       {String id,
-      String customerName,
-      String customerPhone,
+      String? customerName,
+      String? customerPhone,
       DateTime purchaseDate,
       DateTime installationDate,
       DateTime warrantyStartDate,
@@ -433,8 +433,8 @@ class _$UnitRegistrationInfoCopyWithImpl<$Res,
   @override
   $Res call({
     Object? id = null,
-    Object? customerName = null,
-    Object? customerPhone = null,
+    Object? customerName = freezed,
+    Object? customerPhone = freezed,
     Object? purchaseDate = null,
     Object? installationDate = null,
     Object? warrantyStartDate = null,
@@ -451,14 +451,14 @@ class _$UnitRegistrationInfoCopyWithImpl<$Res,
           ? _value.id
           : id // ignore: cast_nullable_to_non_nullable
               as String,
-      customerName: null == customerName
+      customerName: freezed == customerName
           ? _value.customerName
           : customerName // ignore: cast_nullable_to_non_nullable
-              as String,
-      customerPhone: null == customerPhone
+              as String?,
+      customerPhone: freezed == customerPhone
           ? _value.customerPhone
           : customerPhone // ignore: cast_nullable_to_non_nullable
-              as String,
+              as String?,
       purchaseDate: null == purchaseDate
           ? _value.purchaseDate
           : purchaseDate // ignore: cast_nullable_to_non_nullable
@@ -513,8 +513,8 @@ abstract class _$$UnitRegistrationInfoImplCopyWith<$Res>
   @useResult
   $Res call(
       {String id,
-      String customerName,
-      String customerPhone,
+      String? customerName,
+      String? customerPhone,
       DateTime purchaseDate,
       DateTime installationDate,
       DateTime warrantyStartDate,
@@ -541,8 +541,8 @@ class __$$UnitRegistrationInfoImplCopyWithImpl<$Res>
   @override
   $Res call({
     Object? id = null,
-    Object? customerName = null,
-    Object? customerPhone = null,
+    Object? customerName = freezed,
+    Object? customerPhone = freezed,
     Object? purchaseDate = null,
     Object? installationDate = null,
     Object? warrantyStartDate = null,
@@ -559,14 +559,14 @@ class __$$UnitRegistrationInfoImplCopyWithImpl<$Res>
           ? _value.id
           : id // ignore: cast_nullable_to_non_nullable
               as String,
-      customerName: null == customerName
+      customerName: freezed == customerName
           ? _value.customerName
           : customerName // ignore: cast_nullable_to_non_nullable
-              as String,
-      customerPhone: null == customerPhone
+              as String?,
+      customerPhone: freezed == customerPhone
           ? _value.customerPhone
           : customerPhone // ignore: cast_nullable_to_non_nullable
-              as String,
+              as String?,
       purchaseDate: null == purchaseDate
           ? _value.purchaseDate
           : purchaseDate // ignore: cast_nullable_to_non_nullable
@@ -616,8 +616,8 @@ class __$$UnitRegistrationInfoImplCopyWithImpl<$Res>
 class _$UnitRegistrationInfoImpl extends _UnitRegistrationInfo {
   const _$UnitRegistrationInfoImpl(
       {required this.id,
-      required this.customerName,
-      required this.customerPhone,
+      this.customerName,
+      this.customerPhone,
       required this.purchaseDate,
       required this.installationDate,
       required this.warrantyStartDate,
@@ -636,9 +636,9 @@ class _$UnitRegistrationInfoImpl extends _UnitRegistrationInfo {
   @override
   final String id;
   @override
-  final String customerName;
+  final String? customerName;
   @override
-  final String customerPhone;
+  final String? customerPhone;
   @override
   final DateTime purchaseDate;
   @override
@@ -736,8 +736,8 @@ class _$UnitRegistrationInfoImpl extends _UnitRegistrationInfo {
 abstract class _UnitRegistrationInfo extends UnitRegistrationInfo {
   const factory _UnitRegistrationInfo(
       {required final String id,
-      required final String customerName,
-      required final String customerPhone,
+      final String? customerName,
+      final String? customerPhone,
       required final DateTime purchaseDate,
       required final DateTime installationDate,
       required final DateTime warrantyStartDate,
@@ -756,9 +756,9 @@ abstract class _UnitRegistrationInfo extends UnitRegistrationInfo {
   @override
   String get id;
   @override
-  String get customerName;
+  String? get customerName;
   @override
-  String get customerPhone;
+  String? get customerPhone;
   @override
   DateTime get purchaseDate;
   @override

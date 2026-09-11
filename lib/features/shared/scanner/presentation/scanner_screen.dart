@@ -17,14 +17,35 @@ import '../../../../core/utils/media_permissions.dart';
 import '../../../../core/widgets/app_button.dart';
 import '../../../../core/widgets/app_empty_state.dart';
 import '../../../../core/widgets/app_snackbar.dart';
-import '../../../../domain/enums/user_role.dart';
 import '../../../../domain/models/catalog_product.dart';
 import '../../../../domain/models/product_unit.dart';
 import '../../../../domain/repositories/scan_repository.dart';
-import '../../../auth/application/session_controller.dart';
 import '../application/scanner_controller.dart';
 import 'widgets/manual_entry_sheet.dart';
 import 'widgets/scanner_overlay.dart';
+
+/// Controls what the scanner does when a code is decoded.
+///
+/// [general] — the default tab mode. MWS-DOM opens the product detail,
+/// MWS-SN opens the unit detail. All three action tiles are shown.
+///
+/// [registerProduct] — serial-only mode. Only MWS-SN codes are accepted.
+/// A successful scan pushes the Register Product form with the serial
+/// pre-filled. MWS-DOM codes show an inline explanation. Action tiles
+/// are hidden and the header reads "Scan Physical Unit".
+///
+/// [warrantyClaim] — identical to [registerProduct] but pushes the
+/// Claim/Warranty form instead.
+enum ScanMode {
+  /// General catalogue + unit scan. Full action tile row shown.
+  general,
+
+  /// Physical-unit serial scan for product registration (MWS-SN only).
+  registerProduct,
+
+  /// Physical-unit serial scan for warranty claims (MWS-SN only).
+  warrantyClaim,
+}
 
 /// The barcode scanner.
 ///
@@ -36,15 +57,22 @@ import 'widgets/scanner_overlay.dart';
 ///
 /// Nothing in here is specific to one dealer role. The route a resolved code
 /// opens is the single difference between them, and it is a parameter.
+///
+/// When [mode] is [ScanMode.registerProduct] or [ScanMode.warrantyClaim] the
+/// scanner operates as a serial-capture widget: it only accepts MWS-SN codes,
+/// shows a purpose-specific header, hides the action tile row, and pushes the
+/// appropriate form screen with the serial pre-filled. This eliminates the
+/// need for any nested scanner implementation inside the form screens.
 class ScannerScreen extends ConsumerStatefulWidget {
   /// Creates the scanner.
   const ScannerScreen({
     required this.productRoute,
     super.key,
     this.onClose,
+    this.mode = ScanMode.general,
   });
 
-  /// Shows a close button that calls this.
+  /// Shows a close/back button that calls this.
   ///
   /// Null when the scanner is a tab, which is the default: a tab has nothing
   /// to close back to.
@@ -55,7 +83,12 @@ class ScannerScreen extends ConsumerStatefulWidget {
   /// Required rather than defaulted to one role's path: a default would be a
   /// wholesaler route living inside a component both roles mount, and the day
   /// a caller forgot to pass it a retailer would land on the wholesaler screen.
+  ///
+  /// Ignored when [mode] is not [ScanMode.general].
   final String Function(String productCode) productRoute;
+
+  /// Controls what happens when a code is decoded. Defaults to [ScanMode.general].
+  final ScanMode mode;
 
   @override
   ConsumerState<ScannerScreen> createState() => _ScannerScreenState();
@@ -74,9 +107,13 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen>
   ValueListenable<bool>? _visibility;
   bool _isVisible = true;
 
+  /// Current scan mode — can be changed in-place without pushing a new route.
+  late ScanMode _mode;
+
   @override
   void initState() {
     super.initState();
+    _mode = widget.mode;
     _scanner = ref.read(scannerControllerProvider.notifier);
     WidgetsBinding.instance.addObserver(this);
     // Deferred by a frame: asking for the camera during the first build races
@@ -164,6 +201,14 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen>
   }
 
   Future<void> _resolve(String code, ScanSource source) async {
+    // Serial-only modes: accept MWS-SN, reject everything else with a
+    // clear explanation rather than the generic "invalid code" message.
+    if (_mode == ScanMode.registerProduct || _mode == ScanMode.warrantyClaim) {
+      await _resolveSerialOnly(code);
+      return;
+    }
+
+    // General mode: existing product + unit routing.
     final outcome = await _scanner.resolve(code);
     if (!mounted) {
       return;
@@ -176,6 +221,39 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen>
         await _openUnit(unit, source);
       case ScanRejected(:final reason):
         _reject(reason);
+    }
+  }
+
+  /// Handles a detected code when the scanner is in a serial-only mode.
+  ///
+  /// MWS-SN codes are forwarded to the appropriate form screen.
+  /// Handles a detected code when the scanner is in a mode like registerProduct or warrantyClaim.
+  ///
+  /// Accepts any machine or product code (MWS-SN, MWS-DOM, or custom barcode/serial) and
+  /// passes it directly to the target registration/claim form.
+  Future<void> _resolveSerialOnly(String code) async {
+    final upper = code.trim().toUpperCase();
+    if (upper.isEmpty) {
+      _scanner.resumeScanning();
+      if (!mounted) return;
+      AppSnackbar.error(context, 'Invalid code scanned.');
+      return;
+    }
+
+    // Stop camera and navigate to the appropriate form.
+    await _scanner.stopCamera();
+    if (!mounted) return;
+
+    final route = _mode == ScanMode.registerProduct
+        ? '${AppRoutes.productRegistration}?serialNumber=$upper'
+        : '${AppRoutes.warrantyClaim}?serialNumber=$upper';
+
+    context.push(route);
+
+    if (mounted) {
+      setState(() => _mode = ScanMode.general);
+      _scanner.resumeScanning();
+      await _activate();
     }
   }
 
@@ -230,6 +308,13 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen>
       return;
     }
 
+    // In serial-only modes, the manual entry sheet should accept serial
+    // numbers and resolve them directly.
+    if (_mode == ScanMode.registerProduct || _mode == ScanMode.warrantyClaim) {
+      await _openManualSerialEntry();
+      return;
+    }
+
     final product = await ManualEntrySheet.show(context);
     if (!mounted) {
       return;
@@ -242,6 +327,25 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen>
     }
 
     await _openProduct(product, ScanSource.manual);
+  }
+
+  /// Shows a text input for the physical unit serial (MWS-SN) in serial modes.
+  Future<void> _openManualSerialEntry() async {
+    final serial = await showDialog<String>(
+      context: context,
+      builder: (dialogContext) => _SerialEntryDialog(
+        mode: _mode,
+      ),
+    );
+    if (!mounted) return;
+
+    if (serial == null || serial.trim().isEmpty) {
+      _scanner.resumeScanning();
+      await _activate();
+      return;
+    }
+
+    await _resolveSerialOnly(serial.trim());
   }
 
   Future<void> _openGalleryScan() async {
@@ -300,25 +404,19 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen>
     }
   }
 
-  void _onRegisterProduct() {
-    // Capture the router reference BEFORE calling onClose, because onClose
-    // may dismiss a bottom sheet that contains this widget, unmounting it and
-    // invalidating `context` before the push below fires.
-    final router = GoRouter.of(context);
-    final session = ref.read(sessionControllerProvider).valueOrNull;
-    final route = (session is SessionSignedIn &&
-            session.profile.role == UserRole.owner)
-        ? AppRoutes.ownerProductNew
-        : AppRoutes.productRegistration;
-    widget.onClose?.call();
-    router.push(route);
+  /// Switches to Register Product mode in-place (called from action tile).
+  void _switchToRegisterMode() {
+    setState(() => _mode = ScanMode.registerProduct);
   }
 
-  void _onClaimWarranty() {
-    // Same: capture router before onClose dismisses the sheet.
-    final router = GoRouter.of(context);
-    widget.onClose?.call();
-    router.push(AppRoutes.warrantyClaim);
+  /// Switches to Claim/Warranty mode in-place (called from action tile).
+  void _switchToClaimMode() {
+    setState(() => _mode = ScanMode.warrantyClaim);
+  }
+
+  /// Returns to general mode (called when the mode banner back arrow is tapped).
+  void _resetToGeneralMode() {
+    setState(() => _mode = ScanMode.general);
   }
 
   Future<void> _openSettings() async {
@@ -333,29 +431,46 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen>
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final state = ref.watch(scannerControllerProvider);
+    final isSerialMode = _mode != ScanMode.general;
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(l10n.scanTitle),
-        leading: widget.onClose == null
-            ? null
-            : IconButton(
+        title: Text(
+          isSerialMode ? 'Scan Physical Unit' : l10n.scanTitle,
+        ),
+        leading: widget.onClose != null
+            ? IconButton(
                 onPressed: widget.onClose,
                 icon: const Icon(Icons.close_rounded),
-                tooltip: MaterialLocalizations.of(context).closeButtonTooltip,
-              ),
+                tooltip:
+                    MaterialLocalizations.of(context).closeButtonTooltip,
+              )
+            : isSerialMode
+                // In-place mode: show back arrow to return to general mode.
+                ? IconButton(
+                    onPressed: _resetToGeneralMode,
+                    icon: const Icon(Icons.arrow_back_rounded),
+                    tooltip: MaterialLocalizations.of(context).backButtonTooltip,
+                  )
+                : null,
       ),
       body: Column(
         children: <Widget>[
-          _ThreeActionHeader(
-            onRegisterProduct: _onRegisterProduct,
-            onClaimWarranty: _onClaimWarranty,
-            onScanCode: () {},
-          ),
+          // Mode banner — shown in serial modes to explain the purpose.
+          if (isSerialMode)
+            _ModeBanner(mode: _mode)
+          else
+            // Action tiles — only shown in general mode.
+            _ThreeActionHeader(
+              onRegisterProduct: _switchToRegisterMode,
+              onClaimWarranty: _switchToClaimMode,
+              onScanCode: () {}, // already in general mode
+            ),
           Expanded(child: _buildViewfinder(state)),
           _BottomControlBar(
             onManualPressed: () => unawaited(_openManualEntry()),
             onGalleryPressed: () => unawaited(_openGalleryScan()),
+            isSerialMode: isSerialMode,
           ),
         ],
       ),
@@ -401,6 +516,68 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen>
     }
   }
 }
+
+// ---------------------------------------------------------------------------
+// Mode banner
+// ---------------------------------------------------------------------------
+
+/// Shown in [ScanMode.registerProduct] and [ScanMode.warrantyClaim] to
+/// explain what the scanner is looking for.
+class _ModeBanner extends StatelessWidget {
+  const _ModeBanner({required this.mode});
+
+  final ScanMode mode;
+
+  @override
+  Widget build(BuildContext context) {
+    final isRegister = mode == ScanMode.registerProduct;
+    return Container(
+      width: double.infinity,
+      color: AppColors.primary.withOpacity(0.08),
+      padding: const EdgeInsets.symmetric(
+        horizontal: Spacing.x4,
+        vertical: Spacing.x3,
+      ),
+      child: Row(
+        children: <Widget>[
+          Icon(
+            isRegister
+                ? Icons.add_box_outlined
+                : Icons.build_circle_outlined,
+            size: 20,
+            color: AppColors.primary,
+          ),
+          const SizedBox(width: Spacing.x3),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Text(
+                  isRegister ? 'Register Product' : 'Claim / Warranty',
+                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                        color: AppColors.primary,
+                        fontWeight: FontWeight.bold,
+                      ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  'Scan the QR label or code on the machine or product box',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: AppColors.primary.withOpacity(0.8),
+                      ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Viewfinder
+// ---------------------------------------------------------------------------
 
 class _Viewfinder extends StatelessWidget {
   const _Viewfinder({
@@ -498,6 +675,10 @@ class _Viewfinder extends StatelessWidget {
   }
 }
 
+// ---------------------------------------------------------------------------
+// Camera controls
+// ---------------------------------------------------------------------------
+
 class _CameraControls extends StatelessWidget {
   const _CameraControls({
     required this.torchState,
@@ -582,6 +763,10 @@ class _CameraButton extends StatelessWidget {
   }
 }
 
+// ---------------------------------------------------------------------------
+// Scan hint / searching pill
+// ---------------------------------------------------------------------------
+
 class _ScanHint extends StatelessWidget {
   const _ScanHint({required this.label});
 
@@ -643,6 +828,10 @@ class _SearchingPill extends StatelessWidget {
   }
 }
 
+// ---------------------------------------------------------------------------
+// Camera placeholder
+// ---------------------------------------------------------------------------
+
 class _CameraPlaceholder extends StatelessWidget {
   const _CameraPlaceholder();
 
@@ -663,6 +852,10 @@ class _CameraPlaceholder extends StatelessWidget {
     );
   }
 }
+
+// ---------------------------------------------------------------------------
+// Three-action header (general mode only)
+// ---------------------------------------------------------------------------
 
 class _ThreeActionHeader extends StatelessWidget {
   const _ThreeActionHeader({
@@ -778,14 +971,20 @@ class _ActionTile extends StatelessWidget {
   }
 }
 
+// ---------------------------------------------------------------------------
+// Bottom control bar
+// ---------------------------------------------------------------------------
+
 class _BottomControlBar extends StatelessWidget {
   const _BottomControlBar({
     required this.onManualPressed,
     required this.onGalleryPressed,
+    required this.isSerialMode,
   });
 
   final VoidCallback onManualPressed;
   final VoidCallback onGalleryPressed;
+  final bool isSerialMode;
 
   @override
   Widget build(BuildContext context) {
@@ -804,19 +1003,21 @@ class _BottomControlBar extends StatelessWidget {
             children: <Widget>[
               Expanded(
                 child: AppButton(
-                  label: l10n.scanManualEntry,
+                  label: isSerialMode
+                      ? 'Enter Serial Manually'
+                      : l10n.scanManualEntry,
+                  icon: Icons.keyboard_outlined,
                   onPressed: onManualPressed,
                   variant: AppButtonVariant.secondary,
-                  icon: Icons.keyboard_rounded,
                 ),
               ),
               const SizedBox(width: Spacing.x3),
               Expanded(
                 child: AppButton(
                   label: l10n.scanFromGallery,
+                  icon: Icons.photo_library_outlined,
                   onPressed: onGalleryPressed,
                   variant: AppButtonVariant.secondary,
-                  icon: Icons.photo_library_outlined,
                 ),
               ),
             ],
@@ -824,5 +1025,72 @@ class _BottomControlBar extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Serial entry dialog (for manual entry in serial modes)
+// ---------------------------------------------------------------------------
+
+/// A simple dialog for manually entering a physical unit serial number (MWS-SN).
+/// Used in [ScanMode.registerProduct] and [ScanMode.warrantyClaim] modes.
+class _SerialEntryDialog extends StatefulWidget {
+  const _SerialEntryDialog({required this.mode});
+
+  final ScanMode mode;
+
+  @override
+  State<_SerialEntryDialog> createState() => _SerialEntryDialogState();
+}
+
+class _SerialEntryDialogState extends State<_SerialEntryDialog> {
+  final _controller = TextEditingController();
+  final _focusNode = FocusNode();
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _focusNode.requestFocus());
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    _focusNode.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isRegister = widget.mode == ScanMode.registerProduct;
+    return AlertDialog(
+      title: Text(isRegister ? 'Enter Unit Serial' : 'Enter Unit Serial'),
+      content: TextField(
+        controller: _controller,
+        focusNode: _focusNode,
+        textCapitalization: TextCapitalization.characters,
+        decoration: const InputDecoration(
+          labelText: 'Physical Unit Serial (MWS-SN-...)',
+          hintText: 'e.g. MWS-SN-DOM-001001-K',
+          prefixIcon: Icon(Icons.confirmation_number_outlined),
+        ),
+        onSubmitted: (_) => _submit(),
+      ),
+      actions: <Widget>[
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Cancel'),
+        ),
+        FilledButton(
+          onPressed: _submit,
+          child: const Text('Look Up'),
+        ),
+      ],
+    );
+  }
+
+  void _submit() {
+    final serial = _controller.text.trim();
+    Navigator.of(context).pop(serial.isEmpty ? null : serial);
   }
 }

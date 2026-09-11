@@ -24,8 +24,6 @@ import '../../../../domain/models/profile.dart';
 import '../../../auth/application/auth_controller.dart';
 import '../../../auth/application/session_controller.dart';
 import '../../../owner/settings/application/locale_controller.dart';
-import '../../unit/presentation/user_claims_screen.dart';
-import '../../unit/presentation/user_registrations_screen.dart';
 import '../application/cache_status_controller.dart';
 import '../application/catalogue_controller.dart';
 import '../domain/dealer_experience.dart';
@@ -155,12 +153,7 @@ class DealerAccountScreen extends ConsumerWidget {
                 subtitle: 'View your registered physical machines',
                 onTap: () => profile == null
                     ? context.push(AppRoutes.login)
-                    : Navigator.push(
-                        context,
-                        MaterialPageRoute<void>(
-                          builder: (_) => const UserRegistrationsScreen(),
-                        ),
-                      ),
+                    : context.push(AppRoutes.userRegistrations),
               ),
               _Row(
                 icon: Icons.verified_outlined,
@@ -168,12 +161,7 @@ class DealerAccountScreen extends ConsumerWidget {
                 subtitle: 'View status of your submitted warranty claims',
                 onTap: () => profile == null
                     ? context.push(AppRoutes.login)
-                    : Navigator.push(
-                        context,
-                        MaterialPageRoute<void>(
-                          builder: (_) => const UserWarrantyClaimsScreen(),
-                        ),
-                      ),
+                    : context.push(AppRoutes.userClaims),
               ),
               _Row(
                 icon: Icons.lock_outline_rounded,

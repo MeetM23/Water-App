@@ -16,23 +16,16 @@ subprojects {
 subprojects {
     if (project.name != "app") {
         project.extra.set("flutter", mapOf(
-            "compileSdkVersion" to 36,
+            "compileSdkVersion" to 35,
             "minSdkVersion" to 21,
-            "targetSdkVersion" to 36,
+            "targetSdkVersion" to 35,
             "ndkVersion" to "27.0.12077973"
         ))
     }
 
-    plugins.withId("com.android.library") {
-        val android = project.extensions.findByName("android")
-        if (android is org.gradle.api.plugins.ExtensionAware) {
-            android.extensions.extraProperties.set("flutter", mapOf(
-                "compileSdkVersion" to 36,
-                "minSdkVersion" to 21,
-                "targetSdkVersion" to 36,
-                "ndkVersion" to "27.0.12077973"
-            ))
-        }
+    afterEvaluate {
+        val android = extensions.findByType(com.android.build.gradle.LibraryExtension::class.java)
+        android?.compileSdk = 35
     }
 }
 

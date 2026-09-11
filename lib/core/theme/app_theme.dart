@@ -43,6 +43,7 @@ abstract final class AppTheme {
         color: AppColors.primary,
         linearMinHeight: 3,
       ),
+      floatingActionButtonTheme: _floatingActionButtonTheme(text),
       iconTheme: const IconThemeData(color: AppColors.textSecondary, size: 20),
     );
   }
@@ -184,9 +185,11 @@ abstract final class AppTheme {
   static ChipThemeData _chipTheme(TextTheme text) => ChipThemeData(
     backgroundColor: AppColors.primaryTint,
     selectedColor: AppColors.primary,
+    secondarySelectedColor: AppColors.primary,
     disabledColor: AppColors.disabledFill,
+    checkmarkColor: Colors.white,
     labelStyle: text.labelSmall?.copyWith(color: AppColors.primaryDark),
-    secondaryLabelStyle: text.labelSmall?.copyWith(color: AppColors.surface),
+    secondaryLabelStyle: text.labelSmall?.copyWith(color: Colors.white, fontWeight: FontWeight.bold),
     padding: const EdgeInsets.symmetric(
       horizontal: Spacing.x3,
       vertical: Spacing.x1,
@@ -194,6 +197,16 @@ abstract final class AppTheme {
     side: BorderSide.none,
     shape: const RoundedRectangleBorder(borderRadius: AppRadius.pillAll),
   );
+
+  static FloatingActionButtonThemeData _floatingActionButtonTheme(TextTheme text) =>
+      FloatingActionButtonThemeData(
+        backgroundColor: AppColors.primary,
+        foregroundColor: Colors.white,
+        extendedTextStyle: text.labelLarge?.copyWith(
+          color: Colors.white,
+          fontWeight: FontWeight.bold,
+        ),
+      );
 
   static DialogTheme _dialogTheme(TextTheme text) => DialogTheme(
     backgroundColor: AppColors.surface,

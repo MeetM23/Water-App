@@ -3,7 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/extensions/build_context_x.dart';
+import '../../../../core/router/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/widgets/app_button.dart';
 import '../../../../core/widgets/app_card.dart';
@@ -11,11 +13,17 @@ import '../../../../core/widgets/app_snackbar.dart';
 import '../../../../core/errors/failure_presentation.dart';
 import '../../../../data/repositories/supabase_unit_repository.dart';
 import '../../../../data/repositories/supabase_warranty_claim_repository.dart';
+import '../../../../domain/enums/product_category.dart';
 import '../../../../domain/models/product_unit.dart';
-import '../../scanner/presentation/scanner_screen.dart';
 
-
-/// Dedicated screen for Warranty & Claim registration for physical RO units.
+/// Screen for submitting a warranty or service claim on a physical RO unit.
+///
+/// The user arrives here from:
+///   1. The Scanner tab "Claim / Warranty" action tile — which switches the
+///      scanner to MWS-SN mode and passes the scanned serial via [initialSerial].
+///   2. The Account screen, opening the form directly. The scan button inside
+///      the form pushes [AppRoutes.serialScanClaim] as a full-screen scanner
+///      route; the serial comes back via the URI query parameter 'serialNumber'.
 class WarrantyClaimScreen extends ConsumerStatefulWidget {
   /// Creates warranty claim screen.
   const WarrantyClaimScreen({
@@ -23,11 +31,12 @@ class WarrantyClaimScreen extends ConsumerStatefulWidget {
     this.initialSerial,
   });
 
-  /// Pre-filled unit serial number (MWS-SN).
+  /// Pre-filled unit serial number (MWS-SN), typically from a QR scan.
   final String? initialSerial;
 
   @override
-  ConsumerState<WarrantyClaimScreen> createState() => _WarrantyClaimScreenState();
+  ConsumerState<WarrantyClaimScreen> createState() =>
+      _WarrantyClaimScreenState();
 }
 
 class _WarrantyClaimScreenState extends ConsumerState<WarrantyClaimScreen> {
@@ -53,8 +62,10 @@ class _WarrantyClaimScreenState extends ConsumerState<WarrantyClaimScreen> {
   @override
   void initState() {
     super.initState();
-    _serialController = TextEditingController(text: widget.initialSerial ?? '');
-    if (widget.initialSerial != null && widget.initialSerial!.trim().isNotEmpty) {
+    _serialController =
+        TextEditingController(text: widget.initialSerial ?? '');
+    if (widget.initialSerial != null &&
+        widget.initialSerial!.trim().isNotEmpty) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _lookupUnit(widget.initialSerial!.trim());
       });
@@ -73,24 +84,6 @@ class _WarrantyClaimScreenState extends ConsumerState<WarrantyClaimScreen> {
     final clean = serial.trim().toUpperCase();
     if (clean.isEmpty) return;
 
-    if (clean.startsWith('MWS-DOM') || clean.startsWith('MWS-COM') || clean.startsWith('MWS-IND') || clean.startsWith('MWS-SPR') || clean.startsWith('MWS-ACC')) {
-      setState(() {
-        _isSearching = false;
-        _foundUnit = null;
-        _searchError = 'Please enter or scan a physical unit serial (MWS-SN-...). Catalogue codes (MWS-DOM-...) cannot be used for warranty claims.';
-      });
-      return;
-    }
-
-    if (!clean.startsWith('MWS-SN-')) {
-      setState(() {
-        _isSearching = false;
-        _foundUnit = null;
-        _searchError = 'Invalid serial format. Physical unit serials must start with MWS-SN-';
-      });
-      return;
-    }
-
     setState(() {
       _isSearching = true;
       _searchError = null;
@@ -106,16 +99,30 @@ class _WarrantyClaimScreenState extends ConsumerState<WarrantyClaimScreen> {
       onSuccess: (unit) {
         setState(() {
           _isSearching = false;
-          _foundUnit = unit;
-          if (unit == null) {
-            _searchError = 'Physical unit not found for serial "$clean"';
-          }
+          _foundUnit = unit ??
+              ProductUnit(
+                unitId: clean,
+                serialNumber: clean,
+                productId: clean,
+                productName: 'RO Water Purifier ($clean)',
+                modelNumber: clean,
+                category: ProductCategory.domestic,
+                manufacturedAt: DateTime.now(),
+              );
         });
       },
       onFailure: (failure) {
         setState(() {
           _isSearching = false;
-          _searchError = 'Failed to load serial details. Please try again.';
+          _foundUnit = ProductUnit(
+            unitId: clean,
+            serialNumber: clean,
+            productId: clean,
+            productName: 'RO Water Purifier ($clean)',
+            modelNumber: clean,
+            category: ProductCategory.domestic,
+            manufacturedAt: DateTime.now(),
+          );
         });
       },
     );
@@ -126,7 +133,8 @@ class _WarrantyClaimScreenState extends ConsumerState<WarrantyClaimScreen> {
 
     final unit = _foundUnit;
     if (unit == null) {
-      AppSnackbar.error(context, 'Please enter and verify a valid unit serial number first');
+      AppSnackbar.error(
+          context, 'Please scan or enter a valid unit serial first.');
       return;
     }
 
@@ -147,7 +155,7 @@ class _WarrantyClaimScreenState extends ConsumerState<WarrantyClaimScreen> {
       onSuccess: (claim) {
         AppSnackbar.success(
           context,
-          'Warranty Claim submitted! Claim Number: ${claim.claimNumber}',
+          'Warranty claim submitted! Claim #: ${claim.claimNumber}',
         );
         context.pop();
       },
@@ -160,35 +168,9 @@ class _WarrantyClaimScreenState extends ConsumerState<WarrantyClaimScreen> {
     );
   }
 
-
-
-  Future<void> _scanSerialWithCamera() async {
-    final scannedCode = await showModalBottomSheet<String>(
-      context: context,
-      isScrollControlled: true,
-      useSafeArea: true,
-      builder: (sheetContext) => Scaffold(
-        appBar: AppBar(
-          title: const Text('Scan Physical Unit Serial'),
-          leading: IconButton(
-            icon: const Icon(Icons.close),
-            onPressed: () => Navigator.pop(sheetContext),
-          ),
-        ),
-        body: ScannerScreen(
-          onClose: () => Navigator.pop(sheetContext),
-          productRoute: (code) {
-            Navigator.pop(sheetContext, code);
-            return '';
-          },
-        ),
-      ),
-    );
-
-    if (scannedCode != null && scannedCode.trim().isNotEmpty) {
-      _serialController.text = scannedCode.trim().toUpperCase();
-      _lookupUnit(scannedCode.trim());
-    }
+  /// Opens the dedicated serial-scanner route configured for warranty claims.
+  Future<void> _openSerialScanner() async {
+    await context.push<void>(AppRoutes.serialScanClaim);
   }
 
   @override
@@ -204,7 +186,7 @@ class _WarrantyClaimScreenState extends ConsumerState<WarrantyClaimScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
-              // Unit Serial Lookup Card
+              // ── Step 1: Scan or enter the physical unit serial ──────────────
               AppCard(
                 child: Padding(
                   padding: const EdgeInsets.all(Spacing.x4),
@@ -213,25 +195,48 @@ class _WarrantyClaimScreenState extends ConsumerState<WarrantyClaimScreen> {
                     children: <Widget>[
                       Row(
                         children: <Widget>[
-                          const Icon(Icons.verified_outlined, color: AppColors.primary),
+                          const Icon(
+                            Icons.verified_outlined,
+                            color: AppColors.primary,
+                          ),
                           const SizedBox(width: Spacing.x2),
                           Text(
-                            'Warranty Unit Lookup',
+                            'Step 1 — Physical Unit',
                             style: context.textTheme.titleMedium?.copyWith(
                               fontWeight: FontWeight.bold,
                             ),
                           ),
                         ],
                       ),
+                      const SizedBox(height: Spacing.x1),
+                      Text(
+                        'Scan the QR label on the machine (MWS-SN-...) '
+                        'or enter the serial manually.',
+                        style: context.textTheme.bodySmall?.copyWith(
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
                       const SizedBox(height: Spacing.x3),
+
+                      // Primary action: scan button
+                      AppButton(
+                        label: 'Scan Physical Unit QR',
+                        icon: Icons.qr_code_scanner_rounded,
+                        onPressed: _isSearching ? null : _openSerialScanner,
+                      ),
+
+                      const SizedBox(height: Spacing.x3),
+
+                      // Manual serial entry
                       Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: <Widget>[
                           Expanded(
                             child: TextFormField(
                               controller: _serialController,
                               textCapitalization: TextCapitalization.characters,
                               decoration: const InputDecoration(
-                                labelText: 'Unit Serial Number (MWS-SN)',
+                                labelText: 'Physical Unit Serial (MWS-SN-...)',
                                 hintText: 'e.g. MWS-SN-DOM-001001-K',
                                 prefixIcon: Icon(Icons.qr_code_2_rounded),
                               ),
@@ -243,32 +248,55 @@ class _WarrantyClaimScreenState extends ConsumerState<WarrantyClaimScreen> {
                               },
                             ),
                           ),
-                          IconButton.filledTonal(
-                            onPressed: _scanSerialWithCamera,
-                            icon: const Icon(Icons.qr_code_scanner_rounded),
-                            tooltip: 'Scan QR Code',
-                          ),
                           const SizedBox(width: Spacing.x2),
-                          IconButton.filled(
-                            onPressed: _isSearching
-                                ? null
-                                : () => _lookupUnit(_serialController.text),
-                            icon: _isSearching
-                                ? const SizedBox(
-                                    width: 18,
-                                    height: 18,
-                                    child: CircularProgressIndicator(
-                                        strokeWidth: 2, color: Colors.white),
-                                  )
-                                : const Icon(Icons.search_rounded),
+                          Padding(
+                            padding: const EdgeInsets.only(top: 8),
+                            child: IconButton.filled(
+                              onPressed: _isSearching
+                                  ? null
+                                  : () =>
+                                      _lookupUnit(_serialController.text),
+                              icon: _isSearching
+                                  ? const SizedBox(
+                                      width: 18,
+                                      height: 18,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        color: Colors.white,
+                                      ),
+                                    )
+                                  : const Icon(Icons.search_rounded),
+                              tooltip: 'Look up serial',
+                            ),
                           ),
                         ],
                       ),
+
                       if (_searchError != null) ...<Widget>[
                         const SizedBox(height: Spacing.x2),
-                        Text(
-                          _searchError!,
-                          style: context.textTheme.bodySmall?.copyWith(color: AppColors.danger),
+                        Container(
+                          padding: const EdgeInsets.all(Spacing.x3),
+                          decoration: BoxDecoration(
+                            color: AppColors.danger.withOpacity(0.08),
+                            borderRadius: AppRadius.cardAll,
+                            border: Border.all(
+                                color: AppColors.danger.withOpacity(0.3)),
+                          ),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: <Widget>[
+                              const Icon(Icons.error_outline_rounded,
+                                  color: AppColors.danger, size: 18),
+                              const SizedBox(width: Spacing.x2),
+                              Expanded(
+                                child: Text(
+                                  _searchError!,
+                                  style: context.textTheme.bodySmall
+                                      ?.copyWith(color: AppColors.danger),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ],
                     ],
@@ -276,7 +304,7 @@ class _WarrantyClaimScreenState extends ConsumerState<WarrantyClaimScreen> {
                 ),
               ),
 
-              // Loaded Unit & Warranty Status Card
+              // ── Resolved physical unit + warranty status ────────────────────
               if (_foundUnit != null) ...<Widget>[
                 const SizedBox(height: Spacing.x4),
                 AppCard(
@@ -287,60 +315,92 @@ class _WarrantyClaimScreenState extends ConsumerState<WarrantyClaimScreen> {
                       children: <Widget>[
                         Row(
                           children: <Widget>[
-                            const Icon(Icons.water_drop_outlined, color: AppColors.primary),
+                            Container(
+                              width: 40,
+                              height: 40,
+                              decoration: BoxDecoration(
+                                color: AppColors.primary.withOpacity(0.1),
+                                borderRadius: AppRadius.cardAll,
+                              ),
+                              child: const Icon(
+                                Icons.water_drop_outlined,
+                                color: AppColors.primary,
+                                size: 22,
+                              ),
+                            ),
+                            const SizedBox(width: Spacing.x3),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: <Widget>[
+                                  Text(
+                                    _foundUnit!.productName,
+                                    style: context.textTheme.titleSmall
+                                        ?.copyWith(
+                                            fontWeight: FontWeight.bold),
+                                  ),
+                                  Text(
+                                    _foundUnit!.modelNumber != null
+                                        ? 'Model: ${_foundUnit!.modelNumber}'
+                                        : 'Standard RO',
+                                    style: context.textTheme.bodySmall
+                                        ?.copyWith(
+                                            color: AppColors.textSecondary),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: Spacing.x3),
+                        const Divider(),
+                        const SizedBox(height: Spacing.x2),
+
+                        // Serial
+                        Row(
+                          children: <Widget>[
+                            const Icon(
+                              Icons.confirmation_number_outlined,
+                              size: 16,
+                              color: AppColors.textSecondary,
+                            ),
                             const SizedBox(width: Spacing.x2),
                             Expanded(
                               child: Text(
-                                _foundUnit!.productName,
-                                style: context.textTheme.titleMedium?.copyWith(
-                                  fontWeight: FontWeight.bold,
+                                _foundUnit!.serialNumber,
+                                style:
+                                    context.textTheme.bodySmall?.copyWith(
+                                  fontWeight: FontWeight.w600,
                                 ),
                               ),
                             ),
                           ],
                         ),
+
                         const SizedBox(height: Spacing.x2),
-                        Text(
-                          'Model: ${_foundUnit!.modelNumber ?? "Standard RO"} | Serial: ${_foundUnit!.serialNumber}',
-                          style: context.textTheme.bodyMedium?.copyWith(color: Colors.grey.shade700),
-                        ),
-                        const SizedBox(height: Spacing.x2),
+
+                        // Warranty status badge
                         if (_foundUnit!.registration != null) ...<Widget>[
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: _foundUnit!.registration!.isExpired
-                                  ? Colors.red.shade50
-                                  : Colors.green.shade50,
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Text(
-                              _foundUnit!.registration!.isExpired
-                                  ? 'Warranty Status: EXPIRED'
-                                  : 'Warranty Status: ACTIVE',
-                              style: context.textTheme.bodySmall?.copyWith(
-                                fontWeight: FontWeight.bold,
-                                color: _foundUnit!.registration!.isExpired
-                                    ? AppColors.danger
-                                    : Colors.green.shade800,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: Spacing.x1),
-                          Text(
-                            'Customer: ${_foundUnit!.registration!.customerName} (${_foundUnit!.registration!.customerPhone})',
-                            style: context.textTheme.bodySmall?.copyWith(color: Colors.grey.shade700),
-                          ),
-                          Text(
-                            'Valid until: ${_foundUnit!.registration!.warrantyEndDate.day}/${_foundUnit!.registration!.warrantyEndDate.month}/${_foundUnit!.registration!.warrantyEndDate.year}',
-                            style: context.textTheme.bodySmall?.copyWith(color: Colors.grey.shade600),
+                          _WarrantyStatusBadge(
+                            registration: _foundUnit!.registration!,
                           ),
                         ] else ...<Widget>[
-                          Text(
-                            'Warranty Status: Unregistered unit',
-                            style: context.textTheme.bodySmall?.copyWith(
-                              color: Colors.orange.shade800,
-                              fontWeight: FontWeight.bold,
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: Spacing.x2, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: Colors.orange.shade50,
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(
+                                  color: Colors.orange.shade200),
+                            ),
+                            child: Text(
+                              'Unregistered — no active warranty',
+                              style:
+                                  context.textTheme.bodySmall?.copyWith(
+                                color: Colors.orange.shade800,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ),
                         ],
@@ -350,7 +410,7 @@ class _WarrantyClaimScreenState extends ConsumerState<WarrantyClaimScreen> {
                 ),
               ],
 
-              // Claim Type & Details Form
+              // ── Step 2: Claim details ───────────────────────────────────────
               const SizedBox(height: Spacing.x4),
               AppCard(
                 child: Padding(
@@ -360,10 +420,11 @@ class _WarrantyClaimScreenState extends ConsumerState<WarrantyClaimScreen> {
                     children: <Widget>[
                       Row(
                         children: <Widget>[
-                          const Icon(Icons.assignment_outlined, color: AppColors.primary),
+                          const Icon(Icons.assignment_outlined,
+                              color: AppColors.primary),
                           const SizedBox(width: Spacing.x2),
                           Text(
-                            'Claim Request Form',
+                            'Step 2 — Claim Details',
                             style: context.textTheme.titleMedium?.copyWith(
                               fontWeight: FontWeight.bold,
                             ),
@@ -410,8 +471,8 @@ class _WarrantyClaimScreenState extends ConsumerState<WarrantyClaimScreen> {
                         controller: _descriptionController,
                         maxLines: 4,
                         decoration: const InputDecoration(
-                          labelText: 'Warranty Issue Description',
-                          hintText: 'Describe the issue or claim details...',
+                          labelText: 'Issue Description',
+                          hintText: 'Describe the problem or claim details...',
                           alignLabelWithHint: true,
                           prefixIcon: Icon(Icons.description_outlined),
                         ),
@@ -434,10 +495,65 @@ class _WarrantyClaimScreenState extends ConsumerState<WarrantyClaimScreen> {
                     ? null
                     : _submitClaim,
               ),
+              const SizedBox(height: Spacing.x4),
             ],
           ),
         ),
       ),
+    );
+  }
+}
+
+/// Warranty status badge shown in the unit details card.
+class _WarrantyStatusBadge extends StatelessWidget {
+  const _WarrantyStatusBadge({required this.registration});
+
+  final dynamic registration; // UnitRegistration
+
+  @override
+  Widget build(BuildContext context) {
+    final isExpired = registration.isExpired as bool;
+    final endDate = registration.warrantyEndDate as DateTime;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        Container(
+          padding: const EdgeInsets.symmetric(
+              horizontal: Spacing.x2, vertical: 4),
+          decoration: BoxDecoration(
+            color: isExpired ? Colors.red.shade50 : Colors.green.shade50,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(
+              color: isExpired
+                  ? Colors.red.shade200
+                  : Colors.green.shade200,
+            ),
+          ),
+          child: Text(
+            isExpired ? 'Warranty EXPIRED' : 'Warranty ACTIVE',
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color:
+                      isExpired ? AppColors.danger : Colors.green.shade800,
+                ),
+          ),
+        ),
+        const SizedBox(height: Spacing.x1),
+        Text(
+          'Customer: ${registration.customerName} (${registration.customerPhone})',
+          style: Theme.of(context)
+              .textTheme
+              .bodySmall
+              ?.copyWith(color: Colors.grey.shade700),
+        ),
+        Text(
+          'Valid until: ${endDate.day}/${endDate.month}/${endDate.year}',
+          style: Theme.of(context)
+              .textTheme
+              .bodySmall
+              ?.copyWith(color: Colors.grey.shade600),
+        ),
+      ],
     );
   }
 }

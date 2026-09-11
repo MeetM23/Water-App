@@ -240,9 +240,16 @@ class _ManageBannersScreenState extends ConsumerState<ManageBannersScreen> {
         data: (banners) => banners.isNotEmpty
             ? FloatingActionButton.extended(
                 onPressed: _isProcessing ? null : _addBanner,
-                icon: const Icon(Icons.add_a_photo_outlined),
-                label: Text(l10n.actionAddBanner),
+                icon: const Icon(Icons.add_a_photo_outlined, color: Colors.white),
+                label: Text(
+                  l10n.actionAddBanner,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
                 backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
               )
             : null,
         orElse: () => null,

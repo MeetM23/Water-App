@@ -258,12 +258,12 @@ class _WarrantyDetailsCard extends StatelessWidget {
             const SizedBox(height: Spacing.x3),
             _DetailRow(
               label: l10n.warrantyLabelCustomerName,
-              value: reg.customerName,
+              value: reg.customerName ?? 'N/A',
             ),
             const SizedBox(height: Spacing.x3),
             _DetailRow(
               label: l10n.warrantyLabelCustomerPhone,
-              value: reg.customerPhone,
+              value: reg.customerPhone ?? 'N/A',
             ),
             const SizedBox(height: Spacing.x3),
             _DetailRow(

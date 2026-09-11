@@ -60,10 +60,14 @@ abstract final class AppRoutes {
   /// Owner warranty claims management screen.
   static const String ownerClaims = '/owner/claims';
 
+  /// Owner claim detail screen path.
+  static String ownerClaimDetail(String claimId) => '/owner/claims/$claimId';
 
+  /// User's registered physical units screen.
+  static const String userRegistrations = '/user/registrations';
 
-
-
+  /// User's submitted warranty claims screen.
+  static const String userClaims = '/user/claims';
 
   /// Path of the detail screen for [productId].
   static String ownerProductDetail(String productId) =>
@@ -154,6 +158,20 @@ abstract final class AppRoutes {
   /// Dedicated warranty claim submission form.
   static const String warrantyClaim = '/warranty-claim';
 
+  /// Full-screen serial scanner for the Register Product workflow.
+  ///
+  /// Pushed from [ProductRegistrationScreen] when the user taps the scan
+  /// button inside the form. The scanner runs in ScanMode.registerProduct
+  /// and, on a valid MWS-SN scan, pushes [productRegistration] with the
+  /// serial as a query parameter.
+  static const String serialScanRegister = '/scan-serial/register';
+
+  /// Full-screen serial scanner for the Claim/Warranty workflow.
+  ///
+  /// Same as [serialScanRegister] but runs in ScanMode.warrantyClaim and
+  /// pushes [warrantyClaim] on a successful MWS-SN scan.
+  static const String serialScanClaim = '/scan-serial/claim';
+
   /// Paths a signed-out user is allowed to sit on.
   static const Set<String> signedOutPaths = <String>{
     login,
@@ -178,7 +196,7 @@ abstract final class AppRoutes {
     }
     if (path == wholesaler || path == retailer) return true;
     if (path.startsWith('/unit/') || path == warrantyClaim) return true;
+    if (path == serialScanRegister || path == serialScanClaim) return true;
     return false;
   }
 }
-

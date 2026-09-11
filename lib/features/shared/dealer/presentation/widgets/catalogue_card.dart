@@ -60,10 +60,6 @@ abstract final class CatalogueGridMetrics {
   /// as a gap under the price.
   static double tileExtent(BuildContext context, double width) {
     final scaler = MediaQuery.textScalerOf(context);
-    // The styles are the ones the card actually renders with, named from the
-    // type scale rather than the theme slots, so a change to either stays
-    // traceable: titleSmall is labelLg, bodySmall is bodySm, labelSmall is
-    // labelSm, titleMedium is titleMd.
     final text =
         _lineHeight(scaler, AppTypography.labelLg, lines: 2) +
         _lineHeight(scaler, AppTypography.bodySm) +
@@ -71,7 +67,8 @@ abstract final class CatalogueGridMetrics {
         _lineHeight(scaler, AppTypography.labelSm, lines: 2) +
         _lineHeight(scaler, AppTypography.titleMd);
 
-    return tileWidth(width) / imageAspectRatio + text + _fixedDetailHeight;
+    final computed = tileWidth(width) / imageAspectRatio + text + _fixedDetailHeight;
+    return computed.clamp(280.0, 600.0);
   }
 
   /// Height of [lines] line boxes of [style] at the system text scale.

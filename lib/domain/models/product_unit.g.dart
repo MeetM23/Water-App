@@ -47,8 +47,8 @@ _$UnitRegistrationInfoImpl _$$UnitRegistrationInfoImplFromJson(
         Map<String, dynamic> json) =>
     _$UnitRegistrationInfoImpl(
       id: json['id'] as String,
-      customerName: json['customer_name'] as String,
-      customerPhone: json['customer_phone'] as String,
+      customerName: json['customer_name'] as String?,
+      customerPhone: json['customer_phone'] as String?,
       purchaseDate: DateTime.parse(json['purchase_date'] as String),
       installationDate: DateTime.parse(json['installation_date'] as String),
       warrantyStartDate: DateTime.parse(json['warranty_start_date'] as String),

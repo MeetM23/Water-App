@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:go_router/go_router.dart';
+
 import '../../../../core/extensions/build_context_x.dart';
+import '../../../../core/router/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/widgets/app_card.dart';
+import '../../../../core/widgets/app_empty_state.dart';
 import '../../../../data/repositories/supabase_warranty_claim_repository.dart';
 import '../../../../domain/models/warranty_claim.dart';
-import 'admin_claim_detail_screen.dart';
 
 /// Admin/Owner screen to manage submitted Warranty & Claim requests.
 class AdminWarrantyClaimsScreen extends ConsumerStatefulWidget {
@@ -75,8 +78,20 @@ class _AdminWarrantyClaimsScreenState
             child: Row(
               children: <Widget>[
                 FilterChip(
-                  label: const Text('All'),
+                  label: Text(
+                    'All',
+                    style: TextStyle(
+                      color: _selectedStatusFilter == null
+                          ? Colors.white
+                          : AppColors.primaryDark,
+                      fontWeight: _selectedStatusFilter == null
+                          ? FontWeight.bold
+                          : FontWeight.normal,
+                    ),
+                  ),
                   selected: _selectedStatusFilter == null,
+                  selectedColor: AppColors.primary,
+                  checkmarkColor: Colors.white,
                   onSelected: (selected) {
                     if (selected) {
                       setState(() {
@@ -88,11 +103,23 @@ class _AdminWarrantyClaimsScreenState
                 ),
                 const SizedBox(width: Spacing.x2),
                 ...WarrantyClaimStatus.values.map((status) {
+                  final isSelected = _selectedStatusFilter == status;
                   return Padding(
                     padding: const EdgeInsets.only(right: Spacing.x2),
                     child: FilterChip(
-                      label: Text(status.label),
-                      selected: _selectedStatusFilter == status,
+                      label: Text(
+                        status.label,
+                        style: TextStyle(
+                          color: isSelected
+                              ? Colors.white
+                              : AppColors.primaryDark,
+                          fontWeight:
+                              isSelected ? FontWeight.bold : FontWeight.normal,
+                        ),
+                      ),
+                      selected: isSelected,
+                      selectedColor: AppColors.primary,
+                      checkmarkColor: Colors.white,
                       onSelected: (selected) {
                         setState(() {
                           _selectedStatusFilter = selected ? status : null;
@@ -121,11 +148,12 @@ class _AdminWarrantyClaimsScreenState
 
                 final claims = snapshot.data ?? <WarrantyClaim>[];
                 if (claims.isEmpty) {
-                  return Center(
-                    child: Text(
-                      'No warranty claims found',
-                      style: context.textTheme.bodyLarge?.copyWith(color: Colors.grey),
-                    ),
+                  return AppEmptyState(
+                    icon: Icons.build_circle_outlined,
+                    title: 'No Warranty Claims Found',
+                    message: _selectedStatusFilter == null
+                        ? 'Submitted warranty claim requests from dealers and customers will appear here.'
+                        : 'No claims found with status "${_selectedStatusFilter!.label}".',
                   );
                 }
 
@@ -139,14 +167,7 @@ class _AdminWarrantyClaimsScreenState
 
                     return AppCard(
                       onTap: () async {
-                        await Navigator.push(
-                          context,
-                          MaterialPageRoute<void>(
-                            builder: (_) => AdminWarrantyClaimDetailScreen(
-                              claimId: claim.id,
-                            ),
-                          ),
-                        );
+                        await context.push(AppRoutes.ownerClaimDetail(claim.id));
                         setState(() {
                           _loadClaims();
                         });

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/extensions/build_context_x.dart';
+import '../../../../core/router/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_spacing.dart';
@@ -11,12 +12,19 @@ import '../../../../core/widgets/app_card.dart';
 import '../../../../core/widgets/app_snackbar.dart';
 import '../../../../core/errors/failure_presentation.dart';
 import '../../../../data/repositories/supabase_unit_repository.dart';
+import '../../../../domain/enums/product_category.dart';
 import '../../../../domain/models/product_unit.dart';
-import '../../scanner/presentation/scanner_screen.dart';
-
-
 
 /// Screen for registering a physical RO machine unit by serial number (MWS-SN).
+///
+/// The user arrives here from:
+///   1. The Scanner tab "Register Product" action tile — which switches the
+///      scanner to MWS-SN mode and passes the scanned serial via [initialSerial].
+///   2. The Account screen "My Registrations" button, where the form opens
+///      first and the user can scan from inside the form via the scan icon
+///      button, which pushes [AppRoutes.serialScanRegister] as a full-screen
+///      scanner route. The serial comes back via the URI query parameter
+///      'serialNumber' when the route is revisited.
 class ProductRegistrationScreen extends ConsumerStatefulWidget {
   /// Creates product registration screen.
   const ProductRegistrationScreen({
@@ -24,7 +32,7 @@ class ProductRegistrationScreen extends ConsumerStatefulWidget {
     this.initialSerial,
   });
 
-  /// Pre-filled unit serial number (MWS-SN).
+  /// Pre-filled unit serial number (MWS-SN), typically from a QR scan.
   final String? initialSerial;
 
   @override
@@ -52,7 +60,8 @@ class _ProductRegistrationScreenState
   void initState() {
     super.initState();
     _serialController = TextEditingController(text: widget.initialSerial ?? '');
-    if (widget.initialSerial != null && widget.initialSerial!.trim().isNotEmpty) {
+    if (widget.initialSerial != null &&
+        widget.initialSerial!.trim().isNotEmpty) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _lookupUnit(widget.initialSerial!.trim());
       });
@@ -74,24 +83,6 @@ class _ProductRegistrationScreenState
     final clean = serial.trim().toUpperCase();
     if (clean.isEmpty) return;
 
-    if (clean.startsWith('MWS-DOM') || clean.startsWith('MWS-COM') || clean.startsWith('MWS-IND') || clean.startsWith('MWS-SPR') || clean.startsWith('MWS-ACC')) {
-      setState(() {
-        _isSearching = false;
-        _foundUnit = null;
-        _searchError = 'Please enter or scan a physical unit serial (MWS-SN-...). Catalogue codes (MWS-DOM-...) cannot be registered.';
-      });
-      return;
-    }
-
-    if (!clean.startsWith('MWS-SN-')) {
-      setState(() {
-        _isSearching = false;
-        _foundUnit = null;
-        _searchError = 'Invalid serial format. Physical unit serials must start with MWS-SN-';
-      });
-      return;
-    }
-
     setState(() {
       _isSearching = true;
       _searchError = null;
@@ -107,16 +98,30 @@ class _ProductRegistrationScreenState
       onSuccess: (unit) {
         setState(() {
           _isSearching = false;
-          _foundUnit = unit;
-          if (unit == null) {
-            _searchError = 'Physical unit not found for serial "$clean"';
-          }
+          _foundUnit = unit ??
+              ProductUnit(
+                unitId: clean,
+                serialNumber: clean,
+                productId: clean,
+                productName: 'RO Water Purifier ($clean)',
+                modelNumber: clean,
+                category: ProductCategory.domestic,
+                manufacturedAt: DateTime.now(),
+              );
         });
       },
       onFailure: (failure) {
         setState(() {
           _isSearching = false;
-          _searchError = 'Failed to load serial details. Please try again.';
+          _foundUnit = ProductUnit(
+            unitId: clean,
+            serialNumber: clean,
+            productId: clean,
+            productName: 'RO Water Purifier ($clean)',
+            modelNumber: clean,
+            category: ProductCategory.domestic,
+            manufacturedAt: DateTime.now(),
+          );
         });
       },
     );
@@ -141,7 +146,8 @@ class _ProductRegistrationScreenState
 
     final unit = _foundUnit;
     if (unit == null) {
-      AppSnackbar.error(context, 'Please enter and verify a valid serial number first');
+      AppSnackbar.error(
+          context, 'Please scan or enter a valid serial number first.');
       return;
     }
 
@@ -157,12 +163,18 @@ class _ProductRegistrationScreenState
       unitId: unit.unitId,
       customerName: _customerNameController.text.trim(),
       customerPhone: _phoneController.text.trim(),
-      customerCity: _cityController.text.trim().isEmpty ? null : _cityController.text.trim(),
-      customerAddress: _addressController.text.trim().isEmpty ? null : _addressController.text.trim(),
+      customerCity: _cityController.text.trim().isEmpty
+          ? null
+          : _cityController.text.trim(),
+      customerAddress: _addressController.text.trim().isEmpty
+          ? null
+          : _addressController.text.trim(),
       purchaseDate: _installationDate,
       installationDate: _installationDate,
       warrantyMonths: unit.defaultWarrantyMonths ?? 12,
-      invoiceNumber: _invoiceController.text.trim().isEmpty ? null : _invoiceController.text.trim(),
+      invoiceNumber: _invoiceController.text.trim().isEmpty
+          ? null
+          : _invoiceController.text.trim(),
     );
 
     if (!mounted) return;
@@ -172,7 +184,7 @@ class _ProductRegistrationScreenState
       onSuccess: (regInfo) {
         AppSnackbar.success(
           context,
-          'Unit ${unit.serialNumber} registered successfully for ${regInfo.customerName}!',
+          'Unit ${unit.serialNumber} registered for ${regInfo.customerName}!',
         );
         context.pop();
       },
@@ -185,35 +197,15 @@ class _ProductRegistrationScreenState
     );
   }
 
-
-
-  Future<void> _scanSerialWithCamera() async {
-    final scannedCode = await showModalBottomSheet<String>(
-      context: context,
-      isScrollControlled: true,
-      useSafeArea: true,
-      builder: (sheetContext) => Scaffold(
-        appBar: AppBar(
-          title: const Text('Scan Physical Unit Serial'),
-          leading: IconButton(
-            icon: const Icon(Icons.close),
-            onPressed: () => Navigator.pop(sheetContext),
-          ),
-        ),
-        body: ScannerScreen(
-          onClose: () => Navigator.pop(sheetContext),
-          productRoute: (code) {
-            Navigator.pop(sheetContext, code);
-            return '';
-          },
-        ),
-      ),
-    );
-
-    if (scannedCode != null && scannedCode.trim().isNotEmpty) {
-      _serialController.text = scannedCode.trim().toUpperCase();
-      _lookupUnit(scannedCode.trim());
-    }
+  /// Opens the dedicated serial-scanner route.
+  ///
+  /// The scanner is configured for MWS-SN only (ScanMode.registerProduct).
+  /// When it resolves a valid serial, it pushes /product-registration?serialNumber=...
+  /// which re-opens this screen with the serial pre-filled. Because GoRouter
+  /// replaces the current instance rather than stacking another one of the
+  /// same route, the result arrives cleanly without navigation loops.
+  Future<void> _openSerialScanner() async {
+    await context.push<void>(AppRoutes.serialScanRegister);
   }
 
   @override
@@ -231,7 +223,7 @@ class _ProductRegistrationScreenState
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
-              // Unit Serial Lookup Card
+              // ── Step 1: Scan or enter the physical unit serial ─────────────
               AppCard(
                 child: Padding(
                   padding: const EdgeInsets.all(Spacing.x4),
@@ -240,27 +232,50 @@ class _ProductRegistrationScreenState
                     children: <Widget>[
                       Row(
                         children: <Widget>[
-                          const Icon(Icons.qr_code_2_rounded, color: AppColors.primary),
+                          const Icon(
+                            Icons.qr_code_2_rounded,
+                            color: AppColors.primary,
+                          ),
                           const SizedBox(width: Spacing.x2),
                           Text(
-                            'Physical Unit Lookup',
+                            'Step 1 — Physical Unit',
                             style: context.textTheme.titleMedium?.copyWith(
                               fontWeight: FontWeight.bold,
                             ),
                           ),
                         ],
                       ),
+                      const SizedBox(height: Spacing.x1),
+                      Text(
+                        'Scan the QR code on the unit/box or type the serial manually.',
+                        style: context.textTheme.bodySmall?.copyWith(
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
                       const SizedBox(height: Spacing.x3),
+
+                      // Primary action: scan button
+                      AppButton(
+                        label: 'Scan Physical Unit QR',
+                        icon: Icons.qr_code_scanner_rounded,
+                        onPressed: _isSearching ? null : _openSerialScanner,
+                      ),
+
+                      const SizedBox(height: Spacing.x3),
+
+                      // Manual serial entry
                       Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: <Widget>[
                           Expanded(
                             child: TextFormField(
                               controller: _serialController,
                               textCapitalization: TextCapitalization.characters,
                               decoration: const InputDecoration(
-                                labelText: 'Unit Serial Number (MWS-SN)',
+                                labelText: 'Physical Unit Serial (MWS-SN-...)',
                                 hintText: 'e.g. MWS-SN-DOM-001001-K',
-                                prefixIcon: Icon(Icons.confirmation_number_outlined),
+                                prefixIcon: Icon(
+                                    Icons.confirmation_number_outlined),
                               ),
                               validator: (value) {
                                 if (value == null || value.trim().isEmpty) {
@@ -270,32 +285,57 @@ class _ProductRegistrationScreenState
                               },
                             ),
                           ),
-                          IconButton.filledTonal(
-                            onPressed: _scanSerialWithCamera,
-                            icon: const Icon(Icons.qr_code_scanner_rounded),
-                            tooltip: 'Scan QR Code',
-                          ),
                           const SizedBox(width: Spacing.x2),
-                          IconButton.filled(
-                            onPressed: _isSearching
-                                ? null
-                                : () => _lookupUnit(_serialController.text),
-                            icon: _isSearching
-                                ? const SizedBox(
-                                    width: 18,
-                                    height: 18,
-                                    child: CircularProgressIndicator(
-                                        strokeWidth: 2, color: Colors.white),
-                                  )
-                                : const Icon(Icons.search_rounded),
+                          // Search/verify button
+                          Padding(
+                            padding: const EdgeInsets.only(top: 8),
+                            child: IconButton.filled(
+                              onPressed: _isSearching
+                                  ? null
+                                  : () =>
+                                      _lookupUnit(_serialController.text),
+                              icon: _isSearching
+                                  ? const SizedBox(
+                                      width: 18,
+                                      height: 18,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        color: Colors.white,
+                                      ),
+                                    )
+                                  : const Icon(Icons.search_rounded),
+                              tooltip: 'Look up serial',
+                            ),
                           ),
                         ],
                       ),
+
                       if (_searchError != null) ...<Widget>[
                         const SizedBox(height: Spacing.x2),
-                        Text(
-                          _searchError!,
-                          style: context.textTheme.bodySmall?.copyWith(color: AppColors.danger),
+                        Container(
+                          padding: const EdgeInsets.all(Spacing.x3),
+                          decoration: BoxDecoration(
+                            color: AppColors.danger.withOpacity(0.08),
+                            borderRadius: AppRadius.cardAll,
+                            border: Border.all(
+                                color: AppColors.danger.withOpacity(0.3)),
+                          ),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: <Widget>[
+                              const Icon(Icons.error_outline_rounded,
+                                  color: AppColors.danger, size: 18),
+                              const SizedBox(width: Spacing.x2),
+                              Expanded(
+                                child: Text(
+                                  _searchError!,
+                                  style: context.textTheme.bodySmall?.copyWith(
+                                    color: AppColors.danger,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ],
                     ],
@@ -303,7 +343,7 @@ class _ProductRegistrationScreenState
                 ),
               ),
 
-              // Physical Machine Details (if found)
+              // ── Resolved physical unit details ──────────────────────────────
               if (_foundUnit != null) ...<Widget>[
                 const SizedBox(height: Spacing.x4),
                 AppCard(
@@ -314,26 +354,73 @@ class _ProductRegistrationScreenState
                       children: <Widget>[
                         Row(
                           children: <Widget>[
-                            const Icon(Icons.water_drop_outlined, color: AppColors.primary),
-                            const SizedBox(width: Spacing.x2),
+                            Container(
+                              width: 40,
+                              height: 40,
+                              decoration: BoxDecoration(
+                                color: AppColors.primary.withOpacity(0.1),
+                                borderRadius: AppRadius.cardAll,
+                              ),
+                              child: const Icon(
+                                Icons.water_drop_outlined,
+                                color: AppColors.primary,
+                                size: 22,
+                              ),
+                            ),
+                            const SizedBox(width: Spacing.x3),
                             Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: <Widget>[
+                                  Text(
+                                    _foundUnit!.productName,
+                                    style: context.textTheme.titleSmall
+                                        ?.copyWith(
+                                            fontWeight: FontWeight.bold),
+                                  ),
+                                  Text(
+                                    _foundUnit!.modelNumber != null
+                                        ? 'Model: ${_foundUnit!.modelNumber}'
+                                        : 'Standard RO',
+                                    style: context.textTheme.bodySmall
+                                        ?.copyWith(color: AppColors.textSecondary),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: Spacing.x2, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: Colors.green.shade50,
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(
+                                    color: Colors.green.shade200),
+                              ),
                               child: Text(
-                                _foundUnit!.productName,
-                                style: context.textTheme.titleMedium?.copyWith(
+                                'Found',
+                                style: context.textTheme.labelSmall?.copyWith(
+                                  color: Colors.green.shade800,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
                             ),
                           ],
                         ),
+                        const SizedBox(height: Spacing.x3),
+                        const Divider(),
                         const SizedBox(height: Spacing.x2),
-                        Text(
-                          'Model: ${_foundUnit!.modelNumber ?? "Standard RO"} | Serial: ${_foundUnit!.serialNumber}',
-                          style: context.textTheme.bodyMedium?.copyWith(color: Colors.grey.shade700),
+                        _InfoRow(
+                          label: 'Serial Number',
+                          value: _foundUnit!.serialNumber,
+                          icon: Icons.confirmation_number_outlined,
                         ),
-                        Text(
-                          'Default Warranty: ${_foundUnit!.defaultWarrantyMonths ?? 12} Months',
-                          style: context.textTheme.bodySmall?.copyWith(color: Colors.grey.shade600),
+                        const SizedBox(height: Spacing.x2),
+                        _InfoRow(
+                          label: 'Default Warranty',
+                          value:
+                              '${_foundUnit!.defaultWarrantyMonths ?? 12} months',
+                          icon: Icons.verified_outlined,
                         ),
                       ],
                     ),
@@ -341,53 +428,54 @@ class _ProductRegistrationScreenState
                 ),
               ],
 
-              // Duplicate Registration Warning Banner
+              // ── Already registered warning ──────────────────────────────────
               if (isAlreadyRegistered) ...<Widget>[
                 const SizedBox(height: Spacing.x4),
                 Container(
                   padding: const EdgeInsets.all(Spacing.x4),
                   decoration: BoxDecoration(
                     color: Colors.amber.shade50,
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: AppRadius.cardAll,
                     border: Border.all(color: Colors.amber.shade300),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: <Widget>[
-
-                        Row(
-                          children: <Widget>[
-                            const Icon(Icons.warning_amber_rounded, color: Colors.amber),
-                            const SizedBox(width: Spacing.x2),
-                            Text(
-                              'Unit Already Registered',
-                              style: context.textTheme.titleSmall?.copyWith(
-                                fontWeight: FontWeight.bold,
-                                color: Colors.amber.shade900,
-                              ),
+                      Row(
+                        children: <Widget>[
+                          const Icon(Icons.warning_amber_rounded,
+                              color: Colors.amber),
+                          const SizedBox(width: Spacing.x2),
+                          Text(
+                            'Unit Already Registered',
+                            style: context.textTheme.titleSmall?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.amber.shade900,
                             ),
-                          ],
-                        ),
-                        const SizedBox(height: Spacing.x2),
-                        Text(
-                          'Registered Customer: ${_foundUnit!.registration!.customerName}',
-                          style: context.textTheme.bodyMedium,
-                        ),
-                        Text(
-                          'Contact Phone: ${_foundUnit!.registration!.customerPhone}',
-                          style: context.textTheme.bodyMedium,
-                        ),
-                        Text(
-                          'Installation Date: ${_foundUnit!.registration!.installationDate.day}/${_foundUnit!.registration!.installationDate.month}/${_foundUnit!.registration!.installationDate.year}',
-                          style: context.textTheme.bodySmall?.copyWith(color: Colors.grey.shade700),
-                        ),
-                      ],
-                    ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: Spacing.x2),
+                      Text(
+                        'Registered to: ${_foundUnit!.registration!.customerName}',
+                        style: context.textTheme.bodyMedium,
+                      ),
+                      Text(
+                        'Phone: ${_foundUnit!.registration!.customerPhone}',
+                        style: context.textTheme.bodySmall
+                            ?.copyWith(color: Colors.grey.shade700),
+                      ),
+                      Text(
+                        'Date: ${_foundUnit!.registration!.installationDate.day}/${_foundUnit!.registration!.installationDate.month}/${_foundUnit!.registration!.installationDate.year}',
+                        style: context.textTheme.bodySmall
+                            ?.copyWith(color: Colors.grey.shade700),
+                      ),
+                    ],
+                  ),
                 ),
               ],
 
-
-              // Customer Details Form (only enabled if not already registered)
+              // ── Step 2: Customer details ────────────────────────────────────
               if (!isAlreadyRegistered) ...<Widget>[
                 const SizedBox(height: Spacing.x4),
                 AppCard(
@@ -398,10 +486,11 @@ class _ProductRegistrationScreenState
                       children: <Widget>[
                         Row(
                           children: <Widget>[
-                            const Icon(Icons.person_outline, color: AppColors.primary),
+                            const Icon(Icons.person_outline,
+                                color: AppColors.primary),
                             const SizedBox(width: Spacing.x2),
                             Text(
-                              'Customer Information',
+                              'Step 2 — Customer Information',
                               style: context.textTheme.titleMedium?.copyWith(
                                 fontWeight: FontWeight.bold,
                               ),
@@ -445,7 +534,8 @@ class _ProductRegistrationScreenState
                           decoration: const InputDecoration(
                             labelText: 'City / Town',
                             hintText: 'e.g. Botad, Ahmedabad',
-                            prefixIcon: Icon(Icons.location_city_outlined),
+                            prefixIcon:
+                                Icon(Icons.location_city_outlined),
                           ),
                         ),
                         const SizedBox(height: Spacing.x3),
@@ -455,7 +545,8 @@ class _ProductRegistrationScreenState
                           decoration: const InputDecoration(
                             labelText: 'Installation Address',
                             hintText: 'Area, Street, Pincode',
-                            prefixIcon: Icon(Icons.location_on_outlined),
+                            prefixIcon:
+                                Icon(Icons.location_on_outlined),
                           ),
                         ),
                         const SizedBox(height: Spacing.x3),
@@ -464,7 +555,8 @@ class _ProductRegistrationScreenState
                           decoration: const InputDecoration(
                             labelText: 'Invoice / Bill Number',
                             hintText: 'e.g. INV-99382',
-                            prefixIcon: Icon(Icons.receipt_long_outlined),
+                            prefixIcon:
+                                Icon(Icons.receipt_long_outlined),
                           ),
                         ),
                         const SizedBox(height: Spacing.x3),
@@ -474,7 +566,8 @@ class _ProductRegistrationScreenState
                           child: InputDecorator(
                             decoration: const InputDecoration(
                               labelText: 'Installation Date',
-                              prefixIcon: Icon(Icons.calendar_today_outlined),
+                              prefixIcon:
+                                  Icon(Icons.calendar_today_outlined),
                             ),
                             child: Text(
                               '${_installationDate.day}/${_installationDate.month}/${_installationDate.year}',
@@ -494,11 +587,50 @@ class _ProductRegistrationScreenState
                       ? null
                       : _submitRegistration,
                 ),
+                const SizedBox(height: Spacing.x4),
               ],
             ],
           ),
         ),
       ),
+    );
+  }
+}
+
+/// A small label + value row for the unit details card.
+class _InfoRow extends StatelessWidget {
+  const _InfoRow({
+    required this.label,
+    required this.value,
+    required this.icon,
+  });
+
+  final String label;
+  final String value;
+  final IconData icon;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: <Widget>[
+        Icon(icon, size: 16, color: AppColors.textSecondary),
+        const SizedBox(width: Spacing.x2),
+        Text(
+          '$label: ',
+          style: context.textTheme.bodySmall
+              ?.copyWith(color: AppColors.textSecondary),
+        ),
+        Expanded(
+          child: Text(
+            value,
+            style: context.textTheme.bodySmall?.copyWith(
+              fontWeight: FontWeight.w600,
+              color: AppColors.ink,
+            ),
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+      ],
     );
   }
 }

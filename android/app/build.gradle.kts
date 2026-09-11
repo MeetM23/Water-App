@@ -10,7 +10,10 @@ val keystoreProperties = Properties().apply {
         file.inputStream().use { load(it) }
     }
 }
-val hasReleaseKeystore = keystoreProperties.getProperty("storeFile") != null
+val hasReleaseKeystore = keystoreProperties.getProperty("storeFile")?.let { path ->
+    val f = file(path)
+    f.exists() || rootProject.file(path).exists()
+} ?: false
 
 plugins {
     id("com.android.application")

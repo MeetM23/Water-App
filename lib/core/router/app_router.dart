@@ -304,6 +304,20 @@ GoRouter appRouter(Ref<GoRouter> ref) {
         builder: (_, __) => const UserWarrantyClaimsScreen(),
       ),
       GoRoute(
+        path: AppRoutes.serialScanRegister,
+        builder: (_, __) => const ScannerScreen(
+          mode: ScanMode.registerProduct,
+          productRoute: _noOpProductRoute,
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.serialScanClaim,
+        builder: (_, __) => const ScannerScreen(
+          mode: ScanMode.warrantyClaim,
+          productRoute: _noOpProductRoute,
+        ),
+      ),
+      GoRoute(
         path: '/unit/:serial',
         builder: (BuildContext context, GoRouterState state) =>
             UnitDetailScreen(serialNumber: state.pathParameters['serial']!),
@@ -452,6 +466,20 @@ String? _redirectForProfile(Profile profile, String location) {
     },
   };
 
+  final isDealer = (profile.role == UserRole.wholesaler || profile.role == UserRole.retailer) &&
+      profile.status == AccountStatus.approved;
+  final isDealerOnlyRoute = uri.path == AppRoutes.productRegistration ||
+      uri.path == AppRoutes.warrantyClaim ||
+      uri.path == AppRoutes.userRegistrations ||
+      uri.path == AppRoutes.userClaims ||
+      uri.path == AppRoutes.serialScanRegister ||
+      uri.path == AppRoutes.serialScanClaim;
+
+  // Product Registration and Warranty Claim features are ONLY accessible to approved Retailers or Wholesalers.
+  if (isDealerOnlyRoute && !isDealer) {
+    return landing;
+  }
+
   // If logging in from a return route ('from' query parameter), redirect back to it if valid for role.
   if (fromParam != null && fromParam.isNotEmpty) {
     final fromUri = Uri.parse(fromParam);
@@ -460,10 +488,11 @@ String? _redirectForProfile(Profile profile, String location) {
         fromUri.path == AppRoutes.complaints ||
         fromUri.path.startsWith('/complaint') ||
         fromUri.path.startsWith('/unit') ||
-        fromUri.path == AppRoutes.productRegistration ||
-        fromUri.path == AppRoutes.warrantyClaim ||
-        fromUri.path == AppRoutes.userRegistrations ||
-        fromUri.path == AppRoutes.userClaims) {
+        (isDealer &&
+            (fromUri.path == AppRoutes.productRegistration ||
+                fromUri.path == AppRoutes.warrantyClaim ||
+                fromUri.path == AppRoutes.userRegistrations ||
+                fromUri.path == AppRoutes.userClaims))) {
       return fromParam;
     }
   }
@@ -482,8 +511,13 @@ String? _redirectForProfile(Profile profile, String location) {
       uri.path == AppRoutes.userRegistrations ||
       uri.path == AppRoutes.userClaims ||
       uri.path.startsWith('/owner/claims/') ||
-      uri.path.startsWith('/owner/complaints/')) {
+      uri.path.startsWith('/owner/complaints/') ||
+      uri.path == AppRoutes.serialScanRegister ||
+      uri.path == AppRoutes.serialScanClaim) {
     return null;
   }
   return landing;
 }
+
+/// A no-op product route used by serial-scan mode scanners.
+String _noOpProductRoute(String _) => '';
