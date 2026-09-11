@@ -46,14 +46,20 @@ import '../../features/shared/dealer/presentation/saved_screen.dart';
 import '../../features/shared/scanner/presentation/scanner_screen.dart';
 import '../../features/shared/unit/presentation/product_registration_screen.dart';
 import '../../features/shared/unit/presentation/unit_detail_screen.dart';
+import '../../features/shared/unit/presentation/user_claims_screen.dart';
+import '../../features/shared/unit/presentation/user_registrations_screen.dart';
 import '../../features/shared/unit/presentation/warranty_claim_screen.dart';
 import '../../features/wholesaler/wholesaler_experience.dart';
+import '../../features/owner/claims/presentation/admin_claim_detail_screen.dart';
 import '../../features/owner/claims/presentation/admin_claims_screen.dart';
 import '../../features/owner/registrations/presentation/admin_registrations_screen.dart';
 import 'app_routes.dart';
 import 'router_refresh_notifier.dart';
 
 part 'app_router.g.dart';
+
+// GoRouter manages branch and root navigator keys dynamically to prevent
+// Flutter keyReservation assertion collisions when providers rebuild.
 
 /// The application router.
 ///
@@ -142,6 +148,13 @@ GoRouter appRouter(Ref<GoRouter> ref) {
         builder: (BuildContext context, GoRouterState state) =>
             OwnerComplaintDetailScreen(
               complaintId: state.pathParameters['id']!,
+            ),
+      ),
+      GoRoute(
+        path: '/owner/claims/:id',
+        builder: (BuildContext context, GoRouterState state) =>
+            AdminWarrantyClaimDetailScreen(
+              claimId: state.pathParameters['id']!,
             ),
       ),
       GoRoute(
@@ -283,6 +296,14 @@ GoRouter appRouter(Ref<GoRouter> ref) {
             ),
       ),
       GoRoute(
+        path: AppRoutes.userRegistrations,
+        builder: (_, __) => const UserRegistrationsScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.userClaims,
+        builder: (_, __) => const UserWarrantyClaimsScreen(),
+      ),
+      GoRoute(
         path: '/unit/:serial',
         builder: (BuildContext context, GoRouterState state) =>
             UnitDetailScreen(serialNumber: state.pathParameters['serial']!),
@@ -300,56 +321,57 @@ GoRouter appRouter(Ref<GoRouter> ref) {
 /// Each branch keeps its own navigation stack, so a dealer who scans a product
 /// and then checks their saved list comes back to the product they were looking
 /// at rather than to a fresh camera.
-StatefulShellRoute _dealerShell(DealerExperience experience) =>
-    StatefulShellRoute.indexedStack(
-      builder:
-          (
-            BuildContext context,
-            GoRouterState state,
-            StatefulNavigationShell navigationShell,
-          ) => DealerShell(navigationShell: navigationShell),
-      branches: <StatefulShellBranch>[
-        StatefulShellBranch(
-          routes: <RouteBase>[
-            GoRoute(
-              path: experience.catalogueRoute,
-              builder: (_, __) => CatalogueScreen(experience: experience),
-            ),
-          ],
-        ),
-        StatefulShellBranch(
-          routes: <RouteBase>[
-            GoRoute(
-              path: experience.scanRoute,
-              builder: (_, __) =>
-                  ScannerScreen(productRoute: experience.productRoute),
-            ),
-          ],
-        ),
-        StatefulShellBranch(
-          routes: <RouteBase>[
-            GoRoute(
-              path: experience.savedRoute,
-              builder: (_, __) => SavedScreen(experience: experience),
-            ),
-          ],
-        ),
-        StatefulShellBranch(
-          routes: <RouteBase>[
-            GoRoute(
-              path: experience.accountRoute,
-              builder: (_, __) => DealerAccountScreen(experience: experience),
-              routes: <RouteBase>[
-                GoRoute(
-                  path: 'password',
-                  builder: (_, __) => const DealerChangePasswordScreen(),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ],
-    );
+StatefulShellRoute _dealerShell(DealerExperience experience) {
+  return StatefulShellRoute.indexedStack(
+    builder:
+        (
+          BuildContext context,
+          GoRouterState state,
+          StatefulNavigationShell navigationShell,
+        ) => DealerShell(navigationShell: navigationShell),
+    branches: <StatefulShellBranch>[
+      StatefulShellBranch(
+        routes: <RouteBase>[
+          GoRoute(
+            path: experience.catalogueRoute,
+            builder: (_, __) => CatalogueScreen(experience: experience),
+          ),
+        ],
+      ),
+      StatefulShellBranch(
+        routes: <RouteBase>[
+          GoRoute(
+            path: experience.scanRoute,
+            builder: (_, __) =>
+                ScannerScreen(productRoute: experience.productRoute),
+          ),
+        ],
+      ),
+      StatefulShellBranch(
+        routes: <RouteBase>[
+          GoRoute(
+            path: experience.savedRoute,
+            builder: (_, __) => SavedScreen(experience: experience),
+          ),
+        ],
+      ),
+      StatefulShellBranch(
+        routes: <RouteBase>[
+          GoRoute(
+            path: experience.accountRoute,
+            builder: (_, __) => DealerAccountScreen(experience: experience),
+            routes: <RouteBase>[
+              GoRoute(
+                path: 'password',
+                builder: (_, __) => const DealerChangePasswordScreen(),
+              ),
+            ],
+          ),
+        ],
+      ),
+    ],
+  );
+}
 
 /// Pushed on top of the shell so a product screen can be opened by code.
 ///
@@ -439,7 +461,9 @@ String? _redirectForProfile(Profile profile, String location) {
         fromUri.path.startsWith('/complaint') ||
         fromUri.path.startsWith('/unit') ||
         fromUri.path == AppRoutes.productRegistration ||
-        fromUri.path == AppRoutes.warrantyClaim) {
+        fromUri.path == AppRoutes.warrantyClaim ||
+        fromUri.path == AppRoutes.userRegistrations ||
+        fromUri.path == AppRoutes.userClaims) {
       return fromParam;
     }
   }
@@ -454,7 +478,11 @@ String? _redirectForProfile(Profile profile, String location) {
       uri.path.startsWith('/complaint') ||
       uri.path.startsWith('/unit') ||
       uri.path == AppRoutes.productRegistration ||
-      uri.path == AppRoutes.warrantyClaim) {
+      uri.path == AppRoutes.warrantyClaim ||
+      uri.path == AppRoutes.userRegistrations ||
+      uri.path == AppRoutes.userClaims ||
+      uri.path.startsWith('/owner/claims/') ||
+      uri.path.startsWith('/owner/complaints/')) {
     return null;
   }
   return landing;

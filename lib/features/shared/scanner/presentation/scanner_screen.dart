@@ -301,16 +301,24 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen>
   }
 
   void _onRegisterProduct() {
+    // Capture the router reference BEFORE calling onClose, because onClose
+    // may dismiss a bottom sheet that contains this widget, unmounting it and
+    // invalidating `context` before the push below fires.
+    final router = GoRouter.of(context);
     final session = ref.read(sessionControllerProvider).valueOrNull;
-    if (session is SessionSignedIn && session.profile.role == UserRole.owner) {
-      context.push(AppRoutes.ownerProductNew);
-    } else {
-      context.push(AppRoutes.productRegistration);
-    }
+    final route = (session is SessionSignedIn &&
+            session.profile.role == UserRole.owner)
+        ? AppRoutes.ownerProductNew
+        : AppRoutes.productRegistration;
+    widget.onClose?.call();
+    router.push(route);
   }
 
   void _onClaimWarranty() {
-    context.push(AppRoutes.warrantyClaim);
+    // Same: capture router before onClose dismisses the sheet.
+    final router = GoRouter.of(context);
+    widget.onClose?.call();
+    router.push(AppRoutes.warrantyClaim);
   }
 
   Future<void> _openSettings() async {

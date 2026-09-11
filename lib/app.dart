@@ -29,7 +29,19 @@ class MarutiWaterApp extends ConsumerWidget {
       theme: AppTheme.light,
       themeMode: ThemeMode.light,
       locale: ref.watch(localeControllerProvider),
-      routerConfig: ref.watch(appRouterProvider),
+      // IMPORTANT: ref.read, NOT ref.watch.
+      //
+      // GoRouter owns its own refresh mechanism (RouterRefreshNotifier) which
+      // is wired to the session provider inside appRouter(). Watching the
+      // provider here would hand MaterialApp.router a brand-new GoRouter
+      // instance on every session/locale change, tearing down the old
+      // StatefulShellRoute branch navigators while the new ones try to
+      // register the same keys — that is the exact source of the
+      // '!keyReservation.contains(key)' assertion crash.
+      //
+      // The router is keepAlive: true, so ref.read returns the same instance
+      // for the lifetime of the process, which is exactly what we need.
+      routerConfig: ref.read(appRouterProvider),
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       debugShowCheckedModeBanner: false,
