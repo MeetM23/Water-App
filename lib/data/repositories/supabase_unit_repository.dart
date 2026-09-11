@@ -23,8 +23,13 @@ class SupabaseUnitRepository implements UnitRepository {
   @override
   Future<Result<ProductUnit?>> findUnitBySerial(String serialNumber) async {
     try {
-      final cleanSerial = serialNumber.trim();
+      final cleanSerial = serialNumber.trim().toUpperCase();
       if (cleanSerial.isEmpty) {
+        return const Success<ProductUnit?>(null);
+      }
+
+      // Physical unit lookup strictly requires unit serial format (MWS-SN-...)
+      if (!cleanSerial.startsWith('MWS-SN-')) {
         return const Success<ProductUnit?>(null);
       }
 
@@ -38,86 +43,33 @@ class SupabaseUnitRepository implements UnitRepository {
         return Success<ProductUnit?>(ProductUnit.fromJson(data));
       }
 
-      // Fallback: If not found in physical product_units by unit serial,
-      // check if cleanSerial is a Product Code (e.g. MWS-DOM-001006-3) in catalog_view
-      final productRow = await _client
-          .from('catalog_view')
-          .select()
-          .ilike('product_code', cleanSerial)
+      // Query product_units table directly if RPC returns null
+      final existingUnit = await _client
+          .from('product_units')
+          .select('*, products(*), unit_registrations(*)')
+          .ilike('serial_number', cleanSerial)
           .maybeSingle();
 
-      if (productRow != null) {
-        final productId = productRow['id'] as String;
+      if (existingUnit != null) {
+        final prod = existingUnit['products'] as Map<String, dynamic>?;
+        final regList = existingUnit['unit_registrations'] as List?;
+        final regMap = (regList != null && regList.isNotEmpty)
+            ? Map<String, dynamic>.from(regList.first as Map)
+            : null;
 
-        // Check if a unit record already exists in product_units for this product
-        final existingUnit = await _client
-            .from('product_units')
-            .select('*, unit_registrations(*)')
-            .eq('product_id', productId)
-            .ilike('serial_number', cleanSerial)
-            .maybeSingle();
-
-        if (existingUnit != null) {
-          final regList = existingUnit['unit_registrations'] as List?;
-          final regMap = (regList != null && regList.isNotEmpty)
-              ? Map<String, dynamic>.from(regList.first as Map)
-              : null;
-
-          final combined = <String, dynamic>{
-            'unit_id': existingUnit['id'],
-            'serial_number': existingUnit['serial_number'],
-            'manufactured_at': existingUnit['manufactured_at'],
-            'product_id': productId,
-            'product_name': productRow['name'],
-            'model_number': productRow['model_number'],
-            'category': productRow['category'],
-            'description': productRow['description'],
-            'default_warranty_months': productRow['warranty_months'] ?? 12,
-            'registration': regMap,
-          };
-          return Success<ProductUnit?>(ProductUnit.fromJson(combined));
-        }
-
-        // If no unit record exists yet in product_units, create one on the fly
-        try {
-          final newUnit = await _client
-              .from('product_units')
-              .insert({
-                'product_id': productId,
-                'serial_number': cleanSerial.toUpperCase(),
-              })
-              .select()
-              .single();
-
-          final combined = <String, dynamic>{
-            'unit_id': newUnit['id'],
-            'serial_number': newUnit['serial_number'],
-            'manufactured_at': newUnit['manufactured_at'],
-            'product_id': productId,
-            'product_name': productRow['name'],
-            'model_number': productRow['model_number'],
-            'category': productRow['category'],
-            'description': productRow['description'],
-            'default_warranty_months': productRow['warranty_months'] ?? 12,
-            'registration': null,
-          };
-          return Success<ProductUnit?>(ProductUnit.fromJson(combined));
-        } catch (insertError, st) {
-          AppLog.warn('Could not auto-create unit record, using virtual unit', insertError, st);
-          final combined = <String, dynamic>{
-            'unit_id': productId,
-            'serial_number': cleanSerial.toUpperCase(),
-            'manufactured_at': DateTime.now().toIso8601String(),
-            'product_id': productId,
-            'product_name': productRow['name'],
-            'model_number': productRow['model_number'],
-            'category': productRow['category'],
-            'description': productRow['description'],
-            'default_warranty_months': productRow['warranty_months'] ?? 12,
-            'registration': null,
-          };
-          return Success<ProductUnit?>(ProductUnit.fromJson(combined));
-        }
+        final combined = <String, dynamic>{
+          'unit_id': existingUnit['id'],
+          'serial_number': existingUnit['serial_number'],
+          'manufactured_at': existingUnit['manufactured_at'],
+          'product_id': existingUnit['product_id'],
+          'product_name': prod?['name'] ?? 'Water Purifier',
+          'model_number': prod?['model_number'],
+          'category': prod?['category'] ?? 'domestic',
+          'description': prod?['description'],
+          'default_warranty_months': prod?['warranty_months'] ?? 12,
+          'registration': regMap,
+        };
+        return Success<ProductUnit?>(ProductUnit.fromJson(combined));
       }
 
       return const Success<ProductUnit?>(null);

@@ -69,7 +69,26 @@ class _WarrantyClaimScreenState extends ConsumerState<WarrantyClaimScreen> {
   }
 
   Future<void> _lookupUnit(String serial) async {
-    if (serial.trim().isEmpty) return;
+    final clean = serial.trim().toUpperCase();
+    if (clean.isEmpty) return;
+
+    if (clean.startsWith('MWS-DOM') || clean.startsWith('MWS-COM') || clean.startsWith('MWS-IND') || clean.startsWith('MWS-SPR') || clean.startsWith('MWS-ACC')) {
+      setState(() {
+        _isSearching = false;
+        _foundUnit = null;
+        _searchError = 'Please enter or scan a physical unit serial (MWS-SN-...). Catalogue codes (MWS-DOM-...) cannot be used for warranty claims.';
+      });
+      return;
+    }
+
+    if (!clean.startsWith('MWS-SN-')) {
+      setState(() {
+        _isSearching = false;
+        _foundUnit = null;
+        _searchError = 'Invalid serial format. Physical unit serials must start with MWS-SN-';
+      });
+      return;
+    }
 
     setState(() {
       _isSearching = true;
@@ -78,7 +97,7 @@ class _WarrantyClaimScreenState extends ConsumerState<WarrantyClaimScreen> {
     });
 
     final repository = ref.read(unitRepositoryProvider);
-    final result = await repository.findUnitBySerial(serial.trim());
+    final result = await repository.findUnitBySerial(clean);
 
     if (!mounted) return;
 
@@ -88,7 +107,7 @@ class _WarrantyClaimScreenState extends ConsumerState<WarrantyClaimScreen> {
           _isSearching = false;
           _foundUnit = unit;
           if (unit == null) {
-            _searchError = 'Physical unit not found for serial "$serial"';
+            _searchError = 'Physical unit not found for serial "$clean"';
           }
         });
       },
@@ -193,6 +212,11 @@ class _WarrantyClaimScreenState extends ConsumerState<WarrantyClaimScreen> {
                                 return null;
                               },
                             ),
+                          ),
+                          IconButton.filledTonal(
+                            onPressed: () => context.push(AppRoutes.retailerScan),
+                            icon: const Icon(Icons.qr_code_scanner_rounded),
+                            tooltip: 'Scan QR Code',
                           ),
                           const SizedBox(width: Spacing.x2),
                           IconButton.filled(
