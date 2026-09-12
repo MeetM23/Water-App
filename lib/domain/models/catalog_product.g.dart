@@ -19,6 +19,7 @@ _$CatalogProductImpl _$$CatalogProductImplFromJson(Map<String, dynamic> json) =>
       modelNumber: json['model_number'] as String?,
       description: json['description'] as String?,
       capacity: json['capacity'] as String?,
+      mrp: (json['mrp'] as num?)?.toDouble(),
       warrantyMonths: (json['warranty_months'] as num?)?.toInt(),
       primaryImagePath: json['primary_image_path'] as String?,
     );
@@ -36,6 +37,7 @@ Map<String, dynamic> _$$CatalogProductImplToJson(
       'model_number': instance.modelNumber,
       'description': instance.description,
       'capacity': instance.capacity,
+      'mrp': instance.mrp,
       'warranty_months': instance.warrantyMonths,
       'primary_image_path': instance.primaryImagePath,
     };

@@ -29,6 +29,7 @@ class CatalogProduct with _$CatalogProduct {
     String? modelNumber,
     String? description,
     String? capacity,
+    double? mrp,
     int? warrantyMonths,
     String? primaryImagePath,
   }) = _CatalogProduct;

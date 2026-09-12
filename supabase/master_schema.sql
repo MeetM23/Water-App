@@ -713,6 +713,7 @@
     p.warranty_months,
     p.in_stock,
     p.stock_quantity,
+    p.mrp,
     (
       select pi.storage_path
       from public.product_images pi

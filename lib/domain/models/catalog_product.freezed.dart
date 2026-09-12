@@ -30,6 +30,7 @@ mixin _$CatalogProduct {
   String? get modelNumber => throw _privateConstructorUsedError;
   String? get description => throw _privateConstructorUsedError;
   String? get capacity => throw _privateConstructorUsedError;
+  double? get mrp => throw _privateConstructorUsedError;
   int? get warrantyMonths => throw _privateConstructorUsedError;
   String? get primaryImagePath => throw _privateConstructorUsedError;
 
@@ -60,6 +61,7 @@ abstract class $CatalogProductCopyWith<$Res> {
       String? modelNumber,
       String? description,
       String? capacity,
+      double? mrp,
       int? warrantyMonths,
       String? primaryImagePath});
 }
@@ -89,6 +91,7 @@ class _$CatalogProductCopyWithImpl<$Res, $Val extends CatalogProduct>
     Object? modelNumber = freezed,
     Object? description = freezed,
     Object? capacity = freezed,
+    Object? mrp = freezed,
     Object? warrantyMonths = freezed,
     Object? primaryImagePath = freezed,
   }) {
@@ -133,6 +136,10 @@ class _$CatalogProductCopyWithImpl<$Res, $Val extends CatalogProduct>
           ? _value.capacity
           : capacity // ignore: cast_nullable_to_non_nullable
               as String?,
+      mrp: freezed == mrp
+          ? _value.mrp
+          : mrp // ignore: cast_nullable_to_non_nullable
+              as double?,
       warrantyMonths: freezed == warrantyMonths
           ? _value.warrantyMonths
           : warrantyMonths // ignore: cast_nullable_to_non_nullable
@@ -164,6 +171,7 @@ abstract class _$$CatalogProductImplCopyWith<$Res>
       String? modelNumber,
       String? description,
       String? capacity,
+      double? mrp,
       int? warrantyMonths,
       String? primaryImagePath});
 }
@@ -191,6 +199,7 @@ class __$$CatalogProductImplCopyWithImpl<$Res>
     Object? modelNumber = freezed,
     Object? description = freezed,
     Object? capacity = freezed,
+    Object? mrp = freezed,
     Object? warrantyMonths = freezed,
     Object? primaryImagePath = freezed,
   }) {
@@ -235,6 +244,10 @@ class __$$CatalogProductImplCopyWithImpl<$Res>
           ? _value.capacity
           : capacity // ignore: cast_nullable_to_non_nullable
               as String?,
+      mrp: freezed == mrp
+          ? _value.mrp
+          : mrp // ignore: cast_nullable_to_non_nullable
+              as double?,
       warrantyMonths: freezed == warrantyMonths
           ? _value.warrantyMonths
           : warrantyMonths // ignore: cast_nullable_to_non_nullable
@@ -261,6 +274,7 @@ class _$CatalogProductImpl extends _CatalogProduct {
       this.modelNumber,
       this.description,
       this.capacity,
+      this.mrp,
       this.warrantyMonths,
       this.primaryImagePath})
       : _specifications = specifications,
@@ -297,13 +311,15 @@ class _$CatalogProductImpl extends _CatalogProduct {
   @override
   final String? capacity;
   @override
+  final double? mrp;
+  @override
   final int? warrantyMonths;
   @override
   final String? primaryImagePath;
 
   @override
   String toString() {
-    return 'CatalogProduct(id: $id, productCode: $productCode, name: $name, category: $category, price: $price, inStock: $inStock, specifications: $specifications, modelNumber: $modelNumber, description: $description, capacity: $capacity, warrantyMonths: $warrantyMonths, primaryImagePath: $primaryImagePath)';
+    return 'CatalogProduct(id: $id, productCode: $productCode, name: $name, category: $category, price: $price, inStock: $inStock, specifications: $specifications, modelNumber: $modelNumber, description: $description, capacity: $capacity, mrp: $mrp, warrantyMonths: $warrantyMonths, primaryImagePath: $primaryImagePath)';
   }
 
   @override
@@ -327,6 +343,7 @@ class _$CatalogProductImpl extends _CatalogProduct {
                 other.description == description) &&
             (identical(other.capacity, capacity) ||
                 other.capacity == capacity) &&
+            (identical(other.mrp, mrp) || other.mrp == mrp) &&
             (identical(other.warrantyMonths, warrantyMonths) ||
                 other.warrantyMonths == warrantyMonths) &&
             (identical(other.primaryImagePath, primaryImagePath) ||
@@ -347,6 +364,7 @@ class _$CatalogProductImpl extends _CatalogProduct {
       modelNumber,
       description,
       capacity,
+      mrp,
       warrantyMonths,
       primaryImagePath);
 
@@ -379,6 +397,7 @@ abstract class _CatalogProduct extends CatalogProduct {
       final String? modelNumber,
       final String? description,
       final String? capacity,
+      final double? mrp,
       final int? warrantyMonths,
       final String? primaryImagePath}) = _$CatalogProductImpl;
   const _CatalogProduct._() : super._();
@@ -406,6 +425,8 @@ abstract class _CatalogProduct extends CatalogProduct {
   String? get description;
   @override
   String? get capacity;
+  @override
+  double? get mrp;
   @override
   int? get warrantyMonths;
   @override

@@ -209,32 +209,87 @@ class _PriceCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final mrp = product.mrp;
+    final price = product.price;
+    final hasDiscount = mrp != null && mrp > price && price > 0;
+    final discountPercent = hasDiscount ? (((mrp - price) / mrp) * 100).round() : 0;
+
     return AppCard(
-      padding: const EdgeInsets.all(Spacing.x5),
+      padding: const EdgeInsets.symmetric(
+        horizontal: Spacing.x5,
+        vertical: Spacing.x4,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          Text(
-            priceLabel,
-            style: context.textTheme.labelMedium?.copyWith(
-              color: AppColors.textSecondary,
-            ),
-          ),
-          const SizedBox(height: Spacing.x2),
-          // Scaled down rather than wrapped or ellipsised: a lakh figure at a
-          // 2.0 text scale is wider than a 320dp screen, and half a price is
-          // worse than a slightly smaller one.
-          FittedBox(
-            fit: BoxFit.scaleDown,
-            alignment: Alignment.centerLeft,
-            child: Text(
-              AppFormat.rupees(product.price),
-              maxLines: 1,
-              style: context.textTheme.headlineLarge?.copyWith(
-                color: AppColors.ink,
+          if (hasDiscount) ...<Widget>[
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerLeft,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.baseline,
+                textBaseline: TextBaseline.alphabetic,
+                children: <Widget>[
+                  // Down Arrow & Percentage (e.g. ↓72%)
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: <Widget>[
+                      const Text(
+                        '↓',
+                        style: TextStyle(
+                          color: Color(0xFF006837),
+                          fontSize: 28,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      Text(
+                        '$discountPercent%',
+                        style: const TextStyle(
+                          color: Color(0xFF006837),
+                          fontSize: 28,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(width: Spacing.x3),
+                  // Strikethrough MRP (e.g. ₹3,799)
+                  Text(
+                    AppFormat.rupees(mrp),
+                    style: context.textTheme.titleLarge?.copyWith(
+                      color: AppColors.textSecondary,
+                      decoration: TextDecoration.lineThrough,
+                      decorationColor: AppColors.textSecondary,
+                      decorationThickness: 2,
+                    ),
+                  ),
+                  const SizedBox(width: Spacing.x3),
+                  // Final Applicable Price (e.g. ₹1,059)
+                  Text(
+                    AppFormat.rupees(price),
+                    style: context.textTheme.headlineLarge?.copyWith(
+                      color: AppColors.ink,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
               ),
             ),
-          ),
+          ] else ...<Widget>[
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerLeft,
+              child: Text(
+                AppFormat.rupees(price),
+                maxLines: 1,
+                style: context.textTheme.headlineLarge?.copyWith(
+                  color: AppColors.ink,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
         ],
       ),
     );

@@ -326,14 +326,6 @@ class _SavedRow extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: Spacing.x2),
-                Text(
-                  priceLabel,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: context.textTheme.bodySmall?.copyWith(
-                    color: AppColors.textSecondary,
-                  ),
-                ),
                 // Shrunk rather than ellipsised: a rupee figure has no
                 // line-break opportunity in it, so in this narrow column at a
                 // large text scale it would otherwise be clipped mid-number.
@@ -345,6 +337,7 @@ class _SavedRow extends StatelessWidget {
                     maxLines: 1,
                     style: context.textTheme.titleMedium?.copyWith(
                       color: AppColors.ink,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
                 ),

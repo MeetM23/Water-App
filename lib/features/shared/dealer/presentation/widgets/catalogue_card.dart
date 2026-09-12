@@ -155,15 +155,6 @@ class CatalogueCard extends StatelessWidget {
                     tone: AppBadgeTone.info,
                   ),
                   const SizedBox(height: Spacing.x2),
-                  Text(
-                    priceLabel,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: context.textTheme.labelSmall?.copyWith(
-                      color: AppColors.textSecondary,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
                   // Shrunk rather than ellipsised: half a price is worse than a
                   // small one, and a narrow column at a large text scale is
                   // exactly where a rupee figure runs out of room.
@@ -175,6 +166,7 @@ class CatalogueCard extends StatelessWidget {
                       maxLines: 1,
                       style: context.textTheme.titleMedium?.copyWith(
                         color: AppColors.ink,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
                   ),
