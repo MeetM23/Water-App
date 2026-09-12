@@ -18,6 +18,7 @@ import '../application/catalogue_controller.dart';
 import '../domain/dealer_experience.dart';
 import 'category_label.dart';
 import 'widgets/catalogue_card.dart';
+import 'widgets/catalogue_category_bar.dart';
 import 'widgets/catalogue_filter_sheet.dart';
 import 'widgets/catalogue_skeleton.dart';
 import 'widgets/offline_banner.dart';
@@ -123,92 +124,10 @@ class _CatalogueScreenState extends ConsumerState<CatalogueScreen> {
               child: BannerCarouselWidget(),
             ),
 
-            // Filter and Sort Controls
+            // Horizontal Options Bar (All, Domestic, Commercial, Industrial, Accessories, Service)
             SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(
-                  Spacing.x4,
-                  Spacing.x2,
-                  Spacing.x4,
-                  Spacing.x2,
-                ),
-                child: Row(
-                  children: <Widget>[
-                    InkWell(
-                      onTap: () =>
-                          CatalogueFilterSheet.show(context, onReset: _clearFilters),
-                      borderRadius: BorderRadius.circular(20),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: Spacing.x3,
-                          vertical: Spacing.x2,
-                        ),
-                        decoration: BoxDecoration(
-                          color: query.hasActiveFilters
-                              ? AppColors.primary.withOpacity(0.08)
-                              : AppColors.surface,
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(
-                            color: query.hasActiveFilters
-                                ? AppColors.primary
-                                : AppColors.border,
-                          ),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: <Widget>[
-                            Icon(
-                              Icons.tune_rounded,
-                              size: 18,
-                              color: query.hasActiveFilters
-                                  ? AppColors.primary
-                                  : AppColors.textSecondary,
-                            ),
-                            const SizedBox(width: Spacing.x2),
-                            Text(
-                              l10n.filterTitle,
-                              style: context.textTheme.bodyMedium?.copyWith(
-                                color: query.hasActiveFilters
-                                    ? AppColors.primary
-                                    : AppColors.ink,
-                                fontWeight: query.hasActiveFilters
-                                    ? FontWeight.bold
-                                    : FontWeight.normal,
-                              ),
-                            ),
-                            if (query.category != null) ...<Widget>[
-                              const SizedBox(width: Spacing.x2),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: Spacing.x2,
-                                  vertical: 2,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: AppColors.primary,
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                child: Text(
-                                  query.category!.catalogueLabel(l10n),
-                                  style: context.textTheme.labelSmall?.copyWith(
-                                    color: Colors.white,
-                                    fontSize: 10,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ],
-                        ),
-                      ),
-                    ),
-                    if (query.hasActiveFilters) ...<Widget>[
-                      const SizedBox(width: Spacing.x2),
-                      TextButton(
-                        onPressed: _clearFilters,
-                        child: Text(l10n.productsClearFilters),
-                      ),
-                    ],
-                  ],
-                ),
+              child: CatalogueCategoryBar(
+                onResetFilters: _clearFilters,
               ),
             ),
 

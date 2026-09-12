@@ -345,8 +345,15 @@ List<CatalogProduct> visibleCatalogue(Ref<List<CatalogProduct>> ref) {
   final term = query.searchTerm.trim().toLowerCase();
 
   final filtered = state.products.where((CatalogProduct product) {
-    if (query.category != null && product.category != query.category) {
-      return false;
+    if (query.category != null) {
+      if (query.category == ProductCategory.accessory) {
+        if (product.category != ProductCategory.accessory &&
+            product.category != ProductCategory.sparePart) {
+          return false;
+        }
+      } else if (product.category != query.category) {
+        return false;
+      }
     }
     if (term.isEmpty) {
       return true;
