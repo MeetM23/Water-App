@@ -79,6 +79,7 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
     _controller(_FormField.mrp).text = draft.mrp;
     _controller(_FormField.wholesale).text = draft.wholesalePrice;
     _controller(_FormField.retail).text = draft.retailPrice;
+    _controller(_FormField.stockQuantity).text = draft.stockQuantity;
   }
 
   Future<bool> _confirmDiscard() async {
@@ -233,6 +234,7 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
                   AvailabilitySection(
                     productId: widget.productId,
                     draft: draft,
+                    stockQuantityController: _controller(_FormField.stockQuantity),
                   ),
                   const SizedBox(height: Spacing.x10),
                   AppButton(
@@ -251,7 +253,7 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
 }
 
 /// Identifiers for the text controllers this form owns.
-enum _FormField { name, model, description, capacity, mrp, wholesale, retail }
+enum _FormField { name, model, description, capacity, mrp, wholesale, retail, stockQuantity }
 
 class _SectionHeader extends StatelessWidget {
   const _SectionHeader({required this.label});

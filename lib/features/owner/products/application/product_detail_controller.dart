@@ -1,8 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../data/repositories/supabase_product_image_repository.dart';
 import '../../../../data/repositories/supabase_product_repository.dart';
+import '../../../../data/supabase/supabase_providers.dart';
 import '../../../../domain/models/product.dart';
 import '../../../../domain/models/product_image.dart';
 
@@ -30,8 +32,36 @@ class ProductDetail {
 /// Loads one product, its images and its scan count together.
 @riverpod
 class ProductDetailController extends _$ProductDetailController {
+  RealtimeChannel? _realtimeChannel;
+
   @override
   Future<ProductDetail> build(String productId) async {
+    // Subscribe to realtime updates for this specific product.
+    final client = ref.watch(supabaseClientProvider);
+    _realtimeChannel?.unsubscribe();
+    _realtimeChannel = client
+        .channel('product_detail_$productId')
+        .onPostgresChanges(
+          event: PostgresChangeEvent.update,
+          schema: 'public',
+          table: 'products',
+          filter: PostgresChangeFilter(
+            type: PostgresChangeFilterType.eq,
+            column: 'id',
+            value: productId,
+          ),
+          callback: (_) {
+            // Re-fetch the product in the background when it changes.
+            _silentProductRefresh(productId);
+          },
+        )
+        .subscribe();
+
+    ref.onDispose(() {
+      _realtimeChannel?.unsubscribe();
+      _realtimeChannel = null;
+    });
+
     final productResult = await ref
         .read(productRepositoryProvider)
         .fetchById(productId);
@@ -55,6 +85,29 @@ class ProductDetailController extends _$ProductDetailController {
       images: imagesResult.valueOrNull ?? <ProductImage>[],
       scanCount: scanResult.valueOrNull ?? 0,
     );
+  }
+
+  /// Re-fetches the product quietly and patches the current state.
+  Future<void> _silentProductRefresh(String productId) async {
+    final current = state.valueOrNull;
+    if (current == null) return;
+    try {
+      final result = await ref
+          .read(productRepositoryProvider)
+          .fetchById(productId);
+      result.fold(
+        onSuccess: (product) {
+          state = AsyncValue<ProductDetail>.data(
+            ProductDetail(
+              product: product,
+              images: current.images,
+              scanCount: current.scanCount,
+            ),
+          );
+        },
+        onFailure: (_) {},
+      );
+    } catch (_) {}
   }
 
   /// Reloads everything.

@@ -6,7 +6,7 @@ part of 'catalogue_controller.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$visibleCatalogueHash() => r'9334b4988382e050b07bf29b3a7da50b097a2cd2';
+String _$visibleCatalogueHash() => r'cdfe3ee47b79143957653e31c2959501e1ab1515';
 
 /// The catalogue after search, filter and sort have been applied.
 ///

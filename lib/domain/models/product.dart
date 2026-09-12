@@ -30,6 +30,7 @@ class Product with _$Product {
     String? capacity,
     double? mrp,
     int? warrantyMonths,
+    int? stockQuantity,
     String? createdBy,
   }) = _Product;
 
@@ -38,6 +39,9 @@ class Product with _$Product {
   /// Reads a products row.
   factory Product.fromJson(Map<String, dynamic> json) =>
       _$ProductFromJson(json);
+
+  /// Available stock count (defaults to 0 if out of stock).
+  int get availableStock => stockQuantity ?? (inStock ? 1 : 0);
 
   /// Absolute margin a dealer makes on one unit.
   double get dealerMargin => retailPrice - wholesalePrice;

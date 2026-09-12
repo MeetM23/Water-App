@@ -457,6 +457,7 @@ mixin _$ProductDraft {
   String get wholesalePrice => throw _privateConstructorUsedError;
   String get retailPrice => throw _privateConstructorUsedError;
   int get warrantyMonths => throw _privateConstructorUsedError;
+  String get stockQuantity => throw _privateConstructorUsedError;
   bool get inStock => throw _privateConstructorUsedError;
   bool get isActive => throw _privateConstructorUsedError;
   List<SpecificationEntry> get specifications =>
@@ -488,6 +489,7 @@ abstract class $ProductDraftCopyWith<$Res> {
       String wholesalePrice,
       String retailPrice,
       int warrantyMonths,
+      String stockQuantity,
       bool inStock,
       bool isActive,
       List<SpecificationEntry> specifications,
@@ -520,6 +522,7 @@ class _$ProductDraftCopyWithImpl<$Res, $Val extends ProductDraft>
     Object? wholesalePrice = null,
     Object? retailPrice = null,
     Object? warrantyMonths = null,
+    Object? stockQuantity = null,
     Object? inStock = null,
     Object? isActive = null,
     Object? specifications = null,
@@ -564,6 +567,10 @@ class _$ProductDraftCopyWithImpl<$Res, $Val extends ProductDraft>
           ? _value.warrantyMonths
           : warrantyMonths // ignore: cast_nullable_to_non_nullable
               as int,
+      stockQuantity: null == stockQuantity
+          ? _value.stockQuantity
+          : stockQuantity // ignore: cast_nullable_to_non_nullable
+              as String,
       inStock: null == inStock
           ? _value.inStock
           : inStock // ignore: cast_nullable_to_non_nullable
@@ -610,6 +617,7 @@ abstract class _$$ProductDraftImplCopyWith<$Res>
       String wholesalePrice,
       String retailPrice,
       int warrantyMonths,
+      String stockQuantity,
       bool inStock,
       bool isActive,
       List<SpecificationEntry> specifications,
@@ -640,6 +648,7 @@ class __$$ProductDraftImplCopyWithImpl<$Res>
     Object? wholesalePrice = null,
     Object? retailPrice = null,
     Object? warrantyMonths = null,
+    Object? stockQuantity = null,
     Object? inStock = null,
     Object? isActive = null,
     Object? specifications = null,
@@ -684,6 +693,10 @@ class __$$ProductDraftImplCopyWithImpl<$Res>
           ? _value.warrantyMonths
           : warrantyMonths // ignore: cast_nullable_to_non_nullable
               as int,
+      stockQuantity: null == stockQuantity
+          ? _value.stockQuantity
+          : stockQuantity // ignore: cast_nullable_to_non_nullable
+              as String,
       inStock: null == inStock
           ? _value.inStock
           : inStock // ignore: cast_nullable_to_non_nullable
@@ -725,6 +738,7 @@ class _$ProductDraftImpl extends _ProductDraft {
       this.wholesalePrice = '',
       this.retailPrice = '',
       this.warrantyMonths = 12,
+      this.stockQuantity = '1',
       this.inStock = true,
       this.isActive = true,
       final List<SpecificationEntry> specifications =
@@ -764,6 +778,9 @@ class _$ProductDraftImpl extends _ProductDraft {
   final int warrantyMonths;
   @override
   @JsonKey()
+  final String stockQuantity;
+  @override
+  @JsonKey()
   final bool inStock;
   @override
   @JsonKey()
@@ -793,7 +810,7 @@ class _$ProductDraftImpl extends _ProductDraft {
 
   @override
   String toString() {
-    return 'ProductDraft(name: $name, modelNumber: $modelNumber, description: $description, capacity: $capacity, category: $category, mrp: $mrp, wholesalePrice: $wholesalePrice, retailPrice: $retailPrice, warrantyMonths: $warrantyMonths, inStock: $inStock, isActive: $isActive, specifications: $specifications, images: $images, id: $id, productCode: $productCode)';
+    return 'ProductDraft(name: $name, modelNumber: $modelNumber, description: $description, capacity: $capacity, category: $category, mrp: $mrp, wholesalePrice: $wholesalePrice, retailPrice: $retailPrice, warrantyMonths: $warrantyMonths, stockQuantity: $stockQuantity, inStock: $inStock, isActive: $isActive, specifications: $specifications, images: $images, id: $id, productCode: $productCode)';
   }
 
   @override
@@ -817,6 +834,8 @@ class _$ProductDraftImpl extends _ProductDraft {
                 other.retailPrice == retailPrice) &&
             (identical(other.warrantyMonths, warrantyMonths) ||
                 other.warrantyMonths == warrantyMonths) &&
+            (identical(other.stockQuantity, stockQuantity) ||
+                other.stockQuantity == stockQuantity) &&
             (identical(other.inStock, inStock) || other.inStock == inStock) &&
             (identical(other.isActive, isActive) ||
                 other.isActive == isActive) &&
@@ -840,6 +859,7 @@ class _$ProductDraftImpl extends _ProductDraft {
       wholesalePrice,
       retailPrice,
       warrantyMonths,
+      stockQuantity,
       inStock,
       isActive,
       const DeepCollectionEquality().hash(_specifications),
@@ -867,6 +887,7 @@ abstract class _ProductDraft extends ProductDraft {
       final String wholesalePrice,
       final String retailPrice,
       final int warrantyMonths,
+      final String stockQuantity,
       final bool inStock,
       final bool isActive,
       final List<SpecificationEntry> specifications,
@@ -893,6 +914,8 @@ abstract class _ProductDraft extends ProductDraft {
   String get retailPrice;
   @override
   int get warrantyMonths;
+  @override
+  String get stockQuantity;
   @override
   bool get inStock;
   @override

@@ -19,35 +19,7 @@ part 'banner_controller.g.dart';
 /// - Never enters an infinite loading or rebuild loop.
 @Riverpod(keepAlive: true)
 class ActiveBanners extends _$ActiveBanners {
-  static final List<DashboardBanner> _defaultBanners = <DashboardBanner>[
-    DashboardBanner(
-      id: 'test_1',
-      storagePath: 'test_banner_1',
-      title: 'BANNER 1 — Pure Water Solution',
-      sortOrder: 1,
-      isActive: true,
-      createdAt: DateTime.now(),
-      updatedAt: DateTime.now(),
-    ),
-    DashboardBanner(
-      id: 'test_2',
-      storagePath: 'test_banner_2',
-      title: 'BANNER 2 — Genuine RO Components',
-      sortOrder: 2,
-      isActive: true,
-      createdAt: DateTime.now(),
-      updatedAt: DateTime.now(),
-    ),
-    DashboardBanner(
-      id: 'test_3',
-      storagePath: 'test_banner_3',
-      title: 'BANNER 3 — Premium Quality Filters',
-      sortOrder: 3,
-      isActive: true,
-      createdAt: DateTime.now(),
-      updatedAt: DateTime.now(),
-    ),
-  ];
+  static const List<DashboardBanner> _defaultBanners = <DashboardBanner>[];
 
   @override
   List<DashboardBanner> build() {
@@ -57,16 +29,38 @@ class ActiveBanners extends _$ActiveBanners {
 
   Future<void> loadActiveBanners() async {
     try {
+      final diskBanners = await AdminBannersController._loadDiskBanners();
+      final activeDisk = diskBanners.where((b) => b.isActive).toList();
+      if (activeDisk.isNotEmpty) {
+        state = activeDisk;
+      }
+
       final repository = ref.read(bannerRepositoryProvider);
       final result = await repository.fetchActiveBanners();
 
       result.fold(
-        onSuccess: (banners) {
-          if (banners.isNotEmpty) {
-            state = banners;
+        onSuccess: (remoteBanners) {
+          final merged = <String, DashboardBanner>{};
+          // Add local active banners first
+          for (final b in diskBanners) {
+            if (b.isActive) merged[b.id] = b;
+          }
+          // Merge remote active banners
+          for (final b in remoteBanners) {
+            if (b.isActive) merged[b.id] = b;
+          }
+
+          if (merged.isNotEmpty) {
+            state = merged.values.toList();
+          } else if (activeDisk.isNotEmpty) {
+            state = activeDisk;
           }
         },
-        onFailure: (_) {},
+        onFailure: (_) {
+          if (activeDisk.isNotEmpty) {
+            state = activeDisk;
+          }
+        },
       );
     } catch (e, st) {
       AppLog.warn('Could not load active banners', e, st);
@@ -75,42 +69,14 @@ class ActiveBanners extends _$ActiveBanners {
 
   void updateBanners(List<DashboardBanner> banners) {
     final active = banners.where((b) => b.isActive).toList();
-    state = active.isEmpty ? _defaultBanners : active;
+    state = active;
   }
 }
 
 /// Controller managing all banners for Admin Banner Management.
 @riverpod
 class AdminBannersController extends _$AdminBannersController {
-  static List<DashboardBanner> _localBanners = <DashboardBanner>[
-    DashboardBanner(
-      id: 'test_1',
-      storagePath: 'test_banner_1',
-      title: 'BANNER 1 — Pure Water Solution',
-      sortOrder: 1,
-      isActive: true,
-      createdAt: DateTime.now(),
-      updatedAt: DateTime.now(),
-    ),
-    DashboardBanner(
-      id: 'test_2',
-      storagePath: 'test_banner_2',
-      title: 'BANNER 2 — Genuine RO Components',
-      sortOrder: 2,
-      isActive: true,
-      createdAt: DateTime.now(),
-      updatedAt: DateTime.now(),
-    ),
-    DashboardBanner(
-      id: 'test_3',
-      storagePath: 'test_banner_3',
-      title: 'BANNER 3 — Premium Quality Filters',
-      sortOrder: 3,
-      isActive: true,
-      createdAt: DateTime.now(),
-      updatedAt: DateTime.now(),
-    ),
-  ];
+  static List<DashboardBanner> _localBanners = <DashboardBanner>[];
 
   static Future<List<DashboardBanner>> _loadDiskBanners() async {
     try {

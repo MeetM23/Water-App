@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import '../../domain/enums/account_status.dart';
 import '../../domain/enums/complaint_category.dart';
 import '../../domain/enums/user_role.dart';
 import '../../domain/models/profile.dart';
@@ -447,27 +446,19 @@ String? _redirectForProfile(Profile profile, String location) {
   // /wholesaler/catalogue — collapsing them into a single prefix would bounce
   // the dealer off /wholesaler/product/<code> straight back to the grid on
   // every scan.
-  final (String area, String landing) = switch (profile.status) {
-    AccountStatus.pending => profile.role == UserRole.retailer
-        ? (AppRoutes.retailer, AppRoutes.retailerCatalogue)
-        : (AppRoutes.pending, AppRoutes.pending),
-    AccountStatus.rejected => (AppRoutes.rejected, AppRoutes.rejected),
-    AccountStatus.suspended => (AppRoutes.suspended, AppRoutes.suspended),
-    AccountStatus.approved => switch (profile.role) {
-      UserRole.owner => (AppRoutes.owner, AppRoutes.owner),
-      UserRole.wholesaler => (
-        AppRoutes.wholesaler,
-        AppRoutes.wholesalerCatalogue,
-      ),
-      UserRole.retailer => (
-        AppRoutes.retailer,
-        AppRoutes.retailerCatalogue,
-      ),
-    },
+  final (String area, String landing) = switch (profile.role) {
+    UserRole.owner => (AppRoutes.owner, AppRoutes.owner),
+    UserRole.wholesaler => (
+      AppRoutes.wholesaler,
+      AppRoutes.wholesalerCatalogue,
+    ),
+    UserRole.retailer => (
+      AppRoutes.retailer,
+      AppRoutes.retailerCatalogue,
+    ),
   };
 
-  final isDealer = (profile.role == UserRole.wholesaler || profile.role == UserRole.retailer) &&
-      profile.status == AccountStatus.approved;
+  final isDealer = profile.role == UserRole.wholesaler || profile.role == UserRole.retailer;
   final isDealerOnlyRoute = uri.path == AppRoutes.productRegistration ||
       uri.path == AppRoutes.warrantyClaim ||
       uri.path == AppRoutes.userRegistrations ||

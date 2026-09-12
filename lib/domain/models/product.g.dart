@@ -25,6 +25,7 @@ _$ProductImpl _$$ProductImplFromJson(Map<String, dynamic> json) =>
       capacity: json['capacity'] as String?,
       mrp: (json['mrp'] as num?)?.toDouble(),
       warrantyMonths: (json['warranty_months'] as num?)?.toInt(),
+      stockQuantity: (json['stock_quantity'] as num?)?.toInt(),
       createdBy: json['created_by'] as String?,
     );
 
@@ -46,6 +47,7 @@ Map<String, dynamic> _$$ProductImplToJson(_$ProductImpl instance) =>
       'capacity': instance.capacity,
       'mrp': instance.mrp,
       'warranty_months': instance.warrantyMonths,
+      'stock_quantity': instance.stockQuantity,
       'created_by': instance.createdBy,
     };
 

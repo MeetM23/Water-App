@@ -14,7 +14,7 @@ abstract final class AppConfig {
   /// PLACEHOLDER. The client has not supplied their business WhatsApp number
   /// yet; replace this single constant before building a release. Nothing else
   /// in the app hardcodes a phone number.
-  static const String supportWhatsAppNumber = '910000000000';
+  static const String supportWhatsAppNumber = '919081646467';
 
   /// Locale the app starts in. Gujarati is opt-in through device settings.
   static const Locale defaultLocale = Locale('en');

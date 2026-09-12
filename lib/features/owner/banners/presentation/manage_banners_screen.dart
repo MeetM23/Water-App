@@ -20,7 +20,7 @@ import '../../../../core/widgets/app_error_state.dart';
 import '../../../../core/widgets/app_snackbar.dart';
 import '../../../../domain/models/dashboard_banner.dart';
 import '../../../shared/banner/application/banner_controller.dart';
-import '../../../shared/dealer/presentation/widgets/catalogue_image.dart';
+import '../../../shared/banner/presentation/widgets/banner_image.dart';
 
 /// Admin screen for managing home dashboard promotional carousel banners.
 class ManageBannersScreen extends ConsumerStatefulWidget {
@@ -381,18 +381,7 @@ class _BannerCard extends StatelessWidget {
       final index = int.tryParse(banner.id.replaceAll('test_', '')) ?? 1;
       return _TestBannerCardItem(index: index - 1);
     }
-    if (banner.storagePath.startsWith('/') ||
-        File(banner.storagePath).existsSync()) {
-      return Image.file(
-        File(banner.storagePath),
-        fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) => CatalogueImage(
-          storagePath: banner.storagePath,
-          fit: BoxFit.cover,
-        ),
-      );
-    }
-    return CatalogueImage(
+    return BannerImage(
       storagePath: banner.storagePath,
       fit: BoxFit.cover,
     );

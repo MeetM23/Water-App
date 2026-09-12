@@ -65,6 +65,7 @@ class ProductDraft with _$ProductDraft {
     @Default('') String wholesalePrice,
     @Default('') String retailPrice,
     @Default(12) int warrantyMonths,
+    @Default('1') String stockQuantity,
     @Default(true) bool inStock,
     @Default(true) bool isActive,
     @Default(<SpecificationEntry>[]) List<SpecificationEntry> specifications,
@@ -92,6 +93,7 @@ class ProductDraft with _$ProductDraft {
     wholesalePrice: product.wholesalePrice.toString(),
     retailPrice: product.retailPrice.toString(),
     warrantyMonths: product.warrantyMonths ?? 12,
+    stockQuantity: product.stockQuantity?.toString() ?? (product.inStock ? '1' : '0'),
     inStock: product.inStock,
     isActive: product.isActive,
     specifications: specifications,
@@ -109,6 +111,9 @@ class ProductDraft with _$ProductDraft {
 
   /// Parsed MRP, or null when the field is empty or malformed.
   double? get mrpValue => double.tryParse(mrp.trim());
+
+  /// Parsed stock quantity, or null when blank.
+  int? get stockQuantityValue => int.tryParse(stockQuantity.trim());
 
   /// Absolute per-unit dealer margin, or null while either price is unusable.
   double? get dealerMargin {

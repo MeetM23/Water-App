@@ -13,7 +13,6 @@ import '../../../../core/widgets/app_snackbar.dart';
 import '../../../../core/errors/failure_presentation.dart';
 import '../../../../data/repositories/supabase_unit_repository.dart';
 import '../../../../data/repositories/supabase_warranty_claim_repository.dart';
-import '../../../../domain/enums/product_category.dart';
 import '../../../../domain/models/product_unit.dart';
 
 /// Screen for submitting a warranty or service claim on a physical RO unit.
@@ -99,30 +98,19 @@ class _WarrantyClaimScreenState extends ConsumerState<WarrantyClaimScreen> {
       onSuccess: (unit) {
         setState(() {
           _isSearching = false;
-          _foundUnit = unit ??
-              ProductUnit(
-                unitId: clean,
-                serialNumber: clean,
-                productId: clean,
-                productName: 'RO Water Purifier ($clean)',
-                modelNumber: clean,
-                category: ProductCategory.domestic,
-                manufacturedAt: DateTime.now(),
-              );
+          if (unit != null) {
+            _foundUnit = unit;
+          } else {
+            _foundUnit = null;
+            _searchError = 'No unit found for serial: $clean';
+          }
         });
       },
       onFailure: (failure) {
         setState(() {
           _isSearching = false;
-          _foundUnit = ProductUnit(
-            unitId: clean,
-            serialNumber: clean,
-            productId: clean,
-            productName: 'RO Water Purifier ($clean)',
-            modelNumber: clean,
-            category: ProductCategory.domestic,
-            manufacturedAt: DateTime.now(),
-          );
+          _foundUnit = null;
+          _searchError = 'Failed to find unit: ${failure.toString()}';
         });
       },
     );

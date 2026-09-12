@@ -36,6 +36,7 @@ mixin _$Product {
   String? get capacity => throw _privateConstructorUsedError;
   double? get mrp => throw _privateConstructorUsedError;
   int? get warrantyMonths => throw _privateConstructorUsedError;
+  int? get stockQuantity => throw _privateConstructorUsedError;
   String? get createdBy => throw _privateConstructorUsedError;
 
   /// Serializes this Product to a JSON map.
@@ -69,6 +70,7 @@ abstract class $ProductCopyWith<$Res> {
       String? capacity,
       double? mrp,
       int? warrantyMonths,
+      int? stockQuantity,
       String? createdBy});
 }
 
@@ -103,6 +105,7 @@ class _$ProductCopyWithImpl<$Res, $Val extends Product>
     Object? capacity = freezed,
     Object? mrp = freezed,
     Object? warrantyMonths = freezed,
+    Object? stockQuantity = freezed,
     Object? createdBy = freezed,
   }) {
     return _then(_value.copyWith(
@@ -170,6 +173,10 @@ class _$ProductCopyWithImpl<$Res, $Val extends Product>
           ? _value.warrantyMonths
           : warrantyMonths // ignore: cast_nullable_to_non_nullable
               as int?,
+      stockQuantity: freezed == stockQuantity
+          ? _value.stockQuantity
+          : stockQuantity // ignore: cast_nullable_to_non_nullable
+              as int?,
       createdBy: freezed == createdBy
           ? _value.createdBy
           : createdBy // ignore: cast_nullable_to_non_nullable
@@ -202,6 +209,7 @@ abstract class _$$ProductImplCopyWith<$Res> implements $ProductCopyWith<$Res> {
       String? capacity,
       double? mrp,
       int? warrantyMonths,
+      int? stockQuantity,
       String? createdBy});
 }
 
@@ -234,6 +242,7 @@ class __$$ProductImplCopyWithImpl<$Res>
     Object? capacity = freezed,
     Object? mrp = freezed,
     Object? warrantyMonths = freezed,
+    Object? stockQuantity = freezed,
     Object? createdBy = freezed,
   }) {
     return _then(_$ProductImpl(
@@ -301,6 +310,10 @@ class __$$ProductImplCopyWithImpl<$Res>
           ? _value.warrantyMonths
           : warrantyMonths // ignore: cast_nullable_to_non_nullable
               as int?,
+      stockQuantity: freezed == stockQuantity
+          ? _value.stockQuantity
+          : stockQuantity // ignore: cast_nullable_to_non_nullable
+              as int?,
       createdBy: freezed == createdBy
           ? _value.createdBy
           : createdBy // ignore: cast_nullable_to_non_nullable
@@ -329,6 +342,7 @@ class _$ProductImpl extends _Product {
       this.capacity,
       this.mrp,
       this.warrantyMonths,
+      this.stockQuantity,
       this.createdBy})
       : _specifications = specifications,
         super._();
@@ -376,11 +390,13 @@ class _$ProductImpl extends _Product {
   @override
   final int? warrantyMonths;
   @override
+  final int? stockQuantity;
+  @override
   final String? createdBy;
 
   @override
   String toString() {
-    return 'Product(id: $id, productCode: $productCode, name: $name, category: $category, wholesalePrice: $wholesalePrice, retailPrice: $retailPrice, inStock: $inStock, isActive: $isActive, createdAt: $createdAt, updatedAt: $updatedAt, specifications: $specifications, modelNumber: $modelNumber, description: $description, capacity: $capacity, mrp: $mrp, warrantyMonths: $warrantyMonths, createdBy: $createdBy)';
+    return 'Product(id: $id, productCode: $productCode, name: $name, category: $category, wholesalePrice: $wholesalePrice, retailPrice: $retailPrice, inStock: $inStock, isActive: $isActive, createdAt: $createdAt, updatedAt: $updatedAt, specifications: $specifications, modelNumber: $modelNumber, description: $description, capacity: $capacity, mrp: $mrp, warrantyMonths: $warrantyMonths, stockQuantity: $stockQuantity, createdBy: $createdBy)';
   }
 
   @override
@@ -416,6 +432,8 @@ class _$ProductImpl extends _Product {
             (identical(other.mrp, mrp) || other.mrp == mrp) &&
             (identical(other.warrantyMonths, warrantyMonths) ||
                 other.warrantyMonths == warrantyMonths) &&
+            (identical(other.stockQuantity, stockQuantity) ||
+                other.stockQuantity == stockQuantity) &&
             (identical(other.createdBy, createdBy) ||
                 other.createdBy == createdBy));
   }
@@ -440,6 +458,7 @@ class _$ProductImpl extends _Product {
       capacity,
       mrp,
       warrantyMonths,
+      stockQuantity,
       createdBy);
 
   /// Create a copy of Product
@@ -476,6 +495,7 @@ abstract class _Product extends Product {
       final String? capacity,
       final double? mrp,
       final int? warrantyMonths,
+      final int? stockQuantity,
       final String? createdBy}) = _$ProductImpl;
   const _Product._() : super._();
 
@@ -513,6 +533,8 @@ abstract class _Product extends Product {
   double? get mrp;
   @override
   int? get warrantyMonths;
+  @override
+  int? get stockQuantity;
   @override
   String? get createdBy;
 

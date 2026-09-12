@@ -51,14 +51,18 @@ class AuthController extends _$AuthController {
 
     return result.fold(
       onSuccess: (_) {
-        state = const AsyncValue<void>.data(null);
+        try {
+          state = const AsyncValue<void>.data(null);
+        } catch (_) {}
         return null;
       },
       onFailure: (failure) {
-        state = AsyncValue<void>.error(
-          failure,
-          failure.stackTrace ?? StackTrace.current,
-        );
+        try {
+          state = AsyncValue<void>.error(
+            failure,
+            failure.stackTrace ?? StackTrace.current,
+          );
+        } catch (_) {}
         return failure;
       },
     );

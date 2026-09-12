@@ -12,7 +12,6 @@ import '../../../../core/widgets/app_card.dart';
 import '../../../../core/widgets/app_snackbar.dart';
 import '../../../../core/errors/failure_presentation.dart';
 import '../../../../data/repositories/supabase_unit_repository.dart';
-import '../../../../domain/enums/product_category.dart';
 import '../../../../domain/models/product_unit.dart';
 
 /// Screen for registering a physical RO machine unit by serial number (MWS-SN).
@@ -44,6 +43,8 @@ class _ProductRegistrationScreenState
     extends ConsumerState<ProductRegistrationScreen> {
   final _formKey = GlobalKey<FormState>();
   late final TextEditingController _serialController;
+  final _sellerNameController = TextEditingController();
+  final _sellerPhoneController = TextEditingController();
   final _customerNameController = TextEditingController();
   final _phoneController = TextEditingController();
   final _cityController = TextEditingController();
@@ -71,6 +72,8 @@ class _ProductRegistrationScreenState
   @override
   void dispose() {
     _serialController.dispose();
+    _sellerNameController.dispose();
+    _sellerPhoneController.dispose();
     _customerNameController.dispose();
     _phoneController.dispose();
     _cityController.dispose();
@@ -98,30 +101,19 @@ class _ProductRegistrationScreenState
       onSuccess: (unit) {
         setState(() {
           _isSearching = false;
-          _foundUnit = unit ??
-              ProductUnit(
-                unitId: clean,
-                serialNumber: clean,
-                productId: clean,
-                productName: 'RO Water Purifier ($clean)',
-                modelNumber: clean,
-                category: ProductCategory.domestic,
-                manufacturedAt: DateTime.now(),
-              );
+          if (unit != null) {
+            _foundUnit = unit;
+          } else {
+            _foundUnit = null;
+            _searchError = 'No matching product found for: $clean';
+          }
         });
       },
       onFailure: (failure) {
         setState(() {
           _isSearching = false;
-          _foundUnit = ProductUnit(
-            unitId: clean,
-            serialNumber: clean,
-            productId: clean,
-            productName: 'RO Water Purifier ($clean)',
-            modelNumber: clean,
-            category: ProductCategory.domestic,
-            manufacturedAt: DateTime.now(),
-          );
+          _foundUnit = null;
+          _searchError = 'Failed to find product: ${failure.toString()}';
         });
       },
     );
@@ -169,6 +161,12 @@ class _ProductRegistrationScreenState
       customerAddress: _addressController.text.trim().isEmpty
           ? null
           : _addressController.text.trim(),
+      sellerName: _sellerNameController.text.trim().isEmpty
+          ? null
+          : _sellerNameController.text.trim(),
+      sellerPhone: _sellerPhoneController.text.trim().isEmpty
+          ? null
+          : _sellerPhoneController.text.trim(),
       purchaseDate: _installationDate,
       installationDate: _installationDate,
       warrantyMonths: unit.defaultWarrantyMonths ?? 12,
@@ -198,12 +196,6 @@ class _ProductRegistrationScreenState
   }
 
   /// Opens the dedicated serial-scanner route.
-  ///
-  /// The scanner is configured for MWS-SN only (ScanMode.registerProduct).
-  /// When it resolves a valid serial, it pushes /product-registration?serialNumber=...
-  /// which re-opens this screen with the serial pre-filled. Because GoRouter
-  /// replaces the current instance rather than stacking another one of the
-  /// same route, the result arrives cleanly without navigation loops.
   Future<void> _openSerialScanner() async {
     await context.push<void>(AppRoutes.serialScanRegister);
   }
@@ -290,6 +282,10 @@ class _ProductRegistrationScreenState
                           Padding(
                             padding: const EdgeInsets.only(top: 8),
                             child: IconButton.filled(
+                              style: IconButton.styleFrom(
+                                backgroundColor: AppColors.primary,
+                                foregroundColor: Colors.white,
+                              ),
                               onPressed: _isSearching
                                   ? null
                                   : () =>
@@ -303,7 +299,7 @@ class _ProductRegistrationScreenState
                                         color: Colors.white,
                                       ),
                                     )
-                                  : const Icon(Icons.search_rounded),
+                                  : const Icon(Icons.search_rounded, color: Colors.white),
                               tooltip: 'Look up serial',
                             ),
                           ),
@@ -475,9 +471,67 @@ class _ProductRegistrationScreenState
                 ),
               ],
 
-              // ── Step 2: Customer details ────────────────────────────────────
+              // ── Retailer / Wholesaler Details & Customer Details ───────────
               if (!isAlreadyRegistered) ...<Widget>[
                 const SizedBox(height: Spacing.x4),
+
+                // Retailer / Wholesaler Card (Seller Information)
+                AppCard(
+                  child: Padding(
+                    padding: const EdgeInsets.all(Spacing.x4),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        Row(
+                          children: <Widget>[
+                            const Icon(
+                              Icons.storefront_outlined,
+                              color: AppColors.primary,
+                            ),
+                            const SizedBox(width: Spacing.x2),
+                            Text(
+                              'Retailer / Wholesaler Details',
+                              style: context.textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: Spacing.x1),
+                        Text(
+                          'Information of retailer, wholesaler or distributor (optional).',
+                          style: context.textTheme.bodySmall?.copyWith(
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
+                        const SizedBox(height: Spacing.x3),
+                        TextFormField(
+                          controller: _sellerNameController,
+                          decoration: const InputDecoration(
+                            labelText: 'Retailer / Wholesaler Name',
+                            hintText: 'Shop / Dealer / Wholesaler Name',
+                            prefixIcon: Icon(Icons.store_outlined),
+                          ),
+                          textCapitalization: TextCapitalization.words,
+                        ),
+                        const SizedBox(height: Spacing.x3),
+                        TextFormField(
+                          controller: _sellerPhoneController,
+                          keyboardType: TextInputType.phone,
+                          decoration: const InputDecoration(
+                            labelText: 'Retailer / Wholesaler Mobile',
+                            hintText: '10-digit mobile number',
+                            prefixIcon: Icon(Icons.phone_android_outlined),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: Spacing.x4),
+
+                // Customer Information Card
                 AppCard(
                   child: Padding(
                     padding: const EdgeInsets.all(Spacing.x4),

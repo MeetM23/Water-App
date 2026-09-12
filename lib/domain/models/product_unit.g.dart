@@ -57,6 +57,8 @@ _$UnitRegistrationInfoImpl _$$UnitRegistrationInfoImplFromJson(
       customerCity: json['customer_city'] as String?,
       customerAddress: json['customer_address'] as String?,
       invoiceNumber: json['invoice_number'] as String?,
+      sellerName: json['seller_name'] as String?,
+      sellerPhone: json['seller_phone'] as String?,
       registeredBy: json['registered_by'] as String?,
       createdAt: json['created_at'] == null
           ? null
@@ -77,6 +79,8 @@ Map<String, dynamic> _$$UnitRegistrationInfoImplToJson(
       'customer_city': instance.customerCity,
       'customer_address': instance.customerAddress,
       'invoice_number': instance.invoiceNumber,
+      'seller_name': instance.sellerName,
+      'seller_phone': instance.sellerPhone,
       'registered_by': instance.registeredBy,
       'created_at': instance.createdAt?.toIso8601String(),
     };

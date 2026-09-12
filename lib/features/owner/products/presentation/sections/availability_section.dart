@@ -13,6 +13,7 @@ class AvailabilitySection extends ConsumerWidget {
   const AvailabilitySection({
     required this.productId,
     required this.draft,
+    required this.stockQuantityController,
     super.key,
   });
 
@@ -22,6 +23,9 @@ class AvailabilitySection extends ConsumerWidget {
   /// The draft being edited.
   final ProductDraft draft;
 
+  /// Controller for stock quantity text field.
+  final TextEditingController stockQuantityController;
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
@@ -30,7 +34,28 @@ class AvailabilitySection extends ConsumerWidget {
     );
 
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
+        TextFormField(
+          controller: stockQuantityController,
+          keyboardType: TextInputType.number,
+          decoration: const InputDecoration(
+            labelText: 'Available Stock Quantity (pieces) *',
+            hintText: 'Enter available stock pieces (e.g. 3, 10, 50)',
+            prefixIcon: Icon(Icons.inventory_2_outlined),
+          ),
+          onChanged: (String val) => controller.setStockQuantity(val),
+          validator: (String? val) {
+            if (val == null || val.trim().isEmpty) {
+              return 'Stock quantity is required';
+            }
+            if (int.tryParse(val.trim()) == null) {
+              return 'Enter a valid number';
+            }
+            return null;
+          },
+        ),
+        const SizedBox(height: Spacing.x4),
         AppToggleRow(
           label: l10n.fieldInStockLabel,
           helperText: l10n.fieldInStockHelp,

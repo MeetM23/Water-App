@@ -1,10 +1,12 @@
 import 'dart:async';
 
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../core/errors/app_failure.dart';
 import '../../../../data/repositories/supabase_product_image_repository.dart';
 import '../../../../data/repositories/supabase_product_repository.dart';
+import '../../../../data/supabase/supabase_providers.dart';
 import '../../../../domain/enums/product_category.dart';
 import '../../../../domain/enums/product_sort.dart';
 import '../../../../domain/enums/product_status_filter.dart';
@@ -117,9 +119,32 @@ class ProductListState {
 class ProductListController extends _$ProductListController {
   ProductQuery _query = const ProductQuery();
 
+  RealtimeChannel? _realtimeChannel;
+
   @override
   Future<ProductListState> build() async {
     _query = ref.watch(productQueryControllerProvider);
+
+    // Subscribe to realtime products changes so stock updates propagate
+    // immediately without requiring a manual pull-to-refresh.
+    final client = ref.watch(supabaseClientProvider);
+    _realtimeChannel?.unsubscribe();
+    _realtimeChannel = client
+        .channel('products_stock_watch')
+        .onPostgresChanges(
+          event: PostgresChangeEvent.all,
+          schema: 'public',
+          table: 'products',
+          callback: (PostgresChangePayload payload) {
+            _silentRefresh();
+          },
+        )
+        .subscribe();
+
+    ref.onDispose(() {
+      _realtimeChannel?.unsubscribe();
+      _realtimeChannel = null;
+    });
 
     final result = await ref
         .read(productRepositoryProvider)
@@ -135,6 +160,32 @@ class ProductListController extends _$ProductListController {
       hasMore: page.hasMore,
       primaryImagePaths: await _thumbnailsFor(page.items),
     );
+  }
+
+  /// Quietly re-fetches page 0 and merges stock changes into the current list
+  /// without triggering a full loading spinner.
+  Future<void> _silentRefresh() async {
+    final current = state.valueOrNull;
+    if (current == null) return;
+    try {
+      final result = await ref
+          .read(productRepositoryProvider)
+          .fetchPage(_query.copyWith(page: 0));
+      result.fold(
+        onSuccess: (page) {
+          final updatedMap = <String, Product>{
+            for (final p in page.items) p.id: p,
+          };
+          final merged = current.products
+              .map((p) => updatedMap[p.id] ?? p)
+              .toList();
+          state = AsyncValue<ProductListState>.data(
+            current.copyWith(products: merged, hasMore: page.hasMore),
+          );
+        },
+        onFailure: (_) {/* Swallow: list stays stale, user can pull-to-refresh */},
+      );
+    } catch (_) {/* Defensive: never crash the controller */}
   }
 
   /// Resolves the primary photo of each product in [products].

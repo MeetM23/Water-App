@@ -60,13 +60,27 @@ class ProductCard extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
-                    Text(
-                      product.name,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: context.textTheme.titleSmall?.copyWith(
-                        color: AppColors.ink,
-                      ),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        Expanded(
+                          child: Text(
+                            product.name,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: context.textTheme.titleSmall?.copyWith(
+                              color: AppColors.ink,
+                            ),
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.more_vert_rounded, size: 20),
+                          onPressed: onLongPress,
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
+                          tooltip: 'Options',
+                        ),
+                      ],
                     ),
                     if (product.modelNumber != null) ...<Widget>[
                       const SizedBox(height: Spacing.x1),
@@ -112,10 +126,10 @@ class ProductCard extends ConsumerWidget {
                           tone: AppBadgeTone.info,
                         ),
                         AppBadge(
-                          label: product.inStock
-                              ? l10n.badgeInStock
+                          label: (product.inStock && product.availableStock > 0)
+                              ? 'Stock: ${product.availableStock} pcs'
                               : l10n.badgeOutOfStock,
-                          tone: product.inStock
+                          tone: (product.inStock && product.availableStock > 0)
                               ? AppBadgeTone.success
                               : AppBadgeTone.warning,
                         ),

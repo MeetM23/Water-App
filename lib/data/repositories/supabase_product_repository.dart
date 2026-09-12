@@ -96,13 +96,26 @@ class SupabaseProductRepository implements ProductRepository {
   @override
   Future<Result<Product>> create(ProductDraft draft) async {
     try {
-      // product_code is deliberately absent: the BEFORE INSERT trigger issues
-      // it, and the value comes back on the returned row.
-      final row = await _client
-          .from(_table)
-          .insert(_payload(draft))
-          .select()
-          .single();
+      final payload = _payload(draft);
+      Map<String, dynamic> row;
+      try {
+        row = await _client
+            .from(_table)
+            .insert(payload)
+            .select()
+            .single();
+      } on PostgrestException catch (pgErr) {
+        if (pgErr.message.contains('stock_quantity') || pgErr.code == '42703' || pgErr.code == 'PGRST204') {
+          payload.remove('stock_quantity');
+          row = await _client
+              .from(_table)
+              .insert(payload)
+              .select()
+              .single();
+        } else {
+          rethrow;
+        }
+      }
       return Success<Product>(Product.fromJson(row));
     } on Object catch (error, stackTrace) {
       return ResultFailure<Product>(_map(error, stackTrace));
@@ -112,12 +125,28 @@ class SupabaseProductRepository implements ProductRepository {
   @override
   Future<Result<Product>> update(ProductDraft draft) async {
     try {
-      final row = await _client
-          .from(_table)
-          .update(_payload(draft))
-          .eq('id', draft.id!)
-          .select()
-          .single();
+      final payload = _payload(draft);
+      Map<String, dynamic> row;
+      try {
+        row = await _client
+            .from(_table)
+            .update(payload)
+            .eq('id', draft.id!)
+            .select()
+            .single();
+      } on PostgrestException catch (pgErr) {
+        if (pgErr.message.contains('stock_quantity') || pgErr.code == '42703' || pgErr.code == 'PGRST204') {
+          payload.remove('stock_quantity');
+          row = await _client
+              .from(_table)
+              .update(payload)
+              .eq('id', draft.id!)
+              .select()
+              .single();
+        } else {
+          rethrow;
+        }
+      }
       return Success<Product>(Product.fromJson(row));
     } on Object catch (error, stackTrace) {
       return ResultFailure<Product>(_map(error, stackTrace));
@@ -251,7 +280,8 @@ class SupabaseProductRepository implements ProductRepository {
     'wholesale_price': draft.wholesaleValue,
     'retail_price': draft.retailValue,
     'warranty_months': draft.warrantyMonths,
-    'in_stock': draft.inStock,
+    'stock_quantity': draft.stockQuantityValue ?? (draft.inStock ? 1 : 0),
+    'in_stock': (draft.stockQuantityValue ?? 1) > 0 && draft.inStock,
     'is_active': draft.isActive,
   };
 

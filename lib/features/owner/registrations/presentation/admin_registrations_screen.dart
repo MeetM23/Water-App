@@ -8,6 +8,7 @@ import '../../../../core/widgets/app_card.dart';
 import '../../../../core/widgets/app_empty_state.dart';
 import '../../../../data/repositories/supabase_unit_repository.dart';
 import '../../../../domain/models/product_unit.dart';
+import '../../../shared/unit/presentation/widgets/edit_registration_dialog.dart';
 
 /// Admin/Owner screen to view and search all registered physical RO units.
 class AdminRegistrationsScreen extends ConsumerStatefulWidget {
@@ -94,7 +95,9 @@ class _AdminRegistrationsScreenState
                   final matchPhone = reg?.customerPhone?.toLowerCase().contains(_searchQuery) ?? false;
                   final matchSerial = unit.serialNumber.toLowerCase().contains(_searchQuery);
                   final matchProduct = unit.productName.toLowerCase().contains(_searchQuery);
-                  return matchName || matchPhone || matchSerial || matchProduct;
+                  final matchSeller = (reg?.sellerName?.toLowerCase().contains(_searchQuery) ?? false) ||
+                      (reg?.sellerPhone?.toLowerCase().contains(_searchQuery) ?? false);
+                  return matchName || matchPhone || matchSerial || matchProduct || matchSeller;
                 }).toList();
 
                 if (filtered.isEmpty) {
@@ -135,7 +138,7 @@ class _AdminRegistrationsScreenState
                                     ),
                                   ),
                                 ),
-                                if (reg != null)
+                                if (reg != null) ...<Widget>[
                                   Container(
                                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                                     decoration: BoxDecoration(
@@ -150,6 +153,22 @@ class _AdminRegistrationsScreenState
                                       ),
                                     ),
                                   ),
+                                  const SizedBox(width: Spacing.x1),
+                                  IconButton(
+                                    icon: const Icon(Icons.edit_outlined, size: 18),
+                                    onPressed: () => _editRegistration(reg, unit),
+                                    tooltip: 'Edit registration',
+                                    constraints: const BoxConstraints(),
+                                    padding: const EdgeInsets.all(4),
+                                  ),
+                                  IconButton(
+                                    icon: const Icon(Icons.delete_outline_rounded, size: 18, color: AppColors.danger),
+                                    onPressed: () => _deleteRegistration(reg),
+                                    tooltip: 'Delete registration',
+                                    constraints: const BoxConstraints(),
+                                    padding: const EdgeInsets.all(4),
+                                  ),
+                                ],
                               ],
                             ),
                             const SizedBox(height: Spacing.x2),
@@ -180,6 +199,38 @@ class _AdminRegistrationsScreenState
                                 'Warranty End: ${reg.warrantyEndDate.day}/${reg.warrantyEndDate.month}/${reg.warrantyEndDate.year}',
                                 style: context.textTheme.bodySmall?.copyWith(color: Colors.grey.shade600),
                               ),
+                              if (reg.sellerName != null || reg.sellerPhone != null) ...<Widget>[
+                                const SizedBox(height: Spacing.x2),
+                                Container(
+                                  width: double.infinity,
+                                  padding: const EdgeInsets.all(Spacing.x2),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.primaryTint.withOpacity(0.4),
+                                    borderRadius: BorderRadius.circular(8),
+                                    border: Border.all(color: AppColors.primary.withOpacity(0.2)),
+                                  ),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: <Widget>[
+                                      if (reg.sellerName != null)
+                                        Text(
+                                          'Retailer/Wholesaler: ${reg.sellerName}',
+                                          style: context.textTheme.bodySmall?.copyWith(
+                                            fontWeight: FontWeight.bold,
+                                            color: AppColors.primaryDark,
+                                          ),
+                                        ),
+                                      if (reg.sellerPhone != null)
+                                        Text(
+                                          'Retailer Contact: ${reg.sellerPhone}',
+                                          style: context.textTheme.bodySmall?.copyWith(
+                                            color: AppColors.ink,
+                                          ),
+                                        ),
+                                    ],
+                                  ),
+                                ),
+                              ],
                             ],
                           ],
                         ),
@@ -193,5 +244,58 @@ class _AdminRegistrationsScreenState
         ],
       ),
     );
+  }
+
+  Future<void> _editRegistration(UnitRegistrationInfo reg, ProductUnit unit) async {
+    final result = await EditRegistrationDialog.show(context, reg);
+
+    if (result != null && mounted) {
+      await ref.read(unitRepositoryProvider).updateRegistration(
+        registrationId: reg.id,
+        customerName: result['customerName']!,
+        customerPhone: result['customerPhone']!,
+        customerCity: result['customerCity'],
+        customerAddress: result['customerAddress'],
+        invoiceNumber: result['invoiceNumber'],
+        sellerName: result['sellerName'],
+        sellerPhone: result['sellerPhone'],
+      );
+
+      if (mounted) {
+        setState(() {
+          _loadRegistrations();
+        });
+      }
+    }
+  }
+
+  Future<void> _deleteRegistration(UnitRegistrationInfo reg) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogCtx) => AlertDialog(
+        title: const Text('Delete Registration'),
+        content: Text('Are you sure you want to delete registration for "${reg.customerName}"?'),
+        actions: <Widget>[
+          TextButton(
+            onPressed: () => Navigator.of(dialogCtx).pop(false),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.danger),
+            onPressed: () => Navigator.of(dialogCtx).pop(true),
+            child: const Text('Delete', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && mounted) {
+      await ref.read(unitRepositoryProvider).deleteRegistration(reg.id);
+      if (mounted) {
+        setState(() {
+          _loadRegistrations();
+        });
+      }
+    }
   }
 }

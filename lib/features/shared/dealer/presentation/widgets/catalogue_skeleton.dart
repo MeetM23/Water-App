@@ -27,6 +27,7 @@ class CatalogueSkeleton extends StatelessWidget {
 
           return GridView.builder(
             padding: const EdgeInsets.all(Spacing.x4),
+            shrinkWrap: true,
             // The placeholder is not something to scroll through; the real
             // grid arrives at the top and that is where the eye should be.
             physics: const NeverScrollableScrollPhysics(),

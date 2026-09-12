@@ -88,7 +88,8 @@ class _PrintLabelsPageState extends ConsumerState<PrintLabelsPage> {
     _cachedJobItems = null;
   }
 
-  void _toggleProduct(String id) {
+  void _toggleProduct(Product product) {
+    final id = product.id;
     if (_isGenerating) return;
     setState(() {
       _clearCache();
@@ -97,7 +98,7 @@ class _PrintLabelsPageState extends ConsumerState<PrintLabelsPage> {
         _productQuantities.remove(id);
       } else {
         _selectedProductIds.add(id);
-        _productQuantities[id] = 1;
+        _productQuantities[id] = product.availableStock > 0 ? product.availableStock : 1;
       }
     });
   }
@@ -333,13 +334,13 @@ class _PrintLabelsPageState extends ConsumerState<PrintLabelsPage> {
     return Column(
       children: products.map((product) {
         final isSelected = _selectedProductIds.contains(product.id);
-        final quantity = _productQuantities[product.id] ?? 1;
+        final quantity = _productQuantities[product.id] ?? (product.availableStock > 0 ? product.availableStock : 1);
 
         return Padding(
           padding: const EdgeInsets.only(bottom: Spacing.x3),
           child: AppCard(
             isSelected: isSelected,
-            onTap: _isGenerating ? null : () => _toggleProduct(product.id),
+            onTap: _isGenerating ? null : () => _toggleProduct(product),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
@@ -349,7 +350,7 @@ class _PrintLabelsPageState extends ConsumerState<PrintLabelsPage> {
                       value: isSelected,
                       onChanged: _isGenerating
                           ? null
-                          : (_) => _toggleProduct(product.id),
+                          : (_) => _toggleProduct(product),
                       activeColor: AppColors.primary,
                     ),
                     const SizedBox(width: Spacing.x2),
@@ -357,12 +358,36 @@ class _PrintLabelsPageState extends ConsumerState<PrintLabelsPage> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: <Widget>[
-                          Text(
-                            product.name,
-                            style: context.textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.ink,
-                            ),
+                          Row(
+                            children: <Widget>[
+                              Expanded(
+                                child: Text(
+                                  product.name,
+                                  style: context.textTheme.titleMedium?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.ink,
+                                  ),
+                                ),
+                              ),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: product.availableStock > 0
+                                      ? AppColors.primaryTint
+                                      : Colors.red.shade50,
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                child: Text(
+                                  'Stock: ${product.availableStock} pcs',
+                                  style: context.textTheme.bodySmall?.copyWith(
+                                    color: product.availableStock > 0
+                                        ? AppColors.primaryDark
+                                        : AppColors.danger,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                           const SizedBox(height: Spacing.x1),
                           Text(

@@ -42,6 +42,8 @@ class UnitRegistrationInfo with _$UnitRegistrationInfo {
     String? customerCity,
     String? customerAddress,
     String? invoiceNumber,
+    String? sellerName,
+    String? sellerPhone,
     String? registeredBy,
     DateTime? createdAt,
   }) = _UnitRegistrationInfo;

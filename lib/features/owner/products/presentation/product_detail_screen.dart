@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/errors/app_failure.dart';
+import '../../../../core/errors/failure_presentation.dart';
 import '../../../../core/extensions/build_context_x.dart';
 import '../../../../core/router/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -12,10 +13,13 @@ import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../../../core/widgets/app_badge.dart';
 import '../../../../core/widgets/app_card.dart';
+import '../../../../core/widgets/app_confirm_dialog.dart';
 import '../../../../core/widgets/app_error_state.dart';
 import '../../../../core/widgets/app_skeleton.dart';
+import '../../../../core/widgets/app_snackbar.dart';
 import '../../../../domain/models/product.dart';
 import '../../../../domain/models/product_image.dart';
+import '../application/product_actions_controller.dart';
 import '../application/product_detail_controller.dart';
 import 'widgets/barcode_block.dart';
 
@@ -26,6 +30,33 @@ class ProductDetailScreen extends ConsumerWidget {
 
   /// Which product to show.
   final String productId;
+
+  Future<void> _deleteProduct(
+    BuildContext context,
+    WidgetRef ref,
+    Product product,
+  ) async {
+    final l10n = context.l10n;
+    final confirmed = await AppConfirmDialog.show(
+      context,
+      title: l10n.deleteProductTitle,
+      message: l10n.deleteProductBody(product.name),
+      confirmLabel: l10n.actionDelete,
+      isDestructive: true,
+    );
+    if (!confirmed || !context.mounted) return;
+
+    final controller = ref.read(productActionsControllerProvider.notifier);
+    final failure = await controller.delete(product);
+    if (!context.mounted) return;
+
+    if (failure != null) {
+      AppSnackbar.error(context, failure.title(context.l10n));
+    } else {
+      AppSnackbar.success(context, context.l10n.productDeleted(product.name));
+      context.pop();
+    }
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -41,6 +72,15 @@ class ProductDetailScreen extends ConsumerWidget {
                 context.push(AppRoutes.ownerProductEdit(productId)),
             icon: const Icon(Icons.edit_outlined),
             tooltip: l10n.actionEdit,
+          ),
+          detail.when(
+            data: (value) => IconButton(
+              onPressed: () => _deleteProduct(context, ref, value.product),
+              icon: const Icon(Icons.delete_outline_rounded, color: AppColors.danger),
+              tooltip: l10n.actionDelete,
+            ),
+            loading: () => const SizedBox.shrink(),
+            error: (_, __) => const SizedBox.shrink(),
           ),
           const SizedBox(width: Spacing.x2),
         ],
@@ -184,18 +224,15 @@ class _Header extends StatelessWidget {
           runSpacing: Spacing.x2,
           children: <Widget>[
             AppBadge(
-              label: product.inStock ? l10n.badgeInStock : l10n.badgeOutOfStock,
-              tone: product.inStock
+              label: (product.inStock && product.availableStock > 0)
+                  ? 'Stock: ${product.availableStock} pcs'
+                  : l10n.badgeOutOfStock,
+              tone: (product.inStock && product.availableStock > 0)
                   ? AppBadgeTone.success
                   : AppBadgeTone.warning,
             ),
             if (!product.isActive)
               AppBadge(label: l10n.badgeInactive, tone: AppBadgeTone.neutral),
-            AppBadge(
-              label: l10n.detailScanCount(scanCount),
-              tone: AppBadgeTone.info,
-              icon: Icons.qr_code_scanner_rounded,
-            ),
             if (product.warrantyMonths != null)
               AppBadge(
                 label: l10n.detailWarranty(product.warrantyMonths!),

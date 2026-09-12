@@ -131,6 +131,10 @@ class ProductFormController extends _$ProductFormController {
   void setInStock({required bool value}) =>
       _update(_draft.copyWith(inStock: value));
 
+  /// Sets the available stock quantity.
+  void setStockQuantity(String value) =>
+      _update(_draft.copyWith(stockQuantity: value));
+
   /// Flips the active flag.
   void setActive({required bool value}) =>
       _update(_draft.copyWith(isActive: value));

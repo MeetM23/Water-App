@@ -37,6 +37,29 @@ class SupabaseScanRepository implements ScanRepository {
         'scanned_role': role.name,
         'source': source.name,
       });
+
+      // Update product stock quantity directly
+      try {
+        final prod = await _client
+            .from('products')
+            .select('id, stock_quantity, in_stock')
+            .or('id.eq.$productId,product_code.ilike.$productId,model_number.ilike.$productId')
+            .maybeSingle();
+
+        if (prod != null) {
+          final targetId = prod['id'] as String;
+          final currentQty = (prod['stock_quantity'] as num?)?.toInt() ?? 1;
+          final newQty = (currentQty > 0) ? currentQty - 1 : 0;
+          await _client.from('products').update(<String, dynamic>{
+            'stock_quantity': newQty,
+            'in_stock': newQty > 0,
+            'updated_at': DateTime.now().toIso8601String(),
+          }).eq('id', targetId);
+        }
+      } catch (stockErr) {
+        AppLog.warn('Failed to update stock_quantity on scan: $stockErr');
+      }
+
       return const Success<void>(null);
     } on Object catch (error, stackTrace) {
       // Logged, never surfaced. A dealer holding a phone at a barcode must not

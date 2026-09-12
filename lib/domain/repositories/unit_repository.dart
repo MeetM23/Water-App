@@ -19,8 +19,25 @@ abstract interface class UnitRepository {
     String? customerCity,
     String? customerAddress,
     String? invoiceNumber,
+    String? sellerName,
+    String? sellerPhone,
     String? registeredRole,
   });
+
+  /// Updates an existing unit registration record.
+  Future<Result<UnitRegistrationInfo>> updateRegistration({
+    required String registrationId,
+    required String customerName,
+    required String customerPhone,
+    String? customerCity,
+    String? customerAddress,
+    String? invoiceNumber,
+    String? sellerName,
+    String? sellerPhone,
+  });
+
+  /// Deletes a unit registration record.
+  Future<Result<void>> deleteRegistration(String registrationId);
 
   /// Fetches registered physical units (all for owner, or filtered by user).
   Future<Result<List<ProductUnit>>> fetchRegistrations({String? userId});

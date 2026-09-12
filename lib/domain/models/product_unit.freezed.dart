@@ -381,6 +381,8 @@ mixin _$UnitRegistrationInfo {
   String? get customerCity => throw _privateConstructorUsedError;
   String? get customerAddress => throw _privateConstructorUsedError;
   String? get invoiceNumber => throw _privateConstructorUsedError;
+  String? get sellerName => throw _privateConstructorUsedError;
+  String? get sellerPhone => throw _privateConstructorUsedError;
   String? get registeredBy => throw _privateConstructorUsedError;
   DateTime? get createdAt => throw _privateConstructorUsedError;
 
@@ -412,6 +414,8 @@ abstract class $UnitRegistrationInfoCopyWith<$Res> {
       String? customerCity,
       String? customerAddress,
       String? invoiceNumber,
+      String? sellerName,
+      String? sellerPhone,
       String? registeredBy,
       DateTime? createdAt});
 }
@@ -443,6 +447,8 @@ class _$UnitRegistrationInfoCopyWithImpl<$Res,
     Object? customerCity = freezed,
     Object? customerAddress = freezed,
     Object? invoiceNumber = freezed,
+    Object? sellerName = freezed,
+    Object? sellerPhone = freezed,
     Object? registeredBy = freezed,
     Object? createdAt = freezed,
   }) {
@@ -491,6 +497,14 @@ class _$UnitRegistrationInfoCopyWithImpl<$Res,
           ? _value.invoiceNumber
           : invoiceNumber // ignore: cast_nullable_to_non_nullable
               as String?,
+      sellerName: freezed == sellerName
+          ? _value.sellerName
+          : sellerName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      sellerPhone: freezed == sellerPhone
+          ? _value.sellerPhone
+          : sellerPhone // ignore: cast_nullable_to_non_nullable
+              as String?,
       registeredBy: freezed == registeredBy
           ? _value.registeredBy
           : registeredBy // ignore: cast_nullable_to_non_nullable
@@ -523,6 +537,8 @@ abstract class _$$UnitRegistrationInfoImplCopyWith<$Res>
       String? customerCity,
       String? customerAddress,
       String? invoiceNumber,
+      String? sellerName,
+      String? sellerPhone,
       String? registeredBy,
       DateTime? createdAt});
 }
@@ -551,6 +567,8 @@ class __$$UnitRegistrationInfoImplCopyWithImpl<$Res>
     Object? customerCity = freezed,
     Object? customerAddress = freezed,
     Object? invoiceNumber = freezed,
+    Object? sellerName = freezed,
+    Object? sellerPhone = freezed,
     Object? registeredBy = freezed,
     Object? createdAt = freezed,
   }) {
@@ -599,6 +617,14 @@ class __$$UnitRegistrationInfoImplCopyWithImpl<$Res>
           ? _value.invoiceNumber
           : invoiceNumber // ignore: cast_nullable_to_non_nullable
               as String?,
+      sellerName: freezed == sellerName
+          ? _value.sellerName
+          : sellerName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      sellerPhone: freezed == sellerPhone
+          ? _value.sellerPhone
+          : sellerPhone // ignore: cast_nullable_to_non_nullable
+              as String?,
       registeredBy: freezed == registeredBy
           ? _value.registeredBy
           : registeredBy // ignore: cast_nullable_to_non_nullable
@@ -626,6 +652,8 @@ class _$UnitRegistrationInfoImpl extends _UnitRegistrationInfo {
       this.customerCity,
       this.customerAddress,
       this.invoiceNumber,
+      this.sellerName,
+      this.sellerPhone,
       this.registeredBy,
       this.createdAt})
       : super._();
@@ -656,13 +684,17 @@ class _$UnitRegistrationInfoImpl extends _UnitRegistrationInfo {
   @override
   final String? invoiceNumber;
   @override
+  final String? sellerName;
+  @override
+  final String? sellerPhone;
+  @override
   final String? registeredBy;
   @override
   final DateTime? createdAt;
 
   @override
   String toString() {
-    return 'UnitRegistrationInfo(id: $id, customerName: $customerName, customerPhone: $customerPhone, purchaseDate: $purchaseDate, installationDate: $installationDate, warrantyStartDate: $warrantyStartDate, warrantyMonths: $warrantyMonths, warrantyEndDate: $warrantyEndDate, customerCity: $customerCity, customerAddress: $customerAddress, invoiceNumber: $invoiceNumber, registeredBy: $registeredBy, createdAt: $createdAt)';
+    return 'UnitRegistrationInfo(id: $id, customerName: $customerName, customerPhone: $customerPhone, purchaseDate: $purchaseDate, installationDate: $installationDate, warrantyStartDate: $warrantyStartDate, warrantyMonths: $warrantyMonths, warrantyEndDate: $warrantyEndDate, customerCity: $customerCity, customerAddress: $customerAddress, invoiceNumber: $invoiceNumber, sellerName: $sellerName, sellerPhone: $sellerPhone, registeredBy: $registeredBy, createdAt: $createdAt)';
   }
 
   @override
@@ -691,6 +723,10 @@ class _$UnitRegistrationInfoImpl extends _UnitRegistrationInfo {
                 other.customerAddress == customerAddress) &&
             (identical(other.invoiceNumber, invoiceNumber) ||
                 other.invoiceNumber == invoiceNumber) &&
+            (identical(other.sellerName, sellerName) ||
+                other.sellerName == sellerName) &&
+            (identical(other.sellerPhone, sellerPhone) ||
+                other.sellerPhone == sellerPhone) &&
             (identical(other.registeredBy, registeredBy) ||
                 other.registeredBy == registeredBy) &&
             (identical(other.createdAt, createdAt) ||
@@ -712,6 +748,8 @@ class _$UnitRegistrationInfoImpl extends _UnitRegistrationInfo {
       customerCity,
       customerAddress,
       invoiceNumber,
+      sellerName,
+      sellerPhone,
       registeredBy,
       createdAt);
 
@@ -746,6 +784,8 @@ abstract class _UnitRegistrationInfo extends UnitRegistrationInfo {
       final String? customerCity,
       final String? customerAddress,
       final String? invoiceNumber,
+      final String? sellerName,
+      final String? sellerPhone,
       final String? registeredBy,
       final DateTime? createdAt}) = _$UnitRegistrationInfoImpl;
   const _UnitRegistrationInfo._() : super._();
@@ -775,6 +815,10 @@ abstract class _UnitRegistrationInfo extends UnitRegistrationInfo {
   String? get customerAddress;
   @override
   String? get invoiceNumber;
+  @override
+  String? get sellerName;
+  @override
+  String? get sellerPhone;
   @override
   String? get registeredBy;
   @override

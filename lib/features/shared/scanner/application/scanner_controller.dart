@@ -13,6 +13,8 @@ import '../../../../domain/models/product_unit.dart';
 import '../../../../domain/repositories/scan_repository.dart';
 import '../../../../l10n/generated/app_localizations.dart';
 import '../../../auth/application/session_controller.dart';
+import '../../../owner/products/application/product_list_controller.dart';
+import '../../dealer/application/catalogue_controller.dart';
 import '../../dealer/application/product_lookup_controller.dart';
 
 part 'scanner_controller.g.dart';
@@ -382,13 +384,19 @@ class ScannerController extends _$ScannerController {
 
     // The repository is resolved before the async gap so the write cannot
     // reach for a ref this notifier has since disposed.
+    final repo = ref.read(scanRepositoryProvider);
     unawaited(
       _write(
-        ref.read(scanRepositoryProvider),
+        repo,
         productId: product.id,
         role: session.profile.role,
         source: source,
-      ),
+      ).then((_) {
+        try {
+          ref.invalidate(productListControllerProvider);
+          ref.invalidate(catalogueControllerProvider);
+        } catch (_) {}
+      }),
     );
   }
 
@@ -399,13 +407,19 @@ class ScannerController extends _$ScannerController {
       return;
     }
 
+    final repo = ref.read(scanRepositoryProvider);
     unawaited(
       _write(
-        ref.read(scanRepositoryProvider),
+        repo,
         productId: unit.productId,
         role: session.profile.role,
         source: source,
-      ),
+      ).then((_) {
+        try {
+          ref.invalidate(productListControllerProvider);
+          ref.invalidate(catalogueControllerProvider);
+        } catch (_) {}
+      }),
     );
   }
 

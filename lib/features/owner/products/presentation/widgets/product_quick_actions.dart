@@ -28,6 +28,7 @@ class ProductQuickActions extends ConsumerWidget {
   static Future<void> show(BuildContext context, {required Product product}) =>
       showModalBottomSheet<void>(
         context: context,
+        isScrollControlled: true,
         builder: (_) => ProductQuickActions(product: product),
       );
 
@@ -46,9 +47,10 @@ class ProductQuickActions extends ConsumerWidget {
     }
 
     return SafeArea(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: <Widget>[
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
           Padding(
             padding: const EdgeInsets.fromLTRB(
               Spacing.x5,
@@ -172,6 +174,7 @@ class ProductQuickActions extends ConsumerWidget {
           const SizedBox(height: Spacing.x3),
         ],
       ),
+    ),
     );
   }
 }
