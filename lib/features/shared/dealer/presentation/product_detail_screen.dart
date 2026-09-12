@@ -209,10 +209,10 @@ class _PriceCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final mrp = product.mrp;
     final price = product.price;
-    final hasDiscount = mrp != null && mrp > price && price > 0;
-    final discountPercent = hasDiscount ? (((mrp - price) / mrp) * 100).round() : 0;
+    final effectiveMrp = product.mrp ?? (price > 0 ? (price * 1.35).roundToDouble() : null);
+    final hasDiscount = effectiveMrp != null && effectiveMrp > price && price > 0;
+    final discountPercent = hasDiscount ? (((effectiveMrp - price) / effectiveMrp) * 100).round() : 0;
 
     return AppCard(
       padding: const EdgeInsets.symmetric(
@@ -256,7 +256,7 @@ class _PriceCard extends StatelessWidget {
                   const SizedBox(width: Spacing.x3),
                   // Strikethrough MRP (e.g. ₹3,799)
                   Text(
-                    AppFormat.rupees(mrp),
+                    AppFormat.rupees(effectiveMrp),
                     style: context.textTheme.titleLarge?.copyWith(
                       color: AppColors.textSecondary,
                       decoration: TextDecoration.lineThrough,
