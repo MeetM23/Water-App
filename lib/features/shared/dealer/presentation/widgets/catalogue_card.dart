@@ -9,6 +9,7 @@ import '../../../../../core/utils/formatters.dart';
 import '../../../../../core/widgets/app_badge.dart';
 import '../../../../../core/widgets/app_card.dart';
 import '../../../../../domain/models/catalog_product.dart';
+import '../../domain/price_view_mode.dart';
 import '../category_label.dart';
 import 'catalogue_image.dart';
 
@@ -81,19 +82,16 @@ abstract final class CatalogueGridMetrics {
 
 /// One product in a dealer catalogue grid.
 ///
-/// The card carries exactly one price and says on its face which price that is.
-/// There is no second figure here to misquote from a shop floor, and none for
-/// either dealer build to leak.
-///
-/// [priceLabel] arrives already localised rather than being looked up here: the
-/// card is the same for a wholesaler and a retailer, and which of the two words
-/// belongs above the figure is a decision the role's configuration has already
-/// made.
+/// The price displayed depends on [viewMode]:
+/// - [PriceViewMode.mrpOnly]             → shows MRP (guest / no login)
+/// - [PriceViewMode.wholesaleOnly]       → shows the wholesale price only
+/// - [PriceViewMode.retailerWithDiscount] → shows retailer price (no discount
+///   badge in the compact card; the detail screen shows the full breakdown)
 class CatalogueCard extends StatelessWidget {
   /// Creates a catalogue card.
   const CatalogueCard({
     required this.product,
-    required this.priceLabel,
+    required this.viewMode,
     required this.onTap,
     super.key,
   });
@@ -101,8 +99,8 @@ class CatalogueCard extends StatelessWidget {
   /// The product to render.
   final CatalogProduct product;
 
-  /// The word printed above [CatalogProduct.price].
-  final String priceLabel;
+  /// Controls which price figure is shown.
+  final PriceViewMode viewMode;
 
   /// Opens the product detail screen.
   final VoidCallback onTap;
@@ -110,6 +108,14 @@ class CatalogueCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
+
+    // Resolve the displayed price from viewMode.
+    final displayPrice = switch (viewMode) {
+      PriceViewMode.mrpOnly =>
+        product.mrp ?? product.price, // fall back to price if no MRP set
+      PriceViewMode.wholesaleOnly => product.price,
+      PriceViewMode.retailerWithDiscount => product.price,
+    };
 
     return Semantics(
       button: true,
@@ -162,7 +168,7 @@ class CatalogueCard extends StatelessWidget {
                     fit: BoxFit.scaleDown,
                     alignment: AlignmentDirectional.centerStart,
                     child: Text(
-                      AppFormat.rupees(product.price),
+                      AppFormat.rupees(displayPrice),
                       maxLines: 1,
                       style: context.textTheme.titleMedium?.copyWith(
                         color: AppColors.ink,

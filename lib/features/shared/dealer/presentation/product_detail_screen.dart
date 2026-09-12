@@ -21,7 +21,6 @@ import '../../../../core/widgets/app_empty_state.dart';
 import '../../../../core/widgets/app_error_state.dart';
 import '../../../../core/widgets/app_skeleton.dart';
 import '../../../../core/widgets/app_snackbar.dart';
-import '../../../../domain/enums/user_role.dart';
 import '../../../../domain/models/business_settings.dart';
 import '../../../../domain/models/catalog_product.dart';
 import '../../../auth/application/session_controller.dart';
@@ -30,6 +29,7 @@ import '../application/product_lookup_controller.dart';
 import '../application/product_share.dart';
 import '../application/saved_controller.dart';
 import '../domain/dealer_experience.dart';
+import '../domain/price_view_mode.dart';
 import 'category_label.dart';
 import 'widgets/catalogue_image.dart';
 import 'widgets/product_gallery.dart';
@@ -66,6 +66,8 @@ class DealerProductDetailScreen extends ConsumerWidget {
     final l10n = context.l10n;
     final detail = ref.watch(productByCodeProvider(productCode));
     final product = detail.valueOrNull;
+    final session = ref.watch(sessionControllerProvider).valueOrNull;
+    final viewMode = priceViewModeFromSession(session);
 
     final uri = GoRouterState.of(context).uri;
     final autoEnquire = uri.queryParameters['autoEnquire'] == 'true';
@@ -93,7 +95,7 @@ class DealerProductDetailScreen extends ConsumerWidget {
             : _Body(
                 product: value,
                 priceLabel: experience.priceLabel(l10n),
-                isRetailer: experience.role == UserRole.retailer,
+                viewMode: viewMode,
               ),
       ),
       // Pinned rather than scrolled to: save, share and enquire are why the
@@ -109,12 +111,12 @@ class _Body extends StatelessWidget {
   const _Body({
     required this.product,
     required this.priceLabel,
-    required this.isRetailer,
+    required this.viewMode,
   });
 
   final CatalogProduct product;
   final String priceLabel;
-  final bool isRetailer;
+  final PriceViewMode viewMode;
 
   @override
   Widget build(BuildContext context) {
@@ -135,7 +137,7 @@ class _Body extends StatelessWidget {
         _PriceCard(
           product: product,
           priceLabel: priceLabel,
-          isRetailer: isRetailer,
+          viewMode: viewMode,
         ),
         const SizedBox(height: Spacing.x5),
         _SpecificationsCard(product: product),
@@ -214,29 +216,42 @@ class _Header extends StatelessWidget {
     );
   }
 }
-
 class _PriceCard extends StatelessWidget {
   const _PriceCard({
     required this.product,
     required this.priceLabel,
-    required this.isRetailer,
+    required this.viewMode,
   });
 
   final CatalogProduct product;
   final String priceLabel;
-  /// When true, shows MRP + discount percentage alongside the dealer price.
-  /// Only retailer-role users see this — wholesalers and guests see just the price.
-  final bool isRetailer;
+
+  /// Controls price presentation:
+  /// - [PriceViewMode.mrpOnly]              → guest: show MRP only
+  /// - [PriceViewMode.wholesaleOnly]        → wholesaler: plain price, no MRP
+  /// - [PriceViewMode.retailerWithDiscount] → retailer: MRP + price + discount %
+  final PriceViewMode viewMode;
 
   @override
   Widget build(BuildContext context) {
     final price = product.price;
-    // Only compute MRP / discount when the viewer is a retailer.
-    final effectiveMrp = isRetailer
-        ? (product.mrp ?? (price > 0 ? (price * 1.35).roundToDouble() : null))
+    final mrp = product.mrp ?? (price > 0 ? (price * 1.35).roundToDouble() : null);
+
+    // Determine what to display based on the viewer's role.
+    final showMrpOnly = viewMode == PriceViewMode.mrpOnly;
+
+    // Retailer discount: only compute when mrp is available and price is lower.
+    final double? mrpForDiscount = (viewMode == PriceViewMode.retailerWithDiscount
+        && mrp != null && mrp > price && price > 0)
+        ? mrp
         : null;
-    final hasDiscount = effectiveMrp != null && effectiveMrp > price && price > 0;
-    final discountPercent = hasDiscount ? (((effectiveMrp - price) / effectiveMrp) * 100).round() : 0;
+    final showDiscount = mrpForDiscount != null;
+    final discountPercent = showDiscount
+        ? (((mrpForDiscount - price) / mrpForDiscount) * 100).round()
+        : 0;
+
+    // For guests: show MRP value (fall back to price if no MRP set).
+    final displayedPrice = showMrpOnly ? (product.mrp ?? price) : price;
 
     return AppCard(
       padding: const EdgeInsets.symmetric(
@@ -246,7 +261,7 @@ class _PriceCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          if (hasDiscount) ...<Widget>[
+          if (showDiscount) ...<Widget>[
             FittedBox(
               fit: BoxFit.scaleDown,
               alignment: Alignment.centerLeft,
@@ -255,7 +270,7 @@ class _PriceCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.baseline,
                 textBaseline: TextBaseline.alphabetic,
                 children: <Widget>[
-                  // Down Arrow & Percentage (e.g. ↓72%)
+                  // Down Arrow & Percentage (e.g. ↑33%)
                   Row(
                     mainAxisSize: MainAxisSize.min,
                     children: <Widget>[
@@ -278,9 +293,9 @@ class _PriceCard extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(width: Spacing.x3),
-                  // Strikethrough MRP (e.g. ₹3,799)
+                  // Strikethrough MRP
                   Text(
-                    AppFormat.rupees(effectiveMrp),
+                    AppFormat.rupees(mrpForDiscount),
                     style: context.textTheme.titleLarge?.copyWith(
                       color: AppColors.textSecondary,
                       decoration: TextDecoration.lineThrough,
@@ -289,7 +304,7 @@ class _PriceCard extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: Spacing.x3),
-                  // Final Applicable Price (e.g. ₹1,059)
+                  // Retailer price
                   Text(
                     AppFormat.rupees(price),
                     style: context.textTheme.headlineLarge?.copyWith(
@@ -305,7 +320,7 @@ class _PriceCard extends StatelessWidget {
               fit: BoxFit.scaleDown,
               alignment: Alignment.centerLeft,
               child: Text(
-                AppFormat.rupees(price),
+                AppFormat.rupees(displayedPrice),
                 maxLines: 1,
                 style: context.textTheme.headlineLarge?.copyWith(
                   color: AppColors.ink,

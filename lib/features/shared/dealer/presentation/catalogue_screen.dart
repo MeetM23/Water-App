@@ -16,6 +16,7 @@ import '../../../auth/application/session_controller.dart';
 import '../../banner/presentation/widgets/banner_carousel_widget.dart';
 import '../application/catalogue_controller.dart';
 import '../domain/dealer_experience.dart';
+import '../domain/price_view_mode.dart';
 import 'widgets/catalogue_card.dart';
 import 'widgets/catalogue_category_bar.dart';
 import 'widgets/catalogue_skeleton.dart';
@@ -79,6 +80,8 @@ class _CatalogueScreenState extends ConsumerState<CatalogueScreen> {
     final catalogue = ref.watch(catalogueControllerProvider);
     final query = ref.watch(catalogueQueryControllerProvider);
     final products = ref.watch(visibleCatalogueProvider);
+    final session = ref.watch(sessionControllerProvider).valueOrNull;
+    final viewMode = priceViewModeFromSession(session);
 
     return Scaffold(
       appBar: AppBar(
@@ -217,7 +220,7 @@ class _CatalogueScreenState extends ConsumerState<CatalogueScreen> {
                           final product = products[index];
                           return CatalogueCard(
                             product: product,
-                            priceLabel: widget.experience.priceLabel(l10n),
+                            viewMode: viewMode,
                             onTap: () => context.push(
                               widget.experience.productRoute(product.productCode),
                             ),
