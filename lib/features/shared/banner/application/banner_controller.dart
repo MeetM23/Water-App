@@ -19,40 +19,11 @@ part 'banner_controller.g.dart';
 /// - Never enters an infinite loading or rebuild loop.
 @Riverpod(keepAlive: true)
 class ActiveBanners extends _$ActiveBanners {
-  static final List<DashboardBanner> _defaultBanners = <DashboardBanner>[
-    DashboardBanner(
-      id: 'default_1',
-      storagePath: 'test_banner_1',
-      sortOrder: 1,
-      isActive: true,
-      createdAt: DateTime.utc(2026, 1, 1),
-      updatedAt: DateTime.utc(2026, 1, 1),
-      title: 'Maruti Water Solution',
-    ),
-    DashboardBanner(
-      id: 'default_2',
-      storagePath: 'test_banner_2',
-      sortOrder: 2,
-      isActive: true,
-      createdAt: DateTime.utc(2026, 1, 1),
-      updatedAt: DateTime.utc(2026, 1, 1),
-      title: 'Genuine RO Components',
-    ),
-    DashboardBanner(
-      id: 'default_3',
-      storagePath: 'test_banner_3',
-      sortOrder: 3,
-      isActive: true,
-      createdAt: DateTime.utc(2026, 1, 1),
-      updatedAt: DateTime.utc(2026, 1, 1),
-      title: 'Premium Quality Filters',
-    ),
-  ];
-
   @override
   List<DashboardBanner> build() {
+    // Start empty — no banners until admin uploads them.
     Future.microtask(() => loadActiveBanners());
-    return _defaultBanners;
+    return <DashboardBanner>[];
   }
 
   Future<void> loadActiveBanners() async {
@@ -78,20 +49,19 @@ class ActiveBanners extends _$ActiveBanners {
             if (b.isActive) merged[b.id] = b;
           }
 
+          // Only update state when there are actual admin-set banners.
           if (merged.isNotEmpty) {
             state = merged.values.toList();
           } else if (activeDisk.isNotEmpty) {
             state = activeDisk;
-          } else {
-            state = _defaultBanners;
           }
+          // If both are empty, leave state as [] — no banners shown.
         },
         onFailure: (_) {
           if (activeDisk.isNotEmpty) {
             state = activeDisk;
-          } else {
-            state = _defaultBanners;
           }
+          // On failure with no disk cache, leave state as [] — no banners shown.
         },
       );
     } catch (e, st) {
@@ -101,7 +71,8 @@ class ActiveBanners extends _$ActiveBanners {
 
   void updateBanners(List<DashboardBanner> banners) {
     final active = banners.where((b) => b.isActive).toList();
-    state = active.isNotEmpty ? active : _defaultBanners;
+    // Only show banners that are explicitly active — no fallback defaults.
+    state = active;
   }
 }
 

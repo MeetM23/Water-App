@@ -21,6 +21,7 @@ import '../../../../core/widgets/app_empty_state.dart';
 import '../../../../core/widgets/app_error_state.dart';
 import '../../../../core/widgets/app_skeleton.dart';
 import '../../../../core/widgets/app_snackbar.dart';
+import '../../../../domain/enums/user_role.dart';
 import '../../../../domain/models/business_settings.dart';
 import '../../../../domain/models/catalog_product.dart';
 import '../../../auth/application/session_controller.dart';
@@ -89,7 +90,11 @@ class DealerProductDetailScreen extends ConsumerWidget {
         ),
         data: (CatalogProduct? value) => value == null
             ? _NoMatch(productCode: productCode, experience: experience)
-            : _Body(product: value, priceLabel: experience.priceLabel(l10n)),
+            : _Body(
+                product: value,
+                priceLabel: experience.priceLabel(l10n),
+                isRetailer: experience.role == UserRole.retailer,
+              ),
       ),
       // Pinned rather than scrolled to: save, share and enquire are why the
       // dealer opened this, and none of them should need a scroll to reach.
@@ -101,10 +106,15 @@ class DealerProductDetailScreen extends ConsumerWidget {
 }
 
 class _Body extends StatelessWidget {
-  const _Body({required this.product, required this.priceLabel});
+  const _Body({
+    required this.product,
+    required this.priceLabel,
+    required this.isRetailer,
+  });
 
   final CatalogProduct product;
   final String priceLabel;
+  final bool isRetailer;
 
   @override
   Widget build(BuildContext context) {
@@ -122,7 +132,11 @@ class _Body extends StatelessWidget {
         const SizedBox(height: Spacing.x5),
         _Header(product: product),
         const SizedBox(height: Spacing.x5),
-        _PriceCard(product: product, priceLabel: priceLabel),
+        _PriceCard(
+          product: product,
+          priceLabel: priceLabel,
+          isRetailer: isRetailer,
+        ),
         const SizedBox(height: Spacing.x5),
         _SpecificationsCard(product: product),
         if (description.isNotEmpty) ...<Widget>[
@@ -202,15 +216,25 @@ class _Header extends StatelessWidget {
 }
 
 class _PriceCard extends StatelessWidget {
-  const _PriceCard({required this.product, required this.priceLabel});
+  const _PriceCard({
+    required this.product,
+    required this.priceLabel,
+    required this.isRetailer,
+  });
 
   final CatalogProduct product;
   final String priceLabel;
+  /// When true, shows MRP + discount percentage alongside the dealer price.
+  /// Only retailer-role users see this — wholesalers and guests see just the price.
+  final bool isRetailer;
 
   @override
   Widget build(BuildContext context) {
     final price = product.price;
-    final effectiveMrp = product.mrp ?? (price > 0 ? (price * 1.35).roundToDouble() : null);
+    // Only compute MRP / discount when the viewer is a retailer.
+    final effectiveMrp = isRetailer
+        ? (product.mrp ?? (price > 0 ? (price * 1.35).roundToDouble() : null))
+        : null;
     final hasDiscount = effectiveMrp != null && effectiveMrp > price && price > 0;
     final discountPercent = hasDiscount ? (((effectiveMrp - price) / effectiveMrp) * 100).round() : 0;
 
