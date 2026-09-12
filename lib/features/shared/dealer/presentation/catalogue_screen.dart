@@ -16,10 +16,8 @@ import '../../../auth/application/session_controller.dart';
 import '../../banner/presentation/widgets/banner_carousel_widget.dart';
 import '../application/catalogue_controller.dart';
 import '../domain/dealer_experience.dart';
-import 'category_label.dart';
 import 'widgets/catalogue_card.dart';
 import 'widgets/catalogue_category_bar.dart';
-import 'widgets/catalogue_filter_sheet.dart';
 import 'widgets/catalogue_skeleton.dart';
 import 'widgets/offline_banner.dart';
 
