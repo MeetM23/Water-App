@@ -19,7 +19,35 @@ part 'banner_controller.g.dart';
 /// - Never enters an infinite loading or rebuild loop.
 @Riverpod(keepAlive: true)
 class ActiveBanners extends _$ActiveBanners {
-  static const List<DashboardBanner> _defaultBanners = <DashboardBanner>[];
+  static final List<DashboardBanner> _defaultBanners = <DashboardBanner>[
+    DashboardBanner(
+      id: 'default_1',
+      storagePath: 'test_banner_1',
+      sortOrder: 1,
+      isActive: true,
+      createdAt: DateTime.utc(2026, 1, 1),
+      updatedAt: DateTime.utc(2026, 1, 1),
+      title: 'Maruti Water Solution',
+    ),
+    DashboardBanner(
+      id: 'default_2',
+      storagePath: 'test_banner_2',
+      sortOrder: 2,
+      isActive: true,
+      createdAt: DateTime.utc(2026, 1, 1),
+      updatedAt: DateTime.utc(2026, 1, 1),
+      title: 'Genuine RO Components',
+    ),
+    DashboardBanner(
+      id: 'default_3',
+      storagePath: 'test_banner_3',
+      sortOrder: 3,
+      isActive: true,
+      createdAt: DateTime.utc(2026, 1, 1),
+      updatedAt: DateTime.utc(2026, 1, 1),
+      title: 'Premium Quality Filters',
+    ),
+  ];
 
   @override
   List<DashboardBanner> build() {
@@ -54,11 +82,15 @@ class ActiveBanners extends _$ActiveBanners {
             state = merged.values.toList();
           } else if (activeDisk.isNotEmpty) {
             state = activeDisk;
+          } else {
+            state = _defaultBanners;
           }
         },
         onFailure: (_) {
           if (activeDisk.isNotEmpty) {
             state = activeDisk;
+          } else {
+            state = _defaultBanners;
           }
         },
       );
@@ -69,7 +101,7 @@ class ActiveBanners extends _$ActiveBanners {
 
   void updateBanners(List<DashboardBanner> banners) {
     final active = banners.where((b) => b.isActive).toList();
-    state = active;
+    state = active.isNotEmpty ? active : _defaultBanners;
   }
 }
 
