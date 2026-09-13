@@ -61,7 +61,7 @@ class ProductFilterSheet extends ConsumerWidget {
                     isSelected: query.category == null,
                     onSelected: () => controller.setCategory(null),
                   ),
-                  for (final category in ProductCategory.values)
+                  for (final category in ProductCategory.values.where((c) => c != ProductCategory.sparePart))
                     _Choice(
                       label: _categoryLabel(context, category),
                       isSelected: query.category == category,

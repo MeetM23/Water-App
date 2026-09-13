@@ -79,7 +79,7 @@ class BasicDetailsSection extends ConsumerWidget {
           spacing: Spacing.x2,
           runSpacing: Spacing.x2,
           children: <Widget>[
-            for (final category in ProductCategory.values)
+            for (final category in ProductCategory.values.where((c) => c != ProductCategory.sparePart))
               ChoiceChip(
                 label: Text(_categoryLabel(context, category)),
                 selected: draft.category == category,

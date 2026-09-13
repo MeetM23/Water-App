@@ -34,7 +34,6 @@ class _AdminRegistrationsScreenState
     ProductCategory.domestic,
     ProductCategory.commercial,
     ProductCategory.industrial,
-    ProductCategory.sparePart,
     ProductCategory.accessory,
   };
 
@@ -58,7 +57,7 @@ class _AdminRegistrationsScreenState
         ProductCategory.domestic => 'Domestic',
         ProductCategory.commercial => 'Commercial',
         ProductCategory.industrial => 'Industrial',
-        ProductCategory.sparePart => 'Spare Parts',
+        ProductCategory.sparePart => 'Accessories',
         ProductCategory.accessory => 'Accessories',
       };
 
@@ -67,7 +66,7 @@ class _AdminRegistrationsScreenState
         ProductCategory.domestic => Icons.home_rounded,
         ProductCategory.commercial => Icons.store_rounded,
         ProductCategory.industrial => Icons.factory_rounded,
-        ProductCategory.sparePart => Icons.build_rounded,
+        ProductCategory.sparePart => Icons.extension_rounded,
         ProductCategory.accessory => Icons.extension_rounded,
       };
 
@@ -76,7 +75,7 @@ class _AdminRegistrationsScreenState
   Map<ProductCategory, List<ProductUnit>> _groupByCategory(
       List<ProductUnit> units) {
     final map = <ProductCategory, List<ProductUnit>>{};
-    for (final cat in ProductCategory.values) {
+    for (final cat in ProductCategory.values.where((c) => c != ProductCategory.sparePart)) {
       final items = units.where((u) => u.category == cat).toList();
       if (items.isNotEmpty) map[cat] = items;
     }
