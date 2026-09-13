@@ -125,16 +125,16 @@ class SupabaseProductRepository implements ProductRepository {
       }
 
       // If Postgres DB trigger assigned a random code on BEFORE INSERT, override it with custom code
-      if (hasCustomCode && row['product_code'] != customCodeUpper) {
+      if (hasCustomCode) {
+        row['product_code'] = customCodeUpper;
         try {
           await _client
               .from(_table)
               .update(<String, dynamic>{'product_code': customCodeUpper})
-              .eq('id', row['id']);
-          row['product_code'] = customCodeUpper;
+              .eq('id', row['id'])
+              .timeout(const Duration(seconds: 2));
         } catch (overrideErr) {
           AppLog.warn('Failed to override custom product_code: $overrideErr');
-          row['product_code'] = customCodeUpper;
         }
       }
 
@@ -152,7 +152,10 @@ class SupabaseProductRepository implements ProductRepository {
                 'manufactured_at': DateTime.now().toIso8601String(),
               }
           ];
-          await _client.from('product_units').upsert(unitsToInsert, onConflict: 'serial_number');
+          await _client
+              .from('product_units')
+              .upsert(unitsToInsert)
+              .timeout(const Duration(seconds: 2));
         }
       } catch (unitErr) {
         AppLog.warn('Failed to pre-seed product_units: $unitErr');
@@ -198,16 +201,16 @@ class SupabaseProductRepository implements ProductRepository {
       }
 
       // Override if product_code was modified or replaced
-      if (hasCustomCode && row['product_code'] != customCodeUpper) {
+      if (hasCustomCode) {
+        row['product_code'] = customCodeUpper;
         try {
           await _client
               .from(_table)
               .update(<String, dynamic>{'product_code': customCodeUpper})
-              .eq('id', row['id']);
-          row['product_code'] = customCodeUpper;
+              .eq('id', row['id'])
+              .timeout(const Duration(seconds: 2));
         } catch (overrideErr) {
           AppLog.warn('Failed to override custom product_code on update: $overrideErr');
-          row['product_code'] = customCodeUpper;
         }
       }
 
@@ -225,7 +228,10 @@ class SupabaseProductRepository implements ProductRepository {
                 'manufactured_at': DateTime.now().toIso8601String(),
               }
           ];
-          await _client.from('product_units').upsert(unitsToInsert, onConflict: 'serial_number');
+          await _client
+              .from('product_units')
+              .upsert(unitsToInsert)
+              .timeout(const Duration(seconds: 2));
         }
       } catch (unitErr) {
         AppLog.warn('Failed to update product_units: $unitErr');
