@@ -58,6 +58,26 @@ class SupabaseUnitRepository implements UnitRepository {
     };
   }
 
+  static String detectCategoryFromSerial(String serial, {String? defaultCategory}) {
+    final s = serial.toUpperCase();
+    if (s.contains('-ACC-') || s.contains('ACCESSORY') || s.contains('ACCESSORIES') || s.startsWith('ACC-') || s.startsWith('ACC')) {
+      return 'accessory';
+    }
+    if (s.contains('-SPR-') || s.contains('SPARE') || s.contains('SPARES') || s.startsWith('SPR-') || s.startsWith('SPR')) {
+      return 'spare_part';
+    }
+    if (s.contains('-DOM-') || s.contains('DOMESTIC') || s.startsWith('DOM-') || s.startsWith('DOM')) {
+      return 'domestic';
+    }
+    if (s.contains('-COM-') || s.contains('COMMERCIAL') || s.startsWith('COM-') || s.startsWith('COM')) {
+      return 'commercial';
+    }
+    if (s.contains('-IND-') || s.contains('INDUSTRIAL') || s.startsWith('IND-') || s.startsWith('IND')) {
+      return 'industrial';
+    }
+    return defaultCategory ?? 'domestic';
+  }
+
   static Map<String, dynamic> sanitizeUnitJson(Map<String, dynamic> raw) {
     final nowIso = DateTime.now().toIso8601String();
     final serial = raw['serial_number']?.toString() ?? raw['unit_id']?.toString() ?? 'MWS-SN-000';
@@ -71,12 +91,15 @@ class SupabaseUnitRepository implements UnitRepository {
       regMap = sanitizeRegistrationJson(Map<String, dynamic>.from(rawReg.first as Map));
     }
 
+    final rawCategory = raw['category']?.toString();
+    final category = detectCategoryFromSerial(serial, defaultCategory: rawCategory);
+
     return <String, dynamic>{
       'unit_id': unitId,
       'serial_number': serial,
       'product_id': raw['product_id']?.toString() ?? 'prod_001',
       'product_name': raw['product_name']?.toString() ?? 'RO Water Purifier ($serial)',
-      'category': raw['category']?.toString() ?? 'domestic',
+      'category': category,
       'manufactured_at': raw['manufactured_at']?.toString() ?? nowIso,
       'model_number': raw['model_number']?.toString() ?? serial,
       'default_warranty_months': (raw['default_warranty_months'] as num?)?.toInt() ?? 12,
@@ -207,7 +230,11 @@ class SupabaseUnitRepository implements UnitRepository {
                   break;
                 }
               }
-              matchedProduct ??= Map<String, dynamic>.from(searchProds.first as Map);
+              final targetCat = detectCategoryFromSerial(cleanSerial);
+              matchedProduct ??= searchProds
+                  .map((p) => Map<String, dynamic>.from(p as Map))
+                  .where((p) => (p['category']?.toString() ?? '').toLowerCase() == targetCat)
+                  .firstOrNull;
             }
           } catch (e) {
             AppLog.warn('Search products query error: $e');
@@ -397,16 +424,23 @@ class SupabaseUnitRepository implements UnitRepository {
                     break;
                   }
                 }
-                matchedProd ??= Map<String, dynamic>.from(activeProds.first as Map);
+                final targetCat = detectCategoryFromSerial(cleanUnitId);
+                matchedProd ??= activeProds
+                    .map((p) => Map<String, dynamic>.from(p as Map))
+                    .where((p) => (p['category']?.toString() ?? '').toLowerCase() == targetCat)
+                    .firstOrNull;
               }
             } catch (_) {}
           }
 
+          final targetCat = detectCategoryFromSerial(cleanUnitId);
           if (matchedProd != null) {
             realProductId = matchedProd['id'] as String;
             realProductName = matchedProd['name'] as String?;
             realModelNumber = matchedProd['model_number'] as String?;
-            realCategory = matchedProd['category'] as String?;
+            realCategory = matchedProd['category'] as String? ?? targetCat;
+          } else {
+            realCategory = targetCat;
           }
 
           final insertPayload = <String, dynamic>{
