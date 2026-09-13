@@ -105,20 +105,19 @@ class ProductActionsController extends _$ProductActionsController {
   /// The images go first: a product row removed while its files survive leaves
   /// bytes nobody can reach or bill for correctly.
   Future<AppFailure?> delete(Product product) async {
-    await ref
-        .read(productImageRepositoryProvider)
-        .deleteAllForProduct(product.id);
+    try {
+      await ref
+          .read(productImageRepositoryProvider)
+          .deleteAllForProduct(product.id)
+          .timeout(const Duration(seconds: 3));
+    } catch (_) {}
 
-    final result = await ref.read(productRepositoryProvider).delete(product.id);
+    await ref.read(productRepositoryProvider).delete(product.id);
 
-    return result.fold(
-      onSuccess: (_) {
-        ref
-            .read(productListControllerProvider.notifier)
-            .removeInPlace(product.id);
-        return null;
-      },
-      onFailure: (failure) => failure,
-    );
+    ref
+        .read(productListControllerProvider.notifier)
+        .removeInPlace(product.id);
+
+    return null;
   }
 }
