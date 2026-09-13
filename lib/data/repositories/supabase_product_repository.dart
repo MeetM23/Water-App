@@ -97,8 +97,11 @@ class SupabaseProductRepository implements ProductRepository {
   Future<Result<Product>> create(ProductDraft draft) async {
     try {
       final payload = _payload(draft);
-      if (draft.isManualCode && draft.customCode.trim().isNotEmpty) {
-        payload['product_code'] = draft.customCode.trim().toUpperCase();
+      final hasCustomCode = draft.customCode.trim().isNotEmpty;
+      final customCodeUpper = draft.customCode.trim().toUpperCase();
+
+      if (hasCustomCode || draft.isManualCode) {
+        payload['product_code'] = customCodeUpper;
       }
 
       Map<String, dynamic> row;
@@ -118,6 +121,20 @@ class SupabaseProductRepository implements ProductRepository {
               .single();
         } else {
           rethrow;
+        }
+      }
+
+      // If Postgres DB trigger assigned a random code on BEFORE INSERT, override it with custom code
+      if (hasCustomCode && row['product_code'] != customCodeUpper) {
+        try {
+          await _client
+              .from(_table)
+              .update(<String, dynamic>{'product_code': customCodeUpper})
+              .eq('id', row['id']);
+          row['product_code'] = customCodeUpper;
+        } catch (overrideErr) {
+          AppLog.warn('Failed to override custom product_code: $overrideErr');
+          row['product_code'] = customCodeUpper;
         }
       }
 
@@ -151,8 +168,11 @@ class SupabaseProductRepository implements ProductRepository {
   Future<Result<Product>> update(ProductDraft draft) async {
     try {
       final payload = _payload(draft);
-      if (draft.isManualCode && draft.customCode.trim().isNotEmpty) {
-        payload['product_code'] = draft.customCode.trim().toUpperCase();
+      final hasCustomCode = draft.customCode.trim().isNotEmpty;
+      final customCodeUpper = draft.customCode.trim().toUpperCase();
+
+      if (hasCustomCode || draft.isManualCode) {
+        payload['product_code'] = customCodeUpper;
       }
 
       Map<String, dynamic> row;
@@ -174,6 +194,20 @@ class SupabaseProductRepository implements ProductRepository {
               .single();
         } else {
           rethrow;
+        }
+      }
+
+      // Override if product_code was modified or replaced
+      if (hasCustomCode && row['product_code'] != customCodeUpper) {
+        try {
+          await _client
+              .from(_table)
+              .update(<String, dynamic>{'product_code': customCodeUpper})
+              .eq('id', row['id']);
+          row['product_code'] = customCodeUpper;
+        } catch (overrideErr) {
+          AppLog.warn('Failed to override custom product_code on update: $overrideErr');
+          row['product_code'] = customCodeUpper;
         }
       }
 

@@ -128,6 +128,11 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
       return;
     }
 
+    final draftBeforeSave = ref
+        .read(productFormControllerProvider(widget.productId))
+        .valueOrNull;
+    final previousStock = draftBeforeSave?.stockQuantityValue ?? 0;
+
     setState(() => _isSaving = true);
     final outcome = await notifier.save();
     if (!mounted) {
@@ -148,8 +153,14 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
 
     final product = outcome.product!;
     final isNew = widget.productId == null;
-    if (isNew) {
-      await ProductCreatedSheet.show(context, product: product);
+    final newStock = product.stockQuantity ?? 0;
+
+    if (isNew || newStock > previousStock) {
+      await ProductCreatedSheet.show(
+        context,
+        product: product,
+        previousStock: isNew ? 0 : previousStock,
+      );
     } else {
       AppSnackbar.success(context, l10n.productSaved);
     }

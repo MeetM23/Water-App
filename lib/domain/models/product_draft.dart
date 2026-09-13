@@ -86,6 +86,7 @@ class ProductDraft with _$ProductDraft {
   ) => ProductDraft(
     id: product.id,
     productCode: product.productCode,
+    customCode: product.productCode,
     name: product.name,
     modelNumber: product.modelNumber ?? '',
     description: product.description ?? '',

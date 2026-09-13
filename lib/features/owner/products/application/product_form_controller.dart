@@ -100,8 +100,12 @@ class ProductFormController extends _$ProductFormController {
       _update(_draft.copyWith(isManualCode: value));
 
   /// Sets the custom barcode / starting code for manual generation.
-  void setCustomCode(String value) =>
-      _update(_draft.copyWith(customCode: value));
+  void setCustomCode(String value) => _update(
+    _draft.copyWith(
+      customCode: value,
+      isManualCode: value.trim().isNotEmpty,
+    ),
+  );
 
   /// Replaces the product name.
   void setName(String value) => _update(_draft.copyWith(name: value));

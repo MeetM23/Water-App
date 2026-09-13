@@ -18,25 +18,36 @@ import '../../../labels/domain/label_sheet_spec.dart';
 import '../../../settings/application/business_settings_controller.dart';
 import 'barcode_block.dart';
 
-/// Shown once, immediately after a product is created.
-///
-/// The moment a code exists is the moment the owner wants to print it, so the
-/// label actions are here rather than three screens away.
+/// Shown after a product is created or restocked.
 class ProductCreatedSheet extends ConsumerStatefulWidget {
   /// Creates the sheet.
-  const ProductCreatedSheet({required this.product, super.key});
+  const ProductCreatedSheet({
+    required this.product,
+    this.previousStock = 0,
+    super.key,
+  });
 
-  /// The product that was just created.
+  /// The product that was created or updated.
   final Product product;
 
+  /// Stock quantity before this edit/restock.
+  final int previousStock;
+
   /// Opens the sheet for [product].
-  static Future<void> show(BuildContext context, {required Product product}) =>
+  static Future<void> show(
+    BuildContext context, {
+    required Product product,
+    int previousStock = 0,
+  }) =>
       showModalBottomSheet<void>(
         context: context,
         isScrollControlled: true,
         isDismissible: false,
         enableDrag: false,
-        builder: (_) => ProductCreatedSheet(product: product),
+        builder: (_) => ProductCreatedSheet(
+          product: product,
+          previousStock: previousStock,
+        ),
       );
 
   @override
@@ -46,37 +57,51 @@ class ProductCreatedSheet extends ConsumerStatefulWidget {
 
 class _ProductCreatedSheetState extends ConsumerState<ProductCreatedSheet> {
   bool _isBusy = false;
+  bool _printNewBatchOnly = true;
 
   Future<Uint8List?> _buildSingleLabelSheet() async {
     final product = widget.product;
-    final stockQty = product.stockQuantity ?? 1;
+    final totalQty = product.stockQuantity ?? 1;
+    final prevQty = widget.previousStock;
+    final addedQty = (totalQty - prevQty).clamp(0, totalQty);
 
-    List<String> serials = <String>[product.productCode];
-    if (stockQty > 1) {
+    List<String> allSerials = <String>[product.productCode];
+    if (totalQty > 1) {
       final match = RegExp(r'^(.*?)(\d+)$').firstMatch(product.productCode);
       if (match != null) {
         final prefix = match.group(1)!;
         final numStr = match.group(2)!;
         final startNum = int.tryParse(numStr) ?? 1;
         final padLength = numStr.length;
-        serials = <String>[
-          for (var i = 0; i < stockQty; i++)
+        allSerials = <String>[
+          for (var i = 0; i < totalQty; i++)
             '$prefix${(startNum + i).toString().padLeft(padLength, '0')}'
         ];
       } else {
-        final padLength = stockQty >= 100 ? 3 : 2;
-        serials = <String>[
-          for (var i = 0; i < stockQty; i++)
+        final padLength = totalQty >= 100 ? 3 : 2;
+        allSerials = <String>[
+          for (var i = 0; i < totalQty; i++)
             '${product.productCode}-${(i + 1).toString().padLeft(padLength, '0')}'
         ];
       }
+    }
+
+    List<String> serialsToPrint;
+    if (prevQty > 0 && addedQty > 0 && _printNewBatchOnly) {
+      serialsToPrint = allSerials.skip(prevQty).toList();
+    } else {
+      serialsToPrint = allSerials;
+    }
+
+    if (serialsToPrint.isEmpty) {
+      serialsToPrint = <String>[product.productCode];
     }
 
     return LabelPdfBuilder.build(
       items: <LabelJobItem>[
         LabelJobItem(
           product: product,
-          serialNumbers: serials,
+          serialNumbers: serialsToPrint,
         ),
       ],
       spec: LabelSheets.newProductDefault,
@@ -95,7 +120,7 @@ class _ProductCreatedSheetState extends ConsumerState<ProductCreatedSheet> {
       }
       await Printing.layoutPdf(onLayout: (_) async => bytes);
     } on Object catch (error, stackTrace) {
-      AppLog.error('Printing a new product label failed', error, stackTrace);
+      AppLog.error('Printing product labels failed', error, stackTrace);
       if (mounted) {
         AppSnackbar.error(context, context.l10n.labelsGenerateFailed);
       }
@@ -121,7 +146,7 @@ class _ProductCreatedSheetState extends ConsumerState<ProductCreatedSheet> {
         ),
       ]);
     } on Object catch (error, stackTrace) {
-      AppLog.error('Sharing a new product label failed', error, stackTrace);
+      AppLog.error('Sharing product labels failed', error, stackTrace);
       if (mounted) {
         AppSnackbar.error(context, context.l10n.labelsGenerateFailed);
       }
@@ -135,6 +160,10 @@ class _ProductCreatedSheetState extends ConsumerState<ProductCreatedSheet> {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
+    final totalQty = widget.product.stockQuantity ?? 1;
+    final prevQty = widget.previousStock;
+    final addedQty = (totalQty - prevQty).clamp(0, totalQty);
+    final isRestock = prevQty > 0 && addedQty > 0;
 
     return SafeArea(
       child: SingleChildScrollView(
@@ -152,7 +181,7 @@ class _ProductCreatedSheetState extends ConsumerState<ProductCreatedSheet> {
             ),
             const SizedBox(height: Spacing.x4),
             Text(
-              l10n.createdTitle,
+              isRestock ? 'Product Restocked!' : l10n.createdTitle,
               textAlign: TextAlign.center,
               style: context.textTheme.titleLarge?.copyWith(
                 color: AppColors.ink,
@@ -160,12 +189,48 @@ class _ProductCreatedSheetState extends ConsumerState<ProductCreatedSheet> {
             ),
             const SizedBox(height: Spacing.x2),
             Text(
-              l10n.createdBody,
+              isRestock
+                  ? 'Added $addedQty new units to stock (Total: $totalQty units).'
+                  : l10n.createdBody,
               textAlign: TextAlign.center,
               style: context.textTheme.bodyMedium?.copyWith(
                 color: AppColors.textSecondary,
               ),
             ),
+            if (isRestock) ...<Widget>[
+              const SizedBox(height: Spacing.x4),
+              Text(
+                'PRINTING OPTION',
+                style: context.textTheme.labelSmall?.copyWith(
+                  color: AppColors.textSecondary,
+                  letterSpacing: 1,
+                ),
+              ),
+              const SizedBox(height: Spacing.x2),
+              Row(
+                children: <Widget>[
+                  Expanded(
+                    child: ChoiceChip(
+                      label: Text('Newly Added ($addedQty Labels)'),
+                      selected: _printNewBatchOnly,
+                      showCheckmark: false,
+                      onSelected: (_) =>
+                          setState(() => _printNewBatchOnly = true),
+                    ),
+                  ),
+                  const SizedBox(width: Spacing.x2),
+                  Expanded(
+                    child: ChoiceChip(
+                      label: Text('All Stock ($totalQty Labels)'),
+                      selected: !_printNewBatchOnly,
+                      showCheckmark: false,
+                      onSelected: (_) =>
+                          setState(() => _printNewBatchOnly = false),
+                    ),
+                  ),
+                ],
+              ),
+            ],
             const SizedBox(height: Spacing.x6),
             BarcodeBlock(productCode: widget.product.productCode),
             const SizedBox(height: Spacing.x6),
