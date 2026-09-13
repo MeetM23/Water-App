@@ -108,7 +108,7 @@ class SupabaseUnitRepository implements UnitRepository {
     }
 
     final rawProdName = raw['product_name']?.toString();
-    final cleanProdName = (rawProdName != null && rawProdName.isNotEmpty && !isUuidString(rawProdName) && rawProdName != 'Water Purifier')
+    final cleanProdName = (rawProdName != null && rawProdName.isNotEmpty && !isUuidString(rawProdName))
         ? rawProdName
         : null;
 
@@ -119,11 +119,18 @@ class SupabaseUnitRepository implements UnitRepository {
       serial = 'MWS-${serial.substring(0, 8).toUpperCase()}';
     }
 
+    String fallbackTitle = 'RO Water Purifier';
+    if (category == 'industrial') fallbackTitle = 'Industrial RO Purifier';
+    if (category == 'commercial') fallbackTitle = 'Commercial RO System';
+    if (category == 'accessory') fallbackTitle = 'RO Accessory';
+    if (category == 'spare_part') fallbackTitle = 'RO Spare Part';
+    if (category == 'domestic') fallbackTitle = 'Domestic RO Purifier';
+
     return <String, dynamic>{
       'unit_id': unitId,
       'serial_number': serial,
       'product_id': raw['product_id']?.toString() ?? 'prod_001',
-      'product_name': cleanProdName ?? 'RO Water Purifier',
+      'product_name': cleanProdName ?? fallbackTitle,
       'category': category,
       'manufactured_at': raw['manufactured_at']?.toString() ?? nowIso,
       'model_number': raw['model_number']?.toString() ?? serial,
@@ -217,7 +224,11 @@ class SupabaseUnitRepository implements UnitRepository {
                     break;
                   }
                 }
-                prod ??= Map<String, dynamic>.from(activeProds.first as Map);
+                final targetCat = detectCategoryFromSerial(serial);
+                prod ??= activeProds
+                    .map((p) => Map<String, dynamic>.from(p as Map))
+                    .where((p) => (p['category']?.toString() ?? '').toLowerCase() == targetCat)
+                    .firstOrNull;
               }
             } catch (_) {}
           }
@@ -232,8 +243,16 @@ class SupabaseUnitRepository implements UnitRepository {
             }
           }
 
-          final prodName = prod?['name'] as String? ?? 'RO Water Purifier';
-          final categoryStr = prod?['category'] as String?;
+          final categoryStr = prod?['category'] as String? ?? detectCategoryFromSerial(serial);
+
+          String fallbackTitle = 'RO Water Purifier';
+          if (categoryStr == 'industrial') fallbackTitle = 'Industrial RO Purifier';
+          if (categoryStr == 'commercial') fallbackTitle = 'Commercial RO System';
+          if (categoryStr == 'accessory') fallbackTitle = 'RO Accessory';
+          if (categoryStr == 'spare_part') fallbackTitle = 'RO Spare Part';
+          if (categoryStr == 'domestic') fallbackTitle = 'Domestic RO System';
+
+          final prodName = (prod?['name'] as String?) ?? fallbackTitle;
 
           final combined = <String, dynamic>{
             'unit_id': unitRow != null ? unitRow['id'] : uId,
@@ -242,7 +261,7 @@ class SupabaseUnitRepository implements UnitRepository {
             'product_id': unitRow != null ? unitRow['product_id'] : uId,
             'product_name': prodName,
             'model_number': prod?['model_number'] ?? serial,
-            'category': categoryStr ?? detectCategoryFromSerial(serial, productName: prodName),
+            'category': categoryStr,
             'default_warranty_months': prod?['warranty_months'] ?? 12,
             'registration': regMap,
           };
@@ -410,9 +429,21 @@ class SupabaseUnitRepository implements UnitRepository {
 
         if (matchedProduct != null) {
           final prodId = matchedProduct['id'] as String;
-          final prodName = matchedProduct['name'] as String? ?? 'Water Purifier';
+          final categoryStr = matchedProduct['category'] as String? ?? detectCategoryFromSerial(cleanSerial);
+
+          String fallbackTitle = 'RO Water Purifier';
+          if (categoryStr == 'industrial') fallbackTitle = 'Industrial RO Purifier';
+          if (categoryStr == 'commercial') fallbackTitle = 'Commercial RO System';
+          if (categoryStr == 'accessory') fallbackTitle = 'RO Accessory';
+          if (categoryStr == 'spare_part') fallbackTitle = 'RO Spare Part';
+          if (categoryStr == 'domestic') fallbackTitle = 'Domestic RO System';
+
+          final rawPName = matchedProduct['name'] as String?;
+          final prodName = (rawPName != null && rawPName.isNotEmpty && rawPName != 'Water Purifier')
+              ? rawPName
+              : fallbackTitle;
+
           final modelNum = matchedProduct['model_number'] as String? ?? matchedProduct['product_code'] as String? ?? cleanSerial;
-          final categoryStr = matchedProduct['category'] as String? ?? 'domestic';
           final warranty = (matchedProduct['warranty_months'] as num?)?.toInt() ?? 12;
           final desc = matchedProduct['description'] as String?;
 
