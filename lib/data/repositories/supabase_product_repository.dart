@@ -97,6 +97,10 @@ class SupabaseProductRepository implements ProductRepository {
   Future<Result<Product>> create(ProductDraft draft) async {
     try {
       final payload = _payload(draft);
+      if (draft.isManualCode && draft.customCode.trim().isNotEmpty) {
+        payload['product_code'] = draft.customCode.trim().toUpperCase();
+      }
+
       Map<String, dynamic> row;
       try {
         row = await _client
@@ -116,7 +120,28 @@ class SupabaseProductRepository implements ProductRepository {
           rethrow;
         }
       }
-      return Success<Product>(Product.fromJson(row));
+
+      final product = Product.fromJson(row);
+
+      // Seed product units for generated stock serials
+      try {
+        final serials = draft.generateStockSerials(quantityOverride: product.stockQuantity);
+        if (serials.isNotEmpty) {
+          final unitsToInsert = <Map<String, dynamic>>[
+            for (final serial in serials)
+              <String, dynamic>{
+                'product_id': product.id,
+                'serial_number': serial,
+                'manufactured_at': DateTime.now().toIso8601String(),
+              }
+          ];
+          await _client.from('product_units').upsert(unitsToInsert, onConflict: 'serial_number');
+        }
+      } catch (unitErr) {
+        AppLog.warn('Failed to pre-seed product_units: $unitErr');
+      }
+
+      return Success<Product>(product);
     } on Object catch (error, stackTrace) {
       return ResultFailure<Product>(_map(error, stackTrace));
     }
@@ -126,6 +151,10 @@ class SupabaseProductRepository implements ProductRepository {
   Future<Result<Product>> update(ProductDraft draft) async {
     try {
       final payload = _payload(draft);
+      if (draft.isManualCode && draft.customCode.trim().isNotEmpty) {
+        payload['product_code'] = draft.customCode.trim().toUpperCase();
+      }
+
       Map<String, dynamic> row;
       try {
         row = await _client
@@ -147,7 +176,28 @@ class SupabaseProductRepository implements ProductRepository {
           rethrow;
         }
       }
-      return Success<Product>(Product.fromJson(row));
+
+      final product = Product.fromJson(row);
+
+      // Seed product units for generated stock serials
+      try {
+        final serials = draft.generateStockSerials(quantityOverride: product.stockQuantity);
+        if (serials.isNotEmpty) {
+          final unitsToInsert = <Map<String, dynamic>>[
+            for (final serial in serials)
+              <String, dynamic>{
+                'product_id': product.id,
+                'serial_number': serial,
+                'manufactured_at': DateTime.now().toIso8601String(),
+              }
+          ];
+          await _client.from('product_units').upsert(unitsToInsert, onConflict: 'serial_number');
+        }
+      } catch (unitErr) {
+        AppLog.warn('Failed to update product_units: $unitErr');
+      }
+
+      return Success<Product>(product);
     } on Object catch (error, stackTrace) {
       return ResultFailure<Product>(_map(error, stackTrace));
     }

@@ -91,8 +91,17 @@ class ProductFormController extends _$ProductFormController {
   bool get canSubmit =>
       _draft.name.trim().isNotEmpty &&
       _draft.category != null &&
+      (!_draft.isManualCode || _draft.customCode.trim().isNotEmpty) &&
       priceValidation.isValid &&
       !_draft.hasUploadsInFlight;
+
+  /// Toggles between automatic code generation and manual entry.
+  void setIsManualCode(bool value) =>
+      _update(_draft.copyWith(isManualCode: value));
+
+  /// Sets the custom barcode / starting code for manual generation.
+  void setCustomCode(String value) =>
+      _update(_draft.copyWith(customCode: value));
 
   /// Replaces the product name.
   void setName(String value) => _update(_draft.copyWith(name: value));

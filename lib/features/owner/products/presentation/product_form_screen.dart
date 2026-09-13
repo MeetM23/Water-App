@@ -15,6 +15,7 @@ import '../../../../domain/models/product_draft.dart';
 import '../application/product_form_controller.dart';
 import '../application/product_list_controller.dart';
 import 'sections/availability_section.dart';
+import 'sections/barcode_mode_section.dart';
 import 'sections/basic_details_section.dart';
 import 'sections/photos_section.dart';
 import 'sections/pricing_section.dart';
@@ -80,6 +81,7 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
     _controller(_FormField.wholesale).text = draft.wholesalePrice;
     _controller(_FormField.retail).text = draft.retailPrice;
     _controller(_FormField.stockQuantity).text = draft.stockQuantity;
+    _controller(_FormField.customCode).text = draft.customCode;
   }
 
   Future<bool> _confirmDiscard() async {
@@ -230,6 +232,12 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
                     retailController: _controller(_FormField.retail),
                   ),
                   const SizedBox(height: Spacing.x8),
+                  BarcodeModeSection(
+                    productId: widget.productId,
+                    draft: draft,
+                    customCodeController: _controller(_FormField.customCode),
+                  ),
+                  const SizedBox(height: Spacing.x8),
                   _SectionHeader(label: l10n.sectionAvailability),
                   AvailabilitySection(
                     productId: widget.productId,
@@ -253,7 +261,7 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
 }
 
 /// Identifiers for the text controllers this form owns.
-enum _FormField { name, model, description, capacity, mrp, wholesale, retail, stockQuantity }
+enum _FormField { name, model, description, capacity, mrp, wholesale, retail, stockQuantity, customCode }
 
 class _SectionHeader extends StatelessWidget {
   const _SectionHeader({required this.label});

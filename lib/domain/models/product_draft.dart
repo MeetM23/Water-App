@@ -70,6 +70,8 @@ class ProductDraft with _$ProductDraft {
     @Default(true) bool isActive,
     @Default(<SpecificationEntry>[]) List<SpecificationEntry> specifications,
     @Default(<DraftImage>[]) List<DraftImage> images,
+    @Default(false) bool isManualCode,
+    @Default('') String customCode,
     String? id,
     String? productCode,
   }) = _ProductDraft;
@@ -143,4 +145,42 @@ class ProductDraft with _$ProductDraft {
 
   /// Whether any image is still uploading, which blocks save.
   bool get hasUploadsInFlight => images.any((DraftImage i) => i.isUploading);
+
+  /// Generates the list of unit serial numbers for available stock items.
+  List<String> generateStockSerials({int? quantityOverride}) {
+    final qty = quantityOverride ?? stockQuantityValue ?? (inStock ? 1 : 0);
+    if (qty <= 0) return <String>[];
+
+    final base = (isManualCode && customCode.trim().isNotEmpty)
+        ? customCode.trim().toUpperCase()
+        : (productCode ?? '');
+
+    if (base.isEmpty) return <String>[];
+    if (qty == 1) return <String>[base];
+
+    // Find trailing digits in base string (e.g. PRD-101 -> PRD- and 101)
+    final match = RegExp(r'^(.*?)(\d+)$').firstMatch(base);
+    if (match != null) {
+      final prefix = match.group(1)!;
+      final numStr = match.group(2)!;
+      final startNum = int.tryParse(numStr) ?? 1;
+      final padLength = numStr.length;
+
+      final list = <String>[];
+      for (var i = 0; i < qty; i++) {
+        final currentNum = (startNum + i).toString().padLeft(padLength, '0');
+        list.add('$prefix$currentNum');
+      }
+      return list;
+    } else {
+      // Append sequential suffix -01, -02...
+      final padLength = qty >= 100 ? 3 : 2;
+      final list = <String>[];
+      for (var i = 0; i < qty; i++) {
+        final currentNum = (i + 1).toString().padLeft(padLength, '0');
+        list.add('$base-$currentNum');
+      }
+      return list;
+    }
+  }
 }

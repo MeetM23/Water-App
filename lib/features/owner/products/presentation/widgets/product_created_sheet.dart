@@ -47,18 +47,44 @@ class ProductCreatedSheet extends ConsumerStatefulWidget {
 class _ProductCreatedSheetState extends ConsumerState<ProductCreatedSheet> {
   bool _isBusy = false;
 
-  Future<Uint8List?> _buildSingleLabelSheet() => LabelPdfBuilder.build(
-    items: <LabelJobItem>[
-      LabelJobItem(
-        product: widget.product,
-        serialNumbers: <String>[widget.product.productCode],
-      ),
-    ],
-    spec: LabelSheets.newProductDefault,
-    business:
-        ref.read(businessSettingsControllerProvider).valueOrNull ??
-        const BusinessSettings(businessName: 'Maruti Water Solution'),
-  );
+  Future<Uint8List?> _buildSingleLabelSheet() async {
+    final product = widget.product;
+    final stockQty = product.stockQuantity ?? 1;
+
+    List<String> serials = <String>[product.productCode];
+    if (stockQty > 1) {
+      final match = RegExp(r'^(.*?)(\d+)$').firstMatch(product.productCode);
+      if (match != null) {
+        final prefix = match.group(1)!;
+        final numStr = match.group(2)!;
+        final startNum = int.tryParse(numStr) ?? 1;
+        final padLength = numStr.length;
+        serials = <String>[
+          for (var i = 0; i < stockQty; i++)
+            '$prefix${(startNum + i).toString().padLeft(padLength, '0')}'
+        ];
+      } else {
+        final padLength = stockQty >= 100 ? 3 : 2;
+        serials = <String>[
+          for (var i = 0; i < stockQty; i++)
+            '${product.productCode}-${(i + 1).toString().padLeft(padLength, '0')}'
+        ];
+      }
+    }
+
+    return LabelPdfBuilder.build(
+      items: <LabelJobItem>[
+        LabelJobItem(
+          product: product,
+          serialNumbers: serials,
+        ),
+      ],
+      spec: LabelSheets.newProductDefault,
+      business:
+          ref.read(businessSettingsControllerProvider).valueOrNull ??
+          const BusinessSettings(businessName: 'Maruti Water Solution'),
+    );
+  }
 
   Future<void> _print() async {
     setState(() => _isBusy = true);
