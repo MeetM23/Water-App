@@ -89,11 +89,11 @@ class _UserRegistrationsScreenState extends ConsumerState<UserRegistrationsScree
                     children: <Widget>[
                       Row(
                         children: <Widget>[
-                          const Icon(Icons.verified_user_outlined, color: AppColors.primary),
+                          const Icon(Icons.water_drop_outlined, color: AppColors.primary),
                           const SizedBox(width: Spacing.x2),
                           Expanded(
                             child: Text(
-                              reg?.customerName ?? 'Registered Unit',
+                              unit.productName,
                               style: context.textTheme.titleMedium?.copyWith(
                                 fontWeight: FontWeight.bold,
                               ),
@@ -132,22 +132,31 @@ class _UserRegistrationsScreenState extends ConsumerState<UserRegistrationsScree
                           ],
                         ],
                       ),
-                      const SizedBox(height: Spacing.x2),
-                      Text(
-                        'Product: ${unit.productName}',
-                        style: context.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
-                      ),
+                      const SizedBox(height: Spacing.x1),
                       Text(
                         'Serial: ${unit.serialNumber}',
-                        style: context.textTheme.bodySmall?.copyWith(color: Colors.grey.shade700),
+                        style: context.textTheme.bodySmall?.copyWith(
+                          color: Colors.grey.shade700,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                       if (reg != null) ...<Widget>[
                         const SizedBox(height: Spacing.x2),
+                        const Divider(height: 1),
+                        const SizedBox(height: Spacing.x2),
                         Text(
-                          'Customer Mobile: ${reg.customerPhone}',
+                          'Customer Name: ${reg.customerName ?? 'N/A'}',
+                          style: context.textTheme.bodyMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.ink,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          'Customer Mobile: ${reg.customerPhone ?? 'N/A'}',
                           style: context.textTheme.bodySmall?.copyWith(color: Colors.grey.shade800),
                         ),
-                        if (reg.customerCity != null)
+                        if (reg.customerCity != null && reg.customerCity!.isNotEmpty)
                           Text(
                             'Location: ${reg.customerCity}',
                             style: context.textTheme.bodySmall?.copyWith(color: Colors.grey.shade700),

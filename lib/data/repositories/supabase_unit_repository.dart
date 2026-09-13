@@ -58,7 +58,14 @@ class SupabaseUnitRepository implements UnitRepository {
     };
   }
 
+  static bool isUuidString(String str) {
+    return RegExp(r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$').hasMatch(str.trim());
+  }
+
   static String detectCategoryFromSerial(String serial, {String? defaultCategory}) {
+    if (isUuidString(serial)) {
+      return defaultCategory ?? 'domestic';
+    }
     final s = serial.toUpperCase();
     if (s.contains('-ACC-') || s.contains('ACCESSORY') || s.contains('ACCESSORIES') || s.startsWith('ACC-') || s.startsWith('ACC')) {
       return 'accessory';
@@ -80,8 +87,15 @@ class SupabaseUnitRepository implements UnitRepository {
 
   static Map<String, dynamic> sanitizeUnitJson(Map<String, dynamic> raw) {
     final nowIso = DateTime.now().toIso8601String();
-    final serial = raw['serial_number']?.toString() ?? raw['unit_id']?.toString() ?? 'MWS-SN-000';
+    var serial = raw['serial_number']?.toString() ?? raw['unit_id']?.toString() ?? 'MWS-SN-000';
     final unitId = raw['unit_id']?.toString() ?? raw['id']?.toString() ?? serial;
+
+    if (isUuidString(serial) && raw['product_name'] != null) {
+      final pName = raw['product_name'].toString();
+      if (!pName.contains('RO Water Purifier')) {
+        serial = 'MWS-${serial.substring(0, 8).toUpperCase()}';
+      }
+    }
 
     Map<String, dynamic>? regMap;
     final rawReg = raw['registration'] ?? raw['unit_registrations'];
@@ -94,11 +108,16 @@ class SupabaseUnitRepository implements UnitRepository {
     final rawCategory = raw['category']?.toString();
     final category = detectCategoryFromSerial(serial, defaultCategory: rawCategory);
 
+    final rawProdName = raw['product_name']?.toString();
+    final cleanProdName = (rawProdName != null && rawProdName.isNotEmpty && !isUuidString(rawProdName))
+        ? rawProdName
+        : 'RO Water Purifier';
+
     return <String, dynamic>{
       'unit_id': unitId,
       'serial_number': serial,
       'product_id': raw['product_id']?.toString() ?? 'prod_001',
-      'product_name': raw['product_name']?.toString() ?? 'RO Water Purifier ($serial)',
+      'product_name': cleanProdName,
       'category': category,
       'manufactured_at': raw['manufactured_at']?.toString() ?? nowIso,
       'model_number': raw['model_number']?.toString() ?? serial,
@@ -770,19 +789,31 @@ class SupabaseUnitRepository implements UnitRepository {
           } catch (_) {}
 
           final prod = unitRow != null ? unitRow['products'] as Map<String, dynamic>? : null;
-          final serial = unitRow != null ? unitRow['serial_number'] as String : uId;
+          String serial = unitRow != null ? (unitRow['serial_number'] as String? ?? uId) : uId;
 
           if (_deletedRegistrationIds.contains(serial) ||
               _deletedRegistrationIds.contains(serial.toUpperCase())) {
             continue;
           }
 
+          // If serial is a UUID, format a readable display serial
+          if (isUuidString(serial)) {
+            final pCode = prod?['product_code'] ?? prod?['model_number'];
+            if (pCode != null && pCode.toString().isNotEmpty) {
+              serial = '${pCode.toString().toUpperCase()}-SN-001';
+            } else {
+              serial = 'MWS-${serial.substring(0, 8).toUpperCase()}';
+            }
+          }
+
+          final prodName = prod?['name'] as String? ?? 'RO Water Purifier';
+
           final combined = <String, dynamic>{
             'unit_id': unitRow != null ? unitRow['id'] : uId,
             'serial_number': serial,
             'manufactured_at': unitRow != null ? unitRow['manufactured_at'] : DateTime.now().toIso8601String(),
             'product_id': unitRow != null ? unitRow['product_id'] : uId,
-            'product_name': prod?['name'] ?? 'RO Water Purifier ($serial)',
+            'product_name': prodName,
             'model_number': prod?['model_number'] ?? serial,
             'category': prod?['category'] ?? 'domestic',
             'default_warranty_months': prod?['warranty_months'] ?? 12,
@@ -794,13 +825,16 @@ class SupabaseUnitRepository implements UnitRepository {
         AppLog.warn('Failed to query DB unit_registrations: $dbError');
       }
 
-      // Merge DB units and in-memory registered units
+      // Merge DB units and in-memory registered units, deduplicating by registration ID & serial
       final mergedMap = <String, ProductUnit>{};
+      final seenRegIds = <String>{};
 
-      // Add in-memory units first
+      // Add in-memory units first (they have the freshest serials & product details)
       for (final unit in _inMemoryUnits) {
         final serialUpper = unit.serialNumber.toUpperCase();
-        if (_deletedRegistrationIds.contains(unit.registration?.id) ||
+        final regId = unit.registration?.id;
+
+        if (_deletedRegistrationIds.contains(regId) ||
             _deletedRegistrationIds.contains(unit.unitId) ||
             _deletedRegistrationIds.contains(serialUpper)) {
           continue;
@@ -810,19 +844,29 @@ class SupabaseUnitRepository implements UnitRepository {
           final regBy = unit.registration?.registeredBy;
           if (regBy != null && regBy != userId) continue;
         }
+
         mergedMap[serialUpper] = unit;
+        if (regId != null) seenRegIds.add(regId);
       }
 
-      // Add DB units if not already present or deleted
+      // Add DB units if not already present by registration ID or serial
       for (final unit in dbUnits) {
         final key = unit.serialNumber.toUpperCase();
-        if (_deletedRegistrationIds.contains(unit.registration?.id) ||
+        final regId = unit.registration?.id;
+
+        if (_deletedRegistrationIds.contains(regId) ||
             _deletedRegistrationIds.contains(unit.unitId) ||
             _deletedRegistrationIds.contains(key)) {
           continue;
         }
+
+        if (regId != null && seenRegIds.contains(regId)) {
+          continue;
+        }
+
         if (!mergedMap.containsKey(key)) {
           mergedMap[key] = unit;
+          if (regId != null) seenRegIds.add(regId);
         }
       }
 

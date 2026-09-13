@@ -420,12 +420,12 @@ class _RegistrationCard extends StatelessWidget {
           children: <Widget>[
             Row(
               children: <Widget>[
-                const Icon(Icons.verified_user_outlined,
+                const Icon(Icons.water_drop_outlined,
                     color: AppColors.primary),
                 const SizedBox(width: Spacing.x2),
                 Expanded(
                   child: Text(
-                    reg?.customerName ?? 'Customer',
+                    unit.productName,
                     style: context.textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
@@ -471,25 +471,36 @@ class _RegistrationCard extends StatelessWidget {
                 ],
               ],
             ),
-            const SizedBox(height: Spacing.x2),
-            Text(
-              'Product: ${unit.productName}',
-              style: context.textTheme.bodyMedium
-                  ?.copyWith(fontWeight: FontWeight.w600),
-            ),
-            Text(
-              'Serial: ${unit.serialNumber}',
-              style: context.textTheme.bodySmall
-                  ?.copyWith(color: Colors.grey.shade700),
+            const SizedBox(height: Spacing.x1),
+            Row(
+              children: <Widget>[
+                Text(
+                  'Serial: ${unit.serialNumber}',
+                  style: context.textTheme.bodySmall?.copyWith(
+                    color: Colors.grey.shade700,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
             ),
             if (reg != null) ...<Widget>[
               const SizedBox(height: Spacing.x2),
+              const Divider(height: 1),
+              const SizedBox(height: Spacing.x2),
               Text(
-                'Mobile: ${reg.customerPhone}',
+                'Customer: ${reg.customerName ?? 'N/A'}',
+                style: context.textTheme.bodyMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.ink,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                'Mobile: ${reg.customerPhone ?? 'N/A'}',
                 style: context.textTheme.bodySmall
                     ?.copyWith(color: Colors.grey.shade800),
               ),
-              if (reg.customerCity != null)
+              if (reg.customerCity != null && reg.customerCity!.isNotEmpty)
                 Text(
                   'Location: ${reg.customerCity}',
                   style: context.textTheme.bodySmall
