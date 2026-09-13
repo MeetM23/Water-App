@@ -62,7 +62,16 @@ class SupabaseUnitRepository implements UnitRepository {
     return RegExp(r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$').hasMatch(str.trim());
   }
 
-  static String detectCategoryFromSerial(String serial, {String? defaultCategory}) {
+  static String detectCategoryFromSerial(String serial, {String? defaultCategory, String? productName}) {
+    if (productName != null && productName.isNotEmpty) {
+      final pUpper = productName.toUpperCase();
+      if (pUpper.contains('PUMP') || pUpper.contains('ACCESSORY') || pUpper.contains('ACCESSORIES') || pUpper.contains('ADAPTER') || pUpper.contains('SMPS') || pUpper.contains('TWISTER')) {
+        return 'accessory';
+      }
+      if (pUpper.contains('SPARE') || pUpper.contains('FILTER') || pUpper.contains('MEMBRANE') || pUpper.contains('CARTRIDGE') || pUpper.contains('FITTING')) {
+        return 'spare_part';
+      }
+    }
     if (isUuidString(serial)) {
       return defaultCategory ?? 'domestic';
     }
@@ -90,13 +99,6 @@ class SupabaseUnitRepository implements UnitRepository {
     var serial = raw['serial_number']?.toString() ?? raw['unit_id']?.toString() ?? 'MWS-SN-000';
     final unitId = raw['unit_id']?.toString() ?? raw['id']?.toString() ?? serial;
 
-    if (isUuidString(serial) && raw['product_name'] != null) {
-      final pName = raw['product_name'].toString();
-      if (!pName.contains('RO Water Purifier')) {
-        serial = 'MWS-${serial.substring(0, 8).toUpperCase()}';
-      }
-    }
-
     Map<String, dynamic>? regMap;
     final rawReg = raw['registration'] ?? raw['unit_registrations'];
     if (rawReg is Map) {
@@ -105,25 +107,171 @@ class SupabaseUnitRepository implements UnitRepository {
       regMap = sanitizeRegistrationJson(Map<String, dynamic>.from(rawReg.first as Map));
     }
 
-    final rawCategory = raw['category']?.toString();
-    final category = detectCategoryFromSerial(serial, defaultCategory: rawCategory);
-
     final rawProdName = raw['product_name']?.toString();
-    final cleanProdName = (rawProdName != null && rawProdName.isNotEmpty && !isUuidString(rawProdName))
+    final cleanProdName = (rawProdName != null && rawProdName.isNotEmpty && !isUuidString(rawProdName) && rawProdName != 'Water Purifier')
         ? rawProdName
-        : 'RO Water Purifier';
+        : null;
+
+    final rawCategory = raw['category']?.toString();
+    final category = detectCategoryFromSerial(serial, defaultCategory: rawCategory, productName: cleanProdName);
+
+    if (isUuidString(serial) && cleanProdName != null) {
+      serial = 'MWS-${serial.substring(0, 8).toUpperCase()}';
+    }
 
     return <String, dynamic>{
       'unit_id': unitId,
       'serial_number': serial,
       'product_id': raw['product_id']?.toString() ?? 'prod_001',
-      'product_name': cleanProdName,
+      'product_name': cleanProdName ?? 'RO Water Purifier',
       'category': category,
       'manufactured_at': raw['manufactured_at']?.toString() ?? nowIso,
       'model_number': raw['model_number']?.toString() ?? serial,
       'default_warranty_months': (raw['default_warranty_months'] as num?)?.toInt() ?? 12,
       'registration': regMap,
     };
+  }
+
+  @override
+  Future<Result<List<ProductUnit>>> fetchRegistrations({String? userId}) async {
+    try {
+      final dbUnits = <ProductUnit>[];
+      try {
+        var query = _client.from('unit_registrations').select();
+        if (userId != null && userId.isNotEmpty) {
+          query = query.eq('registered_by', userId);
+        }
+
+        final rows = await query.order('created_at', ascending: false);
+
+        for (final row in rows as List) {
+          final regMap = Map<String, dynamic>.from(row as Map);
+          final uId = regMap['unit_id'] as String;
+          final regId = regMap['id']?.toString() ?? uId;
+
+          if (_deletedRegistrationIds.contains(regId) || _deletedRegistrationIds.contains(uId)) {
+            continue;
+          }
+
+          // Stage 1: Try product_units with products join
+          Map<String, dynamic>? unitRow;
+          try {
+            unitRow = await _client
+                .from('product_units')
+                .select('*, products(*)')
+                .or('id.eq.$uId,serial_number.ilike.$uId')
+                .maybeSingle();
+          } catch (_) {}
+
+          // Stage 2: Fallback query product_units without join if null
+          if (unitRow == null) {
+            try {
+              unitRow = await _client
+                  .from('product_units')
+                  .select('*')
+                  .or('id.eq.$uId,serial_number.ilike.$uId')
+                  .maybeSingle();
+            } catch (_) {}
+          }
+
+          Map<String, dynamic>? prod = unitRow != null ? unitRow['products'] as Map<String, dynamic>? : null;
+          String serial = unitRow != null ? (unitRow['serial_number'] as String? ?? uId) : uId;
+
+          if (_deletedRegistrationIds.contains(serial) ||
+              _deletedRegistrationIds.contains(serial.toUpperCase())) {
+            continue;
+          }
+
+          // Stage 3: Query products directly if prod is missing
+          if (prod == null) {
+            final productId = unitRow != null ? unitRow['product_id'] as String? : uId;
+            if (productId != null && productId.isNotEmpty) {
+              try {
+                prod = await _client
+                    .from('products')
+                    .select('*')
+                    .or('id.eq.$productId,product_code.ilike.$productId,model_number.ilike.$productId')
+                    .maybeSingle();
+              } catch (_) {}
+            }
+          }
+
+          // Stage 4: Catalog products search fallback
+          if (prod == null) {
+            try {
+              final activeProds = await _client
+                  .from('products')
+                  .select('*')
+                  .order('created_at', ascending: false);
+              if (activeProds.isNotEmpty) {
+                for (final rawP in activeProds) {
+                  final pMap = Map<String, dynamic>.from(rawP as Map);
+                  final pCode = (pMap['product_code'] ?? '').toString().toUpperCase();
+                  final pModel = (pMap['model_number'] ?? '').toString().toUpperCase();
+                  final pName = (pMap['name'] ?? '').toString().toUpperCase();
+
+                  if ((pCode.isNotEmpty && (serial.toUpperCase().startsWith(pCode) || pCode.startsWith(serial.toUpperCase()))) ||
+                      (pModel.isNotEmpty && (serial.toUpperCase().startsWith(pModel) || pModel.startsWith(serial.toUpperCase()))) ||
+                      (pName.isNotEmpty && (serial.toUpperCase().contains(pName) || pName.contains(serial.toUpperCase())))) {
+                    prod = pMap;
+                    break;
+                  }
+                }
+                prod ??= Map<String, dynamic>.from(activeProds.first as Map);
+              }
+            } catch (_) {}
+          }
+
+          // If serial is a UUID, format a readable display serial
+          if (isUuidString(serial)) {
+            final pCode = prod?['product_code'] ?? prod?['model_number'];
+            if (pCode != null && pCode.toString().isNotEmpty) {
+              serial = '${pCode.toString().toUpperCase()}-SN-001';
+            } else {
+              serial = 'MWS-${serial.substring(0, 8).toUpperCase()}';
+            }
+          }
+
+          final prodName = prod?['name'] as String? ?? 'RO Water Purifier';
+          final categoryStr = prod?['category'] as String?;
+
+          final combined = <String, dynamic>{
+            'unit_id': unitRow != null ? unitRow['id'] : uId,
+            'serial_number': serial,
+            'manufactured_at': unitRow != null ? unitRow['manufactured_at'] : DateTime.now().toIso8601String(),
+            'product_id': unitRow != null ? unitRow['product_id'] : uId,
+            'product_name': prodName,
+            'model_number': prod?['model_number'] ?? serial,
+            'category': categoryStr ?? detectCategoryFromSerial(serial, productName: prodName),
+            'default_warranty_months': prod?['warranty_months'] ?? 12,
+            'registration': regMap,
+          };
+          dbUnits.add(ProductUnit.fromJson(sanitizeUnitJson(combined)));
+        }
+      } catch (dbError) {
+        AppLog.warn('Failed to query DB unit_registrations: $dbError');
+      }
+
+      // Also add in-memory units that match userId filter if any
+      for (final local in _inMemoryUnits) {
+        if (local.registration != null) {
+          if (_deletedRegistrationIds.contains(local.registration!.id) ||
+              _deletedRegistrationIds.contains(local.unitId)) {
+            continue;
+          }
+          if (userId != null && userId.isNotEmpty && local.registration!.registeredBy != userId) {
+            continue;
+          }
+          if (!dbUnits.any((u) => u.unitId == local.unitId || u.serialNumber == local.serialNumber)) {
+            dbUnits.add(local);
+          }
+        }
+      }
+
+      return Success<List<ProductUnit>>(dbUnits);
+    } on Object catch (error, stackTrace) {
+      return ResultFailure<List<ProductUnit>>(_map(error, stackTrace));
+    }
   }
 
   @override
@@ -758,124 +906,7 @@ class SupabaseUnitRepository implements UnitRepository {
     }
   }
 
-  @override
-  Future<Result<List<ProductUnit>>> fetchRegistrations({String? userId}) async {
-    try {
-      final dbUnits = <ProductUnit>[];
-      try {
-        var query = _client.from('unit_registrations').select();
-        if (userId != null && userId.isNotEmpty) {
-          query = query.eq('registered_by', userId);
-        }
 
-        final rows = await query.order('created_at', ascending: false);
-
-        for (final row in rows as List) {
-          final regMap = Map<String, dynamic>.from(row as Map);
-          final uId = regMap['unit_id'] as String;
-          final regId = regMap['id']?.toString() ?? uId;
-
-          if (_deletedRegistrationIds.contains(regId) || _deletedRegistrationIds.contains(uId)) {
-            continue;
-          }
-
-          Map<String, dynamic>? unitRow;
-          try {
-            unitRow = await _client
-                .from('product_units')
-                .select('*, products(*)')
-                .or('id.eq.$uId,serial_number.ilike.$uId')
-                .maybeSingle();
-          } catch (_) {}
-
-          final prod = unitRow != null ? unitRow['products'] as Map<String, dynamic>? : null;
-          String serial = unitRow != null ? (unitRow['serial_number'] as String? ?? uId) : uId;
-
-          if (_deletedRegistrationIds.contains(serial) ||
-              _deletedRegistrationIds.contains(serial.toUpperCase())) {
-            continue;
-          }
-
-          // If serial is a UUID, format a readable display serial
-          if (isUuidString(serial)) {
-            final pCode = prod?['product_code'] ?? prod?['model_number'];
-            if (pCode != null && pCode.toString().isNotEmpty) {
-              serial = '${pCode.toString().toUpperCase()}-SN-001';
-            } else {
-              serial = 'MWS-${serial.substring(0, 8).toUpperCase()}';
-            }
-          }
-
-          final prodName = prod?['name'] as String? ?? 'RO Water Purifier';
-
-          final combined = <String, dynamic>{
-            'unit_id': unitRow != null ? unitRow['id'] : uId,
-            'serial_number': serial,
-            'manufactured_at': unitRow != null ? unitRow['manufactured_at'] : DateTime.now().toIso8601String(),
-            'product_id': unitRow != null ? unitRow['product_id'] : uId,
-            'product_name': prodName,
-            'model_number': prod?['model_number'] ?? serial,
-            'category': prod?['category'] ?? 'domestic',
-            'default_warranty_months': prod?['warranty_months'] ?? 12,
-            'registration': regMap,
-          };
-          dbUnits.add(ProductUnit.fromJson(sanitizeUnitJson(combined)));
-        }
-      } catch (dbError) {
-        AppLog.warn('Failed to query DB unit_registrations: $dbError');
-      }
-
-      // Merge DB units and in-memory registered units, deduplicating by registration ID & serial
-      final mergedMap = <String, ProductUnit>{};
-      final seenRegIds = <String>{};
-
-      // Add in-memory units first (they have the freshest serials & product details)
-      for (final unit in _inMemoryUnits) {
-        final serialUpper = unit.serialNumber.toUpperCase();
-        final regId = unit.registration?.id;
-
-        if (_deletedRegistrationIds.contains(regId) ||
-            _deletedRegistrationIds.contains(unit.unitId) ||
-            _deletedRegistrationIds.contains(serialUpper)) {
-          continue;
-        }
-
-        if (userId != null && userId.isNotEmpty) {
-          final regBy = unit.registration?.registeredBy;
-          if (regBy != null && regBy != userId) continue;
-        }
-
-        mergedMap[serialUpper] = unit;
-        if (regId != null) seenRegIds.add(regId);
-      }
-
-      // Add DB units if not already present by registration ID or serial
-      for (final unit in dbUnits) {
-        final key = unit.serialNumber.toUpperCase();
-        final regId = unit.registration?.id;
-
-        if (_deletedRegistrationIds.contains(regId) ||
-            _deletedRegistrationIds.contains(unit.unitId) ||
-            _deletedRegistrationIds.contains(key)) {
-          continue;
-        }
-
-        if (regId != null && seenRegIds.contains(regId)) {
-          continue;
-        }
-
-        if (!mergedMap.containsKey(key)) {
-          mergedMap[key] = unit;
-          if (regId != null) seenRegIds.add(regId);
-        }
-      }
-
-      final resultList = mergedMap.values.toList();
-      return Success<List<ProductUnit>>(resultList);
-    } on Object catch (error, stackTrace) {
-      return ResultFailure<List<ProductUnit>>(_map(error, stackTrace));
-    }
-  }
 
   @override
   Future<Result<List<String>>> batchGenerateUnits({
