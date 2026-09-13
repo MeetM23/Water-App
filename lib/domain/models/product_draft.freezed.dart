@@ -463,6 +463,8 @@ mixin _$ProductDraft {
   List<SpecificationEntry> get specifications =>
       throw _privateConstructorUsedError;
   List<DraftImage> get images => throw _privateConstructorUsedError;
+  bool get isManualCode => throw _privateConstructorUsedError;
+  String get customCode => throw _privateConstructorUsedError;
   String? get id => throw _privateConstructorUsedError;
   String? get productCode => throw _privateConstructorUsedError;
 
@@ -494,6 +496,8 @@ abstract class $ProductDraftCopyWith<$Res> {
       bool isActive,
       List<SpecificationEntry> specifications,
       List<DraftImage> images,
+      bool isManualCode,
+      String customCode,
       String? id,
       String? productCode});
 }
@@ -527,6 +531,8 @@ class _$ProductDraftCopyWithImpl<$Res, $Val extends ProductDraft>
     Object? isActive = null,
     Object? specifications = null,
     Object? images = null,
+    Object? isManualCode = null,
+    Object? customCode = null,
     Object? id = freezed,
     Object? productCode = freezed,
   }) {
@@ -587,6 +593,14 @@ class _$ProductDraftCopyWithImpl<$Res, $Val extends ProductDraft>
           ? _value.images
           : images // ignore: cast_nullable_to_non_nullable
               as List<DraftImage>,
+      isManualCode: null == isManualCode
+          ? _value.isManualCode
+          : isManualCode // ignore: cast_nullable_to_non_nullable
+              as bool,
+      customCode: null == customCode
+          ? _value.customCode
+          : customCode // ignore: cast_nullable_to_non_nullable
+              as String,
       id: freezed == id
           ? _value.id
           : id // ignore: cast_nullable_to_non_nullable
@@ -622,6 +636,8 @@ abstract class _$$ProductDraftImplCopyWith<$Res>
       bool isActive,
       List<SpecificationEntry> specifications,
       List<DraftImage> images,
+      bool isManualCode,
+      String customCode,
       String? id,
       String? productCode});
 }
@@ -653,6 +669,8 @@ class __$$ProductDraftImplCopyWithImpl<$Res>
     Object? isActive = null,
     Object? specifications = null,
     Object? images = null,
+    Object? isManualCode = null,
+    Object? customCode = null,
     Object? id = freezed,
     Object? productCode = freezed,
   }) {
@@ -713,6 +731,14 @@ class __$$ProductDraftImplCopyWithImpl<$Res>
           ? _value._images
           : images // ignore: cast_nullable_to_non_nullable
               as List<DraftImage>,
+      isManualCode: null == isManualCode
+          ? _value.isManualCode
+          : isManualCode // ignore: cast_nullable_to_non_nullable
+              as bool,
+      customCode: null == customCode
+          ? _value.customCode
+          : customCode // ignore: cast_nullable_to_non_nullable
+              as String,
       id: freezed == id
           ? _value.id
           : id // ignore: cast_nullable_to_non_nullable
@@ -744,6 +770,8 @@ class _$ProductDraftImpl extends _ProductDraft {
       final List<SpecificationEntry> specifications =
           const <SpecificationEntry>[],
       final List<DraftImage> images = const <DraftImage>[],
+      this.isManualCode = false,
+      this.customCode = '',
       this.id,
       this.productCode})
       : _specifications = specifications,
@@ -804,13 +832,19 @@ class _$ProductDraftImpl extends _ProductDraft {
   }
 
   @override
+  @JsonKey()
+  final bool isManualCode;
+  @override
+  @JsonKey()
+  final String customCode;
+  @override
   final String? id;
   @override
   final String? productCode;
 
   @override
   String toString() {
-    return 'ProductDraft(name: $name, modelNumber: $modelNumber, description: $description, capacity: $capacity, category: $category, mrp: $mrp, wholesalePrice: $wholesalePrice, retailPrice: $retailPrice, warrantyMonths: $warrantyMonths, stockQuantity: $stockQuantity, inStock: $inStock, isActive: $isActive, specifications: $specifications, images: $images, id: $id, productCode: $productCode)';
+    return 'ProductDraft(name: $name, modelNumber: $modelNumber, description: $description, capacity: $capacity, category: $category, mrp: $mrp, wholesalePrice: $wholesalePrice, retailPrice: $retailPrice, warrantyMonths: $warrantyMonths, stockQuantity: $stockQuantity, inStock: $inStock, isActive: $isActive, specifications: $specifications, images: $images, isManualCode: $isManualCode, customCode: $customCode, id: $id, productCode: $productCode)';
   }
 
   @override
@@ -842,6 +876,10 @@ class _$ProductDraftImpl extends _ProductDraft {
             const DeepCollectionEquality()
                 .equals(other._specifications, _specifications) &&
             const DeepCollectionEquality().equals(other._images, _images) &&
+            (identical(other.isManualCode, isManualCode) ||
+                other.isManualCode == isManualCode) &&
+            (identical(other.customCode, customCode) ||
+                other.customCode == customCode) &&
             (identical(other.id, id) || other.id == id) &&
             (identical(other.productCode, productCode) ||
                 other.productCode == productCode));
@@ -864,6 +902,8 @@ class _$ProductDraftImpl extends _ProductDraft {
       isActive,
       const DeepCollectionEquality().hash(_specifications),
       const DeepCollectionEquality().hash(_images),
+      isManualCode,
+      customCode,
       id,
       productCode);
 
@@ -892,6 +932,8 @@ abstract class _ProductDraft extends ProductDraft {
       final bool isActive,
       final List<SpecificationEntry> specifications,
       final List<DraftImage> images,
+      final bool isManualCode,
+      final String customCode,
       final String? id,
       final String? productCode}) = _$ProductDraftImpl;
   const _ProductDraft._() : super._();
@@ -924,6 +966,10 @@ abstract class _ProductDraft extends ProductDraft {
   List<SpecificationEntry> get specifications;
   @override
   List<DraftImage> get images;
+  @override
+  bool get isManualCode;
+  @override
+  String get customCode;
   @override
   String? get id;
   @override

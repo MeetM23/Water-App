@@ -29,7 +29,7 @@ final productQueryControllerProvider =
 
 typedef _$ProductQueryController = AutoDisposeNotifier<ProductQuery>;
 String _$productListControllerHash() =>
-    r'efe5419e006f1dfa4f86e3007830197264e852f2';
+    r'fb6855c5b086471d9300841cb4e25070d7bfd235';
 
 /// Loads the product list one page at a time.
 ///

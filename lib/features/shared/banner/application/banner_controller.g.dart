@@ -6,7 +6,7 @@ part of 'banner_controller.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$activeBannersHash() => r'6d902b639d0e410c21617175a7df2537b29d848e';
+String _$activeBannersHash() => r'00ccc86ab7e65c2b669d092e140a51266a742f93';
 
 /// Provider for active banners displayed on the User Dashboard.
 ///
@@ -31,7 +31,7 @@ final activeBannersProvider =
 
 typedef _$ActiveBanners = Notifier<List<DashboardBanner>>;
 String _$adminBannersControllerHash() =>
-    r'f0a01efedb64e8a6098ee4288f9711dec5b58715';
+    r'da67197a5f90d35f8411bc1e281d1985acf13109';
 
 /// Controller managing all banners for Admin Banner Management.
 ///

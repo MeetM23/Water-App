@@ -30,7 +30,6 @@ class BarcodeModeSection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = context.l10n;
     final controller = ref.read(
       productFormControllerProvider(productId).notifier,
     );
@@ -87,7 +86,7 @@ class BarcodeModeSection extends ConsumerWidget {
           const SizedBox(height: Spacing.x4),
           AppTextField(
             label: 'Barcode / Base Serial Code *',
-            hintText: 'e.g. PRD-DOM-101 or MWS-DOM-000101',
+            hint: 'e.g. PRD-DOM-101 or MWS-DOM-000101',
             controller: customCodeController,
             textCapitalization: TextCapitalization.characters,
             onChanged: controller.setCustomCode,
@@ -103,9 +102,9 @@ class BarcodeModeSection extends ConsumerWidget {
             Container(
               padding: const EdgeInsets.all(Spacing.x3),
               decoration: BoxDecoration(
-                color: AppColors.surfaceVariant,
+                color: AppColors.primaryTint,
                 borderRadius: BorderRadius.circular(Spacing.x2),
-                border: Border.all(color: AppColors.outline),
+                border: Border.all(color: AppColors.border),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -117,7 +116,7 @@ class BarcodeModeSection extends ConsumerWidget {
                       Text(
                         'Generated Stock Barcodes (${generatedSerials.length} units):',
                         style: context.textTheme.labelMedium?.copyWith(
-                          color: AppColors.textPrimary,
+                          color: AppColors.ink,
                           fontWeight: FontWeight.w600,
                         ),
                       ),

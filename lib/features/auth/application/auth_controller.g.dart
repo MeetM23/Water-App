@@ -6,7 +6,7 @@ part of 'auth_controller.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$authControllerHash() => r'71aa410d0b4f932ba314dd3e31d5b0c0a194eabb';
+String _$authControllerHash() => r'3ca5baff090412e7078062f9a1bbab379b92c604';
 
 /// Drives the sign-in, sign-up and sign-out forms.
 ///

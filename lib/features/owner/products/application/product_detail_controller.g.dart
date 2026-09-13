@@ -194,7 +194,7 @@ class _SignedImageUrlProviderElement
 }
 
 String _$productDetailControllerHash() =>
-    r'e867de0256fd38d067ecef029f1086643971720e';
+    r'0ad99c01a3f98010bc22416c986018ae8f54cdf6';
 
 abstract class _$ProductDetailController
     extends BuildlessAutoDisposeAsyncNotifier<ProductDetail> {
