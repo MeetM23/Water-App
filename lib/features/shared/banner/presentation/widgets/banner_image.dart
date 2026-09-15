@@ -32,7 +32,7 @@ class BannerImage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final path = storagePath.trim();
-    if (path.isEmpty || path.startsWith('test_banner_')) {
+    if (path.isEmpty) {
       return errorBuilder?.call(context) ?? _defaultPlaceholder();
     }
 

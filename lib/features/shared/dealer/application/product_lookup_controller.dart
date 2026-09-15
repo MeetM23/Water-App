@@ -4,9 +4,9 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../../core/errors/app_failure.dart';
 import '../../../../core/utils/product_code.dart';
 import '../../../../data/repositories/supabase_catalog_repository.dart';
-import '../../../../data/repositories/supabase_unit_repository.dart';
+import '../../../../data/repositories/supabase_product_registration_repository.dart';
 import '../../../../domain/models/catalog_product.dart';
-import '../../../../domain/models/product_unit.dart';
+import '../../../../domain/models/product_lookup.dart';
 import 'catalogue_controller.dart';
 import 'session_guard.dart';
 
@@ -26,26 +26,22 @@ final class LookupFound extends LookupOutcome {
   final CatalogProduct product;
 }
 
-/// The code resolved to an individual physical RO machine unit.
+/// The code resolved to a product registration / lookup model.
 final class LookupUnitFound extends LookupOutcome {
-  /// Creates a successful physical unit lookup.
+  /// Creates a successful product lookup.
   const LookupUnitFound(this.unit);
 
-  /// The physical unit behind the serial number.
-  final ProductUnit unit;
+  /// The product lookup result.
+  final ProductLookup unit;
 }
 
 /// The code is not a Maruti Water Solution code at all.
-///
-/// Either the shape is wrong or the check character disagrees. Both mean the
-/// dealer scanned somebody else's barcode, which is by far the most common
-/// failure in a shop full of other manufacturers' boxes.
 final class LookupInvalidCode extends LookupOutcome {
   /// Creates an invalid-code outcome.
   const LookupInvalidCode();
 }
 
-/// The code is well formed but matches no product or unit.
+/// The code is well formed but matches no product.
 final class LookupNotFound extends LookupOutcome {
   /// Creates a not-found outcome.
   const LookupNotFound();
@@ -60,7 +56,7 @@ final class LookupFailed extends LookupOutcome {
   final AppFailure failure;
 }
 
-/// Resolves a product code or unit serial number, offline first.
+/// Resolves a product code or barcode, offline first.
 @riverpod
 class ProductLookupController extends _$ProductLookupController {
   @override
@@ -73,19 +69,19 @@ class ProductLookupController extends _$ProductLookupController {
       return const LookupInvalidCode();
     }
 
-    // 1. Physical machine serial lookup (MWS-SN-...)
-    if (ProductCode.isUnitSerial(code)) {
-      final result = await ref.read(unitRepositoryProvider).findUnitBySerial(code);
-      final failure = result.failureOrNull;
-      if (failure != null) {
-        ref.read(sessionGuardProvider).handle(failure);
-        return LookupFailed(failure);
-      }
-      final unit = result.valueOrNull;
-      return unit == null ? const LookupNotFound() : LookupUnitFound(unit);
+    // 1. Product barcode & registration lookup
+    final result = await ref.read(productRegistrationRepositoryProvider).findProductByBarcode(code);
+    final failure = result.failureOrNull;
+    if (failure != null) {
+      ref.read(sessionGuardProvider).handle(failure);
+      return LookupFailed(failure);
+    }
+    final unit = result.valueOrNull;
+    if (unit != null) {
+      return LookupUnitFound(unit);
     }
 
-    // 2. Catalogue product code lookup (MWS-DOM-...)
+    // 2. Catalogue product code lookup fallback
     final cached = ref.read(catalogueControllerProvider.notifier).findInLoaded(
       code,
     );
@@ -93,35 +89,57 @@ class ProductLookupController extends _$ProductLookupController {
       return LookupFound(cached);
     }
 
-    final result = await ref.read(catalogRepositoryProvider).findByCode(code);
+    final catResult = await ref.read(catalogRepositoryProvider).findByCode(code);
 
-    final failure = result.failureOrNull;
-    if (failure != null) {
-      ref.read(sessionGuardProvider).handle(failure);
-      return LookupFailed(failure);
+    final catFailure = catResult.failureOrNull;
+    if (catFailure != null) {
+      ref.read(sessionGuardProvider).handle(catFailure);
+      return LookupFailed(catFailure);
     }
 
-    final product = result.valueOrNull;
+    final product = catResult.valueOrNull;
     return product == null ? const LookupNotFound() : LookupFound(product);
   }
 }
 
 /// One product resolved by code, for the detail screen.
-///
-/// Offline-first for the same reason as the scanner: a dealer who scanned a
-/// label with no signal must still see the product they scanned.
 @riverpod
 Future<CatalogProduct?> productByCode(
   Ref<AsyncValue<CatalogProduct?>> ref,
   String productCode,
 ) async {
+  final cleanCode = ProductCode.normalise(productCode) ?? productCode.trim().toUpperCase();
+
+  // 1. Check loaded catalogue cache
+  final cached = ref.read(catalogueControllerProvider.notifier).findInLoaded(cleanCode);
+  if (cached != null) {
+    return cached;
+  }
+
+  // 2. Fetch real CatalogProduct from catalogRepositoryProvider (catalog_view)
+  final catResult = await ref.read(catalogRepositoryProvider).findByCode(cleanCode);
+  final catFailure = catResult.failureOrNull;
+  if (catFailure != null) {
+    ref.read(sessionGuardProvider).handle(catFailure);
+    throw catFailure;
+  }
+
+  final catProduct = catResult.valueOrNull;
+  if (catProduct != null) {
+    return catProduct;
+  }
+
+  // 3. Fallback to product/unit barcode lookup
   final outcome = await ref
       .read(productLookupControllerProvider.notifier)
-      .lookup(productCode);
+      .lookup(cleanCode);
 
   return switch (outcome) {
     LookupFound(:final product) => product,
-    LookupUnitFound() || LookupNotFound() || LookupInvalidCode() => null,
+    LookupUnitFound(:final unit) => ref
+        .read(catalogueControllerProvider.notifier)
+        .findInLoaded(unit.productCode ?? unit.serialNumber),
+    LookupNotFound() || LookupInvalidCode() => null,
     LookupFailed(:final failure) => throw failure,
   };
 }

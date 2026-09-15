@@ -104,25 +104,11 @@ class SupabaseProductRepository implements ProductRepository {
         payload['product_code'] = customCodeUpper;
       }
 
-      Map<String, dynamic> row;
-      try {
-        row = await _client
-            .from(_table)
-            .insert(payload)
-            .select()
-            .single();
-      } on PostgrestException catch (pgErr) {
-        if (pgErr.message.contains('stock_quantity') || pgErr.code == '42703' || pgErr.code == 'PGRST204') {
-          payload.remove('stock_quantity');
-          row = await _client
-              .from(_table)
-              .insert(payload)
-              .select()
-              .single();
-        } else {
-          rethrow;
-        }
-      }
+      Map<String, dynamic> row = await _client
+          .from(_table)
+          .insert(payload)
+          .select()
+          .single();
 
       // If Postgres DB trigger assigned a random code on BEFORE INSERT, override it with custom code
       if (hasCustomCode) {
@@ -139,28 +125,6 @@ class SupabaseProductRepository implements ProductRepository {
       }
 
       final product = Product.fromJson(row);
-
-      // Seed product units for generated stock serials
-      try {
-        final serials = draft.generateStockSerials(quantityOverride: product.stockQuantity);
-        if (serials.isNotEmpty) {
-          final unitsToInsert = <Map<String, dynamic>>[
-            for (final serial in serials)
-              <String, dynamic>{
-                'product_id': product.id,
-                'serial_number': serial,
-                'manufactured_at': DateTime.now().toIso8601String(),
-              }
-          ];
-          await _client
-              .from('product_units')
-              .upsert(unitsToInsert)
-              .timeout(const Duration(seconds: 2));
-        }
-      } catch (unitErr) {
-        AppLog.warn('Failed to pre-seed product_units: $unitErr');
-      }
-
       return Success<Product>(product);
     } on Object catch (error, stackTrace) {
       return ResultFailure<Product>(_map(error, stackTrace));
@@ -178,27 +142,12 @@ class SupabaseProductRepository implements ProductRepository {
         payload['product_code'] = customCodeUpper;
       }
 
-      Map<String, dynamic> row;
-      try {
-        row = await _client
-            .from(_table)
-            .update(payload)
-            .eq('id', draft.id!)
-            .select()
-            .single();
-      } on PostgrestException catch (pgErr) {
-        if (pgErr.message.contains('stock_quantity') || pgErr.code == '42703' || pgErr.code == 'PGRST204') {
-          payload.remove('stock_quantity');
-          row = await _client
-              .from(_table)
-              .update(payload)
-              .eq('id', draft.id!)
-              .select()
-              .single();
-        } else {
-          rethrow;
-        }
-      }
+      Map<String, dynamic> row = await _client
+          .from(_table)
+          .update(payload)
+          .eq('id', draft.id!)
+          .select()
+          .single();
 
       // Override if product_code was modified or replaced
       if (hasCustomCode) {
@@ -215,28 +164,6 @@ class SupabaseProductRepository implements ProductRepository {
       }
 
       final product = Product.fromJson(row);
-
-      // Seed product units for generated stock serials
-      try {
-        final serials = draft.generateStockSerials(quantityOverride: product.stockQuantity);
-        if (serials.isNotEmpty) {
-          final unitsToInsert = <Map<String, dynamic>>[
-            for (final serial in serials)
-              <String, dynamic>{
-                'product_id': product.id,
-                'serial_number': serial,
-                'manufactured_at': DateTime.now().toIso8601String(),
-              }
-          ];
-          await _client
-              .from('product_units')
-              .upsert(unitsToInsert)
-              .timeout(const Duration(seconds: 2));
-        }
-      } catch (unitErr) {
-        AppLog.warn('Failed to update product_units: $unitErr');
-      }
-
       return Success<Product>(product);
     } on Object catch (error, stackTrace) {
       return ResultFailure<Product>(_map(error, stackTrace));
@@ -246,16 +173,6 @@ class SupabaseProductRepository implements ProductRepository {
   @override
   Future<Result<void>> delete(String id) async {
     try {
-      // Clean dependent product_units first to prevent foreign key errors or hangs
-      try {
-        await _client
-            .from('product_units')
-            .delete()
-            .eq('product_id', id)
-            .timeout(const Duration(seconds: 2));
-      } catch (e) {
-        AppLog.warn('Deleting product_units non-blocking notice: $e');
-      }
 
       // Clean dependent product_images
       try {

@@ -38,7 +38,8 @@ class Profile with _$Profile {
 
   /// Whether this account may use the catalogue at all.
   bool get isApproved => switch (role) {
-        UserRole.wholesaler || UserRole.owner => status == AccountStatus.approved,
+        UserRole.owner => true,
+        UserRole.wholesaler => status == AccountStatus.approved,
         UserRole.retailer =>
           status != AccountStatus.rejected && status != AccountStatus.suspended,
       };

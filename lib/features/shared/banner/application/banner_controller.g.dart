@@ -6,15 +6,14 @@ part of 'banner_controller.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$activeBannersHash() => r'00ccc86ab7e65c2b669d092e140a51266a742f93';
+String _$activeBannersHash() => r'd6a5f88cdfdaebbec8cc8fae335e3b10c9dcd526';
 
 /// Provider for active banners displayed on the User Dashboard.
 ///
-/// Designed to be completely stable and fail-safe:
-/// - Keep alive in memory (`keepAlive: true`).
-/// - Synchronously initialised with a stable default list.
-/// - Performs an async fetch once in the background.
-/// - Never enters an infinite loading or rebuild loop.
+/// Supabase is the single source of truth:
+/// - Fetches active banners from `dashboard_banners` table.
+/// - Returns empty list `[]` when no active banners exist.
+/// - Caches fresh remote banners to disk for offline fallback.
 ///
 /// Copied from [ActiveBanners].
 @ProviderFor(ActiveBanners)
@@ -31,7 +30,7 @@ final activeBannersProvider =
 
 typedef _$ActiveBanners = Notifier<List<DashboardBanner>>;
 String _$adminBannersControllerHash() =>
-    r'da67197a5f90d35f8411bc1e281d1985acf13109';
+    r'a92766b066340090ad0fa22cb0020abd229c89a7';
 
 /// Controller managing all banners for Admin Banner Management.
 ///

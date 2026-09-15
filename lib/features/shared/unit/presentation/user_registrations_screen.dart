@@ -6,13 +6,14 @@ import '../../../../core/extensions/build_context_x.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/widgets/app_card.dart';
-import '../../../../data/repositories/supabase_unit_repository.dart';
-import '../../../../domain/models/product_unit.dart';
+import '../../../../data/repositories/supabase_product_registration_repository.dart';
+import '../../../../domain/enums/user_role.dart';
+import '../../../../domain/models/product_lookup.dart';
 import '../../../auth/application/session_controller.dart';
 
 import 'widgets/edit_registration_dialog.dart';
 
-/// Dealer screen displaying all physical RO units registered by the signed-in user.
+/// Dealer screen displaying all registered products by the signed-in user.
 class UserRegistrationsScreen extends ConsumerStatefulWidget {
   /// Creates user registrations screen.
   const UserRegistrationsScreen({super.key});
@@ -23,7 +24,7 @@ class UserRegistrationsScreen extends ConsumerStatefulWidget {
 }
 
 class _UserRegistrationsScreenState extends ConsumerState<UserRegistrationsScreen> {
-  late Future<List<ProductUnit>> _future;
+  late Future<List<ProductLookup>> _future;
 
   @override
   void initState() {
@@ -35,10 +36,10 @@ class _UserRegistrationsScreenState extends ConsumerState<UserRegistrationsScree
     final session = ref.read(sessionControllerProvider).valueOrNull;
     final userId = session is SessionSignedIn ? session.profile.id : null;
 
-    _future = ref.read(unitRepositoryProvider).fetchRegistrations(userId: userId).then(
+    _future = ref.read(productRegistrationRepositoryProvider).fetchRegistrations(userId: userId).then(
           (result) => result.fold(
             onSuccess: (units) => units,
-            onFailure: (_) => <ProductUnit>[],
+            onFailure: (_) => <ProductLookup>[],
           ),
         );
   }
@@ -46,9 +47,12 @@ class _UserRegistrationsScreenState extends ConsumerState<UserRegistrationsScree
 
   @override
   Widget build(BuildContext context) {
+    final session = ref.watch(sessionControllerProvider).valueOrNull;
+    final isWholesaler = session is SessionSignedIn && session.profile.role == UserRole.wholesaler;
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('My Registered Units'),
+        title: const Text('My Registered Products'),
         actions: <Widget>[
           IconButton(
             icon: const Icon(Icons.refresh_rounded),
@@ -56,18 +60,18 @@ class _UserRegistrationsScreenState extends ConsumerState<UserRegistrationsScree
           ),
         ],
       ),
-      body: FutureBuilder<List<ProductUnit>>(
+      body: FutureBuilder<List<ProductLookup>>(
         future: _future,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
 
-          final units = snapshot.data ?? <ProductUnit>[];
+          final units = snapshot.data ?? <ProductLookup>[];
           if (units.isEmpty) {
             return Center(
               child: Text(
-                'No registered units found',
+                'No registered products found',
                 style: context.textTheme.bodyLarge?.copyWith(color: Colors.grey),
               ),
             );
@@ -114,27 +118,29 @@ class _UserRegistrationsScreenState extends ConsumerState<UserRegistrationsScree
                                 ),
                               ),
                             ),
-                            const SizedBox(width: Spacing.x1),
-                            IconButton(
-                              icon: const Icon(Icons.edit_outlined, size: 18),
-                              onPressed: () => _editRegistration(reg, unit),
-                              tooltip: 'Edit registration',
-                              constraints: const BoxConstraints(),
-                              padding: const EdgeInsets.all(4),
-                            ),
-                            IconButton(
-                              icon: const Icon(Icons.delete_outline_rounded, size: 18, color: AppColors.danger),
-                              onPressed: () => _deleteRegistration(reg),
-                              tooltip: 'Delete registration',
-                              constraints: const BoxConstraints(),
-                              padding: const EdgeInsets.all(4),
-                            ),
+                            if (!isWholesaler) ...<Widget>[
+                              const SizedBox(width: Spacing.x1),
+                              IconButton(
+                                icon: const Icon(Icons.edit_outlined, size: 18),
+                                onPressed: () => _editRegistration(reg, unit),
+                                tooltip: 'Edit registration',
+                                constraints: const BoxConstraints(),
+                                padding: const EdgeInsets.all(4),
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.delete_outline_rounded, size: 18, color: AppColors.danger),
+                                onPressed: () => _deleteRegistration(reg),
+                                tooltip: 'Delete registration',
+                                constraints: const BoxConstraints(),
+                                padding: const EdgeInsets.all(4),
+                              ),
+                            ],
                           ],
                         ],
                       ),
                       const SizedBox(height: Spacing.x1),
                       Text(
-                        'Serial: ${unit.serialNumber}',
+                        'Product Barcode: ${unit.serialNumber}',
                         style: context.textTheme.bodySmall?.copyWith(
                           color: Colors.grey.shade700,
                           fontWeight: FontWeight.w600,
@@ -213,11 +219,11 @@ class _UserRegistrationsScreenState extends ConsumerState<UserRegistrationsScree
     );
   }
 
-  Future<void> _editRegistration(UnitRegistrationInfo reg, ProductUnit unit) async {
+  Future<void> _editRegistration(ProductRegistrationInfo reg, ProductLookup unit) async {
     final result = await EditRegistrationDialog.show(context, reg);
 
     if (result != null && mounted) {
-      await ref.read(unitRepositoryProvider).updateRegistration(
+      await ref.read(productRegistrationRepositoryProvider).updateRegistration(
         registrationId: reg.id,
         customerName: result['customerName']!,
         customerPhone: result['customerPhone']!,
@@ -236,7 +242,7 @@ class _UserRegistrationsScreenState extends ConsumerState<UserRegistrationsScree
     }
   }
 
-  Future<void> _deleteRegistration(UnitRegistrationInfo reg) async {
+  Future<void> _deleteRegistration(ProductRegistrationInfo reg) async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogCtx) => AlertDialog(
@@ -257,7 +263,7 @@ class _UserRegistrationsScreenState extends ConsumerState<UserRegistrationsScree
     );
 
     if (confirmed == true && mounted) {
-      final res = await ref.read(unitRepositoryProvider).deleteRegistration(reg.id);
+      final res = await ref.read(productRegistrationRepositoryProvider).deleteRegistration(reg.id);
       if (mounted) {
         res.fold(
           onSuccess: (_) {

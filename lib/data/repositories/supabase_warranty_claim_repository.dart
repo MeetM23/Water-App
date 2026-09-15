@@ -37,47 +37,33 @@ class SupabaseWarrantyClaimRepository implements WarrantyClaimRepository {
       }
 
       final cleanUnitId = unitId.trim().toUpperCase();
-      String dbUnitId = cleanUnitId;
+      String? dbProductId;
 
       try {
-        final existingUnit = await _client
-            .from('product_units')
+        final existingProd = await _client
+            .from('products')
             .select('id')
-            .or('id.eq.$cleanUnitId,serial_number.ilike.$cleanUnitId')
+            .or('product_code.ilike.$cleanUnitId,model_number.ilike.$cleanUnitId,id.eq.$cleanUnitId')
             .maybeSingle();
 
-        if (existingUnit != null) {
-          dbUnitId = existingUnit['id'] as String;
-        } else {
-          final firstProd = await _client.from('products').select('id').limit(1).maybeSingle();
-          final productId = firstProd != null ? firstProd['id'] as String : 'p_dom_01';
-
-          final newUnitRow = await _client
-              .from('product_units')
-              .insert({
-                'serial_number': cleanUnitId,
-                'product_id': productId,
-                'manufactured_at': DateTime.now().toIso8601String(),
-              })
-              .select('id')
-              .maybeSingle();
-
-          if (newUnitRow != null) {
-            dbUnitId = newUnitRow['id'] as String;
-          }
+        if (existingProd != null) {
+          dbProductId = existingProd['id'] as String;
         }
-      } catch (unitPrepError) {
-        AppLog.warn('Product unit pre-creation check for claim failed: $unitPrepError');
+      } catch (prodErr) {
+        AppLog.warn('Product resolution for warranty claim failed: $prodErr');
       }
 
       final insertData = <String, dynamic>{
-        'unit_id': dbUnitId,
+        'unit_id': cleanUnitId,
         'user_id': userId,
         'claim_type': claimType,
         'description': description,
         'contact_phone': contactPhone,
         'status': 'pending',
       };
+      if (dbProductId != null) {
+        insertData['product_id'] = dbProductId;
+      }
 
       Map<String, dynamic>? response;
       try {
@@ -107,7 +93,7 @@ class SupabaseWarrantyClaimRepository implements WarrantyClaimRepository {
           response = <String, dynamic>{
             'id': 'clm_${DateTime.now().millisecondsSinceEpoch}',
             'claim_number': claimNum,
-            'unit_id': dbUnitId,
+            'unit_id': cleanUnitId,
             'user_id': userId,
             'claim_type': claimType,
             'description': description,
@@ -152,7 +138,7 @@ class SupabaseWarrantyClaimRepository implements WarrantyClaimRepository {
       try {
         var query = _client
             .from('warranty_claims')
-            .select('*, product_units(*, products(*)), profiles(*)');
+            .select('*, products(*), profiles(*)');
 
         if (userId != null && userId.isNotEmpty) {
           query = query.eq('user_id', userId);
@@ -165,11 +151,10 @@ class SupabaseWarrantyClaimRepository implements WarrantyClaimRepository {
 
         for (final row in rows as List) {
           final rowMap = Map<String, dynamic>.from(row as Map);
-          final unitMap = rowMap['product_units'] as Map<String, dynamic>?;
-          final prodMap = unitMap != null
-              ? unitMap['products'] as Map<String, dynamic>?
-              : null;
+          final prodMap = rowMap['products'] as Map<String, dynamic>?;
           final profileMap = rowMap['profiles'] as Map<String, dynamic>?;
+
+          final displaySerial = prodMap?['product_code']?.toString() ?? rowMap['unit_id']?.toString() ?? 'MWS-DOM-001';
 
           final combined = <String, dynamic>{
             'id': rowMap['id'],
@@ -183,9 +168,9 @@ class SupabaseWarrantyClaimRepository implements WarrantyClaimRepository {
             'admin_notes': rowMap['admin_notes'],
             'created_at': rowMap['created_at'],
             'updated_at': rowMap['updated_at'],
-            'serial_number': unitMap?['serial_number'] ?? rowMap['unit_id'],
+            'serial_number': displaySerial,
             'product_name': prodMap?['name'] ?? 'RO Water Purifier',
-            'model_number': prodMap?['model_number'] ?? unitMap?['serial_number'],
+            'model_number': prodMap?['model_number'] ?? displaySerial,
             'user_full_name': profileMap?['full_name'],
             'user_company': profileMap?['company_name'],
             'user_phone': profileMap?['mobile_number'],
@@ -210,7 +195,6 @@ class SupabaseWarrantyClaimRepository implements WarrantyClaimRepository {
         } catch (_) {}
       }
 
-      // Merge DB claims with in-memory claims
       final mergedMap = <String, WarrantyClaim>{};
 
       for (final claim in _inMemoryClaims) {
@@ -263,15 +247,16 @@ class SupabaseWarrantyClaimRepository implements WarrantyClaimRepository {
       try {
         final row = await _client
             .from('warranty_claims')
-            .select('*, product_units(*, products(*)), profiles(*)')
+            .select('*, products(*), profiles(*)')
             .eq('id', claimId)
             .maybeSingle();
 
         if (row != null) {
           final rowMap = Map<String, dynamic>.from(row);
-          final unitMap = rowMap['product_units'] as Map<String, dynamic>?;
-          final prodMap = unitMap != null ? unitMap['products'] as Map<String, dynamic>? : null;
+          final prodMap = rowMap['products'] as Map<String, dynamic>?;
           final profileMap = rowMap['profiles'] as Map<String, dynamic>?;
+
+          final displaySerial = prodMap?['product_code']?.toString() ?? rowMap['unit_id']?.toString() ?? 'MWS-DOM-001';
 
           final combined = <String, dynamic>{
             'id': rowMap['id'],
@@ -285,9 +270,9 @@ class SupabaseWarrantyClaimRepository implements WarrantyClaimRepository {
             'admin_notes': rowMap['admin_notes'],
             'created_at': rowMap['created_at'],
             'updated_at': rowMap['updated_at'],
-            'serial_number': unitMap?['serial_number'] ?? rowMap['unit_id'],
+            'serial_number': displaySerial,
             'product_name': prodMap?['name'] ?? 'RO Water Purifier',
-            'model_number': prodMap?['model_number'] ?? unitMap?['serial_number'],
+            'model_number': prodMap?['model_number'] ?? displaySerial,
             'user_full_name': profileMap?['full_name'],
             'user_company': profileMap?['company_name'],
             'user_phone': profileMap?['mobile_number'],
@@ -331,7 +316,6 @@ class SupabaseWarrantyClaimRepository implements WarrantyClaimRepository {
         AppLog.warn('Update claim status DB write error: $updateErr');
       }
 
-      // Update in-memory claim for immediate sync
       final idx = _inMemoryClaims.indexWhere((c) => c.id == claimId);
       if (idx != -1) {
         _inMemoryClaims[idx] = _inMemoryClaims[idx].copyWith(
@@ -349,7 +333,7 @@ class SupabaseWarrantyClaimRepository implements WarrantyClaimRepository {
 
   Map<String, dynamic> sanitizeClaimJson(Map<String, dynamic> raw) {
     final nowIso = DateTime.now().toIso8601String();
-    final serial = raw['serial_number']?.toString() ?? raw['unit_id']?.toString() ?? 'MWS-SN-000';
+    final serial = raw['serial_number']?.toString() ?? raw['unit_id']?.toString() ?? 'MWS-DOM-001';
     final claimNum = raw['claim_number']?.toString() ?? 'CLM-${1000 + DateTime.now().millisecondsSinceEpoch % 9000}';
 
     return <String, dynamic>{

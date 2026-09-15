@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../../../core/config/app_config.dart';
 import '../../../core/errors/failure_presentation.dart';
 import '../../../core/extensions/build_context_x.dart';
+import '../../../core/router/app_routes.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/utils/validators.dart';
@@ -87,8 +88,11 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
       return;
     }
 
-    // The session stream now reports a signed-in, pending user, and the router
-    // redirect moves to the pending screen on its own.
+    AppSnackbar.success(
+      context,
+      'Registration submitted successfully. Please sign in.',
+    );
+    context.go(AppRoutes.login);
   }
 
   @override

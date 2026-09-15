@@ -12,56 +12,32 @@ part 'banner_controller.g.dart';
 
 /// Provider for active banners displayed on the User Dashboard.
 ///
-/// Designed to be completely stable and fail-safe:
-/// - Keep alive in memory (`keepAlive: true`).
-/// - Synchronously initialised with a stable default list.
-/// - Performs an async fetch once in the background.
-/// - Never enters an infinite loading or rebuild loop.
+/// Supabase is the single source of truth:
+/// - Fetches active banners from `dashboard_banners` table.
+/// - Returns empty list `[]` when no active banners exist.
+/// - Caches fresh remote banners to disk for offline fallback.
 @Riverpod(keepAlive: true)
 class ActiveBanners extends _$ActiveBanners {
   @override
   List<DashboardBanner> build() {
-    // Start empty — no banners until admin uploads them.
     Future.microtask(() => loadActiveBanners());
     return <DashboardBanner>[];
   }
 
   Future<void> loadActiveBanners() async {
     try {
-      final diskBanners = await AdminBannersController._loadDiskBanners();
-      final activeDisk = diskBanners.where((b) => b.isActive).toList();
-      if (activeDisk.isNotEmpty) {
-        state = activeDisk;
-      }
-
       final repository = ref.read(bannerRepositoryProvider);
       final result = await repository.fetchActiveBanners();
 
-      result.fold(
-        onSuccess: (remoteBanners) {
-          final merged = <String, DashboardBanner>{};
-          // Add local active banners first
-          for (final b in diskBanners) {
-            if (b.isActive) merged[b.id] = b;
-          }
-          // Merge remote active banners
-          for (final b in remoteBanners) {
-            if (b.isActive) merged[b.id] = b;
-          }
-
-          // Only update state when there are actual admin-set banners.
-          if (merged.isNotEmpty) {
-            state = merged.values.toList();
-          } else if (activeDisk.isNotEmpty) {
-            state = activeDisk;
-          }
-          // If both are empty, leave state as [] — no banners shown.
+      await result.fold(
+        onSuccess: (remoteBanners) async {
+          state = remoteBanners;
+          await AdminBannersController._saveDiskBannersList(remoteBanners);
         },
-        onFailure: (_) {
-          if (activeDisk.isNotEmpty) {
-            state = activeDisk;
-          }
-          // On failure with no disk cache, leave state as [] — no banners shown.
+        onFailure: (_) async {
+          final diskBanners = await AdminBannersController._loadDiskBanners();
+          final activeDisk = diskBanners.where((b) => b.isActive).toList();
+          state = activeDisk;
         },
       );
     } catch (e, st) {
@@ -71,7 +47,6 @@ class ActiveBanners extends _$ActiveBanners {
 
   void updateBanners(List<DashboardBanner> banners) {
     final active = banners.where((b) => b.isActive).toList();
-    // Only show banners that are explicitly active — no fallback defaults.
     state = active;
   }
 }
@@ -91,10 +66,8 @@ class AdminBannersController extends _$AdminBannersController {
         final loaded = jsonList
             .map((e) => DashboardBanner.fromJson(e as Map<String, dynamic>))
             .toList();
-        if (loaded.isNotEmpty) {
-          _localBanners = loaded;
-          return loaded;
-        }
+        _localBanners = loaded;
+        return loaded;
       }
     } catch (e, st) {
       AppLog.warn('Could not read banners from disk', e, st);
@@ -128,138 +101,114 @@ class AdminBannersController extends _$AdminBannersController {
     }
   }
 
+  static Future<void> _saveDiskBannersList(List<DashboardBanner> banners) async {
+    _localBanners = List<DashboardBanner>.from(banners);
+    await _saveDiskBanners();
+  }
+
   @override
   Future<List<DashboardBanner>> build() async {
-    await _loadDiskBanners();
     final repository = ref.watch(bannerRepositoryProvider);
     final result = await repository.fetchAllBanners();
 
-    final loaded = result.fold(
-      onSuccess: (banners) => banners.isEmpty ? _localBanners : banners,
-      onFailure: (_) => List<DashboardBanner>.from(_localBanners),
+    return result.fold(
+      onSuccess: (banners) {
+        _saveDiskBannersList(banners);
+        ref.read(activeBannersProvider.notifier).updateBanners(banners);
+        return banners;
+      },
+      onFailure: (_) async {
+        final disk = await _loadDiskBanners();
+        ref.read(activeBannersProvider.notifier).updateBanners(disk);
+        return disk;
+      },
     );
-    ref.read(activeBannersProvider.notifier).updateBanners(loaded);
-    return loaded;
   }
 
-  /// Refreshes the banner list from the backend or local cache.
+  /// Refreshes the banner list from Supabase and syncs active banners.
   Future<void> refresh() async {
     state = const AsyncValue.loading();
     state = await AsyncValue.guard(() async {
-      await _loadDiskBanners();
       final repository = ref.read(bannerRepositoryProvider);
       final result = await repository.fetchAllBanners();
-      final loaded = result.fold(
-        onSuccess: (banners) => banners.isEmpty ? _localBanners : banners,
-        onFailure: (_) => List<DashboardBanner>.from(_localBanners),
+      return result.fold(
+        onSuccess: (banners) {
+          _saveDiskBannersList(banners);
+          ref.read(activeBannersProvider.notifier).updateBanners(banners);
+          return banners;
+        },
+        onFailure: (failure) async {
+          final disk = await _loadDiskBanners();
+          ref.read(activeBannersProvider.notifier).updateBanners(disk);
+          return disk;
+        },
       );
-      ref.read(activeBannersProvider.notifier).updateBanners(loaded);
-      return loaded;
     });
   }
 
-  /// Creates a new banner from an image file.
+  /// Creates a new banner from an image file in Supabase Storage.
   Future<void> addBanner({
     required File imageFile,
     String? title,
   }) async {
-    try {
-      final repository = ref.read(bannerRepositoryProvider);
-      final result = await repository.createBanner(
-        imageFile: imageFile,
-        title: title,
-      );
+    state = const AsyncValue.loading();
+    final repository = ref.read(bannerRepositoryProvider);
+    final result = await repository.createBanner(
+      imageFile: imageFile,
+      title: title,
+    );
 
-      result.fold(
-        onSuccess: (_) => refresh(),
-        onFailure: (_) {
-          final newBanner = DashboardBanner(
-            id: 'local_${DateTime.now().millisecondsSinceEpoch}',
-            storagePath: imageFile.path,
-            title: title,
-            sortOrder: _localBanners.length + 1,
-            isActive: true,
-            createdAt: DateTime.now(),
-            updatedAt: DateTime.now(),
-          );
-          _localBanners.add(newBanner);
-          _saveDiskBanners();
-          state = AsyncValue.data(List<DashboardBanner>.from(_localBanners));
-          ref.read(activeBannersProvider.notifier).updateBanners(_localBanners);
-        },
-      );
-    } catch (_) {
-      final newBanner = DashboardBanner(
-        id: 'local_${DateTime.now().millisecondsSinceEpoch}',
-        storagePath: imageFile.path,
-        title: title,
-        sortOrder: _localBanners.length + 1,
-        isActive: true,
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
-      );
-      _localBanners.add(newBanner);
-      _saveDiskBanners();
-      state = AsyncValue.data(List<DashboardBanner>.from(_localBanners));
-      ref.read(activeBannersProvider.notifier).updateBanners(_localBanners);
-    }
+    await result.fold(
+      onSuccess: (_) => refresh(),
+      onFailure: (failure) async {
+        state = AsyncValue.error(failure, StackTrace.current);
+        await refresh();
+      },
+    );
   }
 
-  /// Replaces the image of an existing banner.
+  /// Replaces the image of an existing banner in Supabase.
   Future<void> replaceImage({
     required String bannerId,
     required String oldStoragePath,
     required File newImageFile,
   }) async {
-    try {
-      final repository = ref.read(bannerRepositoryProvider);
-      final result = await repository.replaceBannerImage(
-        bannerId: bannerId,
-        oldStoragePath: oldStoragePath,
-        newImageFile: newImageFile,
-      );
+    state = const AsyncValue.loading();
+    final repository = ref.read(bannerRepositoryProvider);
+    final result = await repository.replaceBannerImage(
+      bannerId: bannerId,
+      oldStoragePath: oldStoragePath,
+      newImageFile: newImageFile,
+    );
 
-      result.fold(
-        onSuccess: (_) => refresh(),
-        onFailure: (_) {
-          _updateLocalBanner(
-            bannerId,
-            (b) => b.copyWith(storagePath: newImageFile.path),
-          );
-        },
-      );
-    } catch (_) {
-      _updateLocalBanner(
-        bannerId,
-        (b) => b.copyWith(storagePath: newImageFile.path),
-      );
-    }
+    await result.fold(
+      onSuccess: (_) => refresh(),
+      onFailure: (failure) async {
+        state = AsyncValue.error(failure, StackTrace.current);
+        await refresh();
+      },
+    );
   }
 
-  /// Toggles active status of a banner.
+  /// Toggles active status of a banner in Supabase.
   Future<void> toggleStatus(String bannerId, bool isActive) async {
-    try {
-      final repository = ref.read(bannerRepositoryProvider);
-      final result = await repository.toggleBannerStatus(
-        bannerId: bannerId,
-        isActive: isActive,
-      );
+    final repository = ref.read(bannerRepositoryProvider);
+    final result = await repository.toggleBannerStatus(
+      bannerId: bannerId,
+      isActive: isActive,
+    );
 
-      result.fold(
-        onSuccess: (_) => refresh(),
-        onFailure: (_) {
-          _updateLocalBanner(bannerId, (b) => b.copyWith(isActive: isActive));
-        },
-      );
-    } catch (_) {
-      _updateLocalBanner(bannerId, (b) => b.copyWith(isActive: isActive));
-    }
+    await result.fold(
+      onSuccess: (_) => refresh(),
+      onFailure: (failure) async {
+        await refresh();
+      },
+    );
   }
 
-  /// Moves a banner up or down in sort order.
+  /// Moves a banner up or down in sort order in Supabase.
   Future<void> moveBanner(String bannerId, int direction) async {
-    final currentList =
-        List<DashboardBanner>.from(state.valueOrNull ?? _localBanners);
+    final currentList = List<DashboardBanner>.from(state.valueOrNull ?? <DashboardBanner>[]);
     final index = currentList.indexWhere((b) => b.id == bannerId);
     if (index == -1) return;
 
@@ -270,72 +219,38 @@ class AdminBannersController extends _$AdminBannersController {
     currentList[index] = currentList[targetIndex];
     currentList[targetIndex] = temp;
 
-    final reordered = <DashboardBanner>[];
+    final updates = <({String bannerId, int sortOrder})>[];
     for (var i = 0; i < currentList.length; i++) {
-      reordered.add(currentList[i].copyWith(sortOrder: i + 1));
+      updates.add((bannerId: currentList[i].id, sortOrder: i + 1));
     }
 
-    _localBanners.clear();
-    _localBanners.addAll(reordered);
-    await _saveDiskBanners();
-    state = AsyncValue.data(List<DashboardBanner>.from(_localBanners));
-    ref.read(activeBannersProvider.notifier).updateBanners(_localBanners);
+    final repository = ref.read(bannerRepositoryProvider);
+    final result = await repository.reorderBanners(updates);
 
-    try {
-      final updates = <({String bannerId, int sortOrder})>[];
-      for (var i = 0; i < reordered.length; i++) {
-        updates.add((bannerId: reordered[i].id, sortOrder: i + 1));
-      }
-      final repository = ref.read(bannerRepositoryProvider);
-      await repository.reorderBanners(updates);
-    } catch (_) {}
+    await result.fold(
+      onSuccess: (_) => refresh(),
+      onFailure: (_) => refresh(),
+    );
   }
 
-  /// Deletes a banner.
+  /// Deletes a banner and its storage object from Supabase.
   Future<void> deleteBanner({
     required String bannerId,
     required String storagePath,
   }) async {
-    try {
-      final repository = ref.read(bannerRepositoryProvider);
-      final result = await repository.deleteBanner(
-        bannerId: bannerId,
-        storagePath: storagePath,
-      );
+    state = const AsyncValue.loading();
+    final repository = ref.read(bannerRepositoryProvider);
+    final result = await repository.deleteBanner(
+      bannerId: bannerId,
+      storagePath: storagePath,
+    );
 
-      result.fold(
-        onSuccess: (_) => refresh(),
-        onFailure: (_) {
-          _localBanners.removeWhere((b) => b.id == bannerId);
-          _saveDiskBanners();
-          state = AsyncValue.data(List<DashboardBanner>.from(_localBanners));
-          ref.read(activeBannersProvider.notifier).updateBanners(_localBanners);
-        },
-      );
-    } catch (_) {
-      _localBanners.removeWhere((b) => b.id == bannerId);
-      _saveDiskBanners();
-      state = AsyncValue.data(List<DashboardBanner>.from(_localBanners));
-      ref.read(activeBannersProvider.notifier).updateBanners(_localBanners);
-    }
-  }
-
-  void _updateLocalBanner(
-    String bannerId,
-    DashboardBanner Function(DashboardBanner) updater,
-  ) {
-    final idx = _localBanners.indexWhere((b) => b.id == bannerId);
-    if (idx != -1) {
-      _localBanners[idx] = updater(_localBanners[idx]);
-    }
-    final currentList = state.valueOrNull ?? <DashboardBanner>[];
-    final currentIdx = currentList.indexWhere((b) => b.id == bannerId);
-    if (currentIdx != -1) {
-      final updatedList = List<DashboardBanner>.from(currentList);
-      updatedList[currentIdx] = updater(updatedList[currentIdx]);
-      state = AsyncValue.data(updatedList);
-    }
-    _saveDiskBanners();
-    ref.read(activeBannersProvider.notifier).updateBanners(_localBanners);
+    await result.fold(
+      onSuccess: (_) => refresh(),
+      onFailure: (failure) async {
+        state = AsyncValue.error(failure, StackTrace.current);
+        await refresh();
+      },
+    );
   }
 }

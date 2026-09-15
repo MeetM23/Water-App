@@ -31,34 +31,39 @@ class SupabaseScanRepository implements ScanRepository {
     required UserRole role,
   }) async {
     try {
+      // Atomic RPC for stock decrement + scan_events insert
+      try {
+        await _client.rpc<dynamic>(
+          'record_product_scan_dispatch',
+          params: <String, dynamic>{
+            'p_product_identifier': productId,
+            'p_source': source.name,
+          },
+        );
+        return const Success<void>(null);
+      } catch (rpcErr) {
+        AppLog.warn('record_product_scan_dispatch RPC failed: $rpcErr');
+        if (rpcErr is PostgrestException) {
+          if (rpcErr.code == 'P0001' || rpcErr.message.contains('Stock depleted')) {
+            return ResultFailure<void>(
+              ServerFailure(cause: rpcErr),
+            );
+          }
+          if (rpcErr.code == '42501') {
+            return ResultFailure<void>(
+              PermissionFailure(cause: rpcErr),
+            );
+          }
+        }
+      }
+
+      // Fallback path if RPC is not installed on DB yet
       await _client.from('scan_events').insert(<String, dynamic>{
         'product_id': productId,
         'scanned_by': _client.auth.currentUser?.id,
         'scanned_role': role.name,
         'source': source.name,
       });
-
-      // Update product stock quantity directly
-      try {
-        final prod = await _client
-            .from('products')
-            .select('id, stock_quantity, in_stock')
-            .or('id.eq.$productId,product_code.ilike.$productId,model_number.ilike.$productId')
-            .maybeSingle();
-
-        if (prod != null) {
-          final targetId = prod['id'] as String;
-          final currentQty = (prod['stock_quantity'] as num?)?.toInt() ?? 1;
-          final newQty = (currentQty > 0) ? currentQty - 1 : 0;
-          await _client.from('products').update(<String, dynamic>{
-            'stock_quantity': newQty,
-            'in_stock': newQty > 0,
-            'updated_at': DateTime.now().toIso8601String(),
-          }).eq('id', targetId);
-        }
-      } catch (stockErr) {
-        AppLog.warn('Failed to update stock_quantity on scan: $stockErr');
-      }
 
       return const Success<void>(null);
     } on Object catch (error, stackTrace) {

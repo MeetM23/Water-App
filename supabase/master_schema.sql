@@ -28,12 +28,12 @@
   --  §8  Business settings trigger
   --  §9  Catalog views          (catalog_view, catalog_images_view)
   --  §10 Complaints module      (complaints, messages, attachments)
-  --  §11 Physical units module  (product_units, unit_registrations, unit_services,
+  --  §11 Product registration & warranty module (unit_registrations, unit_services,
   --                              warranty_claims)
   --  §12 Row-Level Security policies
   --  §13 Storage buckets and policies
   --  §14 Owner-only RPCs        (dealer management, analytics)
-  --  §15 Unit / warranty RPCs   (lookup_unit_by_serial, batch_generate_product_units)
+  --  §15 Product / warranty RPCs  (lookup_product_by_barcode)
   --  §16 Realtime publication
   --  §17 Grant / Revoke lockdown (mirrors 0019_routine_grants logic)
   --  §18 Seed: single business_settings row
@@ -91,7 +91,6 @@
   -- =============================================================================
 
   create sequence if not exists public.product_code_seq    start 1001;
-  create sequence if not exists public.product_unit_seq    start 1001;
   create sequence if not exists public.complaint_ticket_seq start 1001;
   create sequence if not exists public.warranty_claim_seq   start 1001;
 
@@ -117,33 +116,6 @@
   begin
     v_seq := nextval('public.warranty_claim_seq');
     return 'CLM-' || lpad(v_seq::text, 6, '0');
-  end;
-  $$;
-
-  -- Unit serial generator (MWS-SN-<PREFIX>-<NNNNNN>-<C>)
-  -- Needs product_code_check_char() which is defined in §6; this function is
-  -- only called at runtime (not as a DEFAULT), so forward-reference is fine.
-  create or replace function public.generate_unit_serial(p_category public.product_category)
-  returns text language plpgsql volatile
-  set search_path = public, pg_temp
-  as $$
-  declare
-    v_prefix text;
-    v_digits text;
-  begin
-    v_prefix := case p_category
-                  when 'domestic'   then 'DOM'
-                  when 'commercial' then 'COM'
-                  when 'industrial' then 'IND'
-                  when 'spare_part' then 'SPR'
-                  when 'accessory'  then 'ACC'
-                end;
-    if v_prefix is null then
-      raise exception 'Unmapped product category: %', p_category using errcode = '22023';
-    end if;
-    v_digits := lpad(nextval('public.product_unit_seq')::text, 6, '0');
-    return 'MWS-SN-' || v_prefix || '-' || v_digits || '-'
-          || public.product_code_check_char(v_digits);
   end;
   $$;
 
@@ -305,6 +277,9 @@
     source       text not null check (source in ('camera', 'manual'))
   );
 
+  alter table public.scan_events
+    add column if not exists product_id uuid references public.products (id) on delete set null;
+
   create index if not exists scan_events_scanned_at_idx on public.scan_events (scanned_at desc);
   create index if not exists scan_events_product_idx    on public.scan_events (product_id);
 
@@ -356,8 +331,7 @@
     subject         text not null,
     category        public.complaint_category not null,
     product_id      uuid references public.products (id) on delete set null,
-    -- unit_id FK is added later via ALTER TABLE once product_units exists
-    reference_number text,
+    unit_id         text,
     description     text not null,
     priority        public.complaint_priority not null default 'medium',
     status          public.complaint_status   not null default 'open',
@@ -365,6 +339,9 @@
     updated_at      timestamptz not null default now(),
     resolved_at     timestamptz
   );
+
+  alter table public.complaints
+    add column if not exists product_id uuid references public.products (id) on delete set null;
 
   create index if not exists idx_complaints_user_id    on public.complaints (user_id);
   create index if not exists idx_complaints_status     on public.complaints (status);
@@ -396,31 +373,11 @@
   create index if not exists idx_complaint_attachments_complaint_id
     on public.complaint_attachments (complaint_id);
 
-  -- ── Physical Product Units ────────────────────────────────────────────────────
-  create table if not exists public.product_units (
-    id              uuid primary key default gen_random_uuid(),
-    product_id      uuid not null references public.products (id) on delete restrict,
-    serial_number   text not null unique,
-    manufactured_at timestamptz not null default now(),
-    created_by      uuid references auth.users (id),
-    created_at      timestamptz not null default now()
-  );
-
-  create index if not exists product_units_product_idx on public.product_units (product_id);
-  create index if not exists product_units_serial_idx  on public.product_units (serial_number);
-
-  -- Add FK from complaints to product_units (safe now that the table exists).
-  alter table public.complaints
-    add column if not exists unit_id uuid references public.product_units (id) on delete set null;
-
   -- ── Unit Registrations (warranty activations) ─────────────────────────────────
-  -- seller_name / seller_phone are NOT in the CREATE TABLE body: the table
-  -- already exists on production without them, and CREATE TABLE IF NOT EXISTS
-  -- is a complete no-op when the table exists.  ALTER TABLE ADD COLUMN IF NOT
-  -- EXISTS below is idempotent and safe in both cases.
   create table if not exists public.unit_registrations (
     id                  uuid primary key default gen_random_uuid(),
-    unit_id             uuid not null unique references public.product_units (id) on delete cascade,
+    product_id          uuid references public.products (id) on delete set null,
+    unit_id             text,
     registered_by       uuid references auth.users (id),
     registered_role     public.user_role,
     customer_name       text not null,
@@ -433,22 +390,25 @@
     warranty_months     int  not null check (warranty_months >= 0),
     invoice_number      text,
     invoice_url         text,
+    seller_name         text,
+    seller_phone        text,
     created_at          timestamptz not null default now(),
     updated_at          timestamptz not null default now()
   );
 
-  -- Add seller info columns (idempotent on existing databases).
   alter table public.unit_registrations
     add column if not exists seller_name  text,
-    add column if not exists seller_phone text;
+    add column if not exists seller_phone text,
+    add column if not exists product_id   uuid references public.products (id) on delete set null;
 
-  create index if not exists unit_registrations_unit_idx  on public.unit_registrations (unit_id);
-  create index if not exists unit_registrations_phone_idx on public.unit_registrations (customer_phone);
+  create index if not exists unit_registrations_product_idx on public.unit_registrations (product_id);
+  create index if not exists unit_registrations_phone_idx   on public.unit_registrations (customer_phone);
 
   -- ── Unit Services ─────────────────────────────────────────────────────────────
   create table if not exists public.unit_services (
     id           uuid primary key default gen_random_uuid(),
-    unit_id      uuid not null references public.product_units (id) on delete cascade,
+    product_id   uuid references public.products (id) on delete cascade,
+    unit_id      text,
     complaint_id uuid references public.complaints (id) on delete set null,
     serviced_by  uuid references auth.users (id),
     service_type text not null,
@@ -456,13 +416,17 @@
     serviced_at  timestamptz not null default now()
   );
 
-  create index if not exists unit_services_unit_idx on public.unit_services (unit_id);
+  alter table public.unit_services
+    add column if not exists product_id uuid references public.products (id) on delete cascade;
+
+  create index if not exists unit_services_product_idx on public.unit_services (product_id);
 
   -- ── Warranty Claims ───────────────────────────────────────────────────────────
   create table if not exists public.warranty_claims (
     id            uuid primary key default gen_random_uuid(),
     claim_number  text not null unique default public.generate_claim_number(),
-    unit_id       uuid not null references public.product_units (id) on delete cascade,
+    product_id    uuid references public.products (id) on delete set null,
+    unit_id       text,
     user_id       uuid not null references public.profiles (id) on delete cascade,
     claim_type    text not null,
     description   text not null,
@@ -474,7 +438,10 @@
     updated_at    timestamptz not null default now()
   );
 
-  create index if not exists idx_warranty_claims_unit_id on public.warranty_claims (unit_id);
+  alter table public.warranty_claims
+    add column if not exists product_id uuid references public.products (id) on delete set null;
+
+  create index if not exists idx_warranty_claims_product_id on public.warranty_claims (product_id);
   create index if not exists idx_warranty_claims_user_id on public.warranty_claims (user_id);
   create index if not exists idx_warranty_claims_status  on public.warranty_claims (status);
 
@@ -580,7 +547,7 @@
   -- §7  PROFILE TRIGGERS AND GUARDS
   -- =============================================================================
 
-  -- Mirror new auth.users rows into public.profiles.
+  -- Mirror new auth.users rows into public.profiles with exact business rules.
   create or replace function public.handle_new_user()
   returns trigger language plpgsql security definer
   set search_path = public, pg_temp
@@ -588,23 +555,101 @@
   declare
     v_metadata jsonb := coalesce(new.raw_user_meta_data, '{}'::jsonb);
     v_role     public.user_role;
+    v_status   public.account_status;
+    v_name     text;
+    v_firm     text;
+    v_phone    text;
+    v_city     text;
+    v_state    text;
   begin
+    -- Resolve role strictly from registration metadata
     v_role := case lower(coalesce(v_metadata ->> 'role', ''))
+                when 'owner' then 'owner'::public.user_role
                 when 'wholesaler' then 'wholesaler'::public.user_role
                 else 'retailer'::public.user_role
               end;
+
+    -- Resolve status per required business rules:
+    -- Wholesaler: pending (requires Admin approval)
+    -- Retailer: approved (login immediately, never waits for Admin approval)
+    -- Owner: approved (login immediately)
+    v_status := case v_role
+                  when 'wholesaler'::public.user_role then 'pending'::public.account_status
+                  else 'approved'::public.account_status
+                end;
+
+    -- Sensible defaults
+    v_name  := coalesce(nullif(trim(v_metadata ->> 'full_name'), ''), nullif(split_part(new.email, '@', 1), ''), 'User');
+    v_firm  := coalesce(nullif(trim(v_metadata ->> 'firm_name'), ''), 'Business');
+    v_phone := coalesce(trim(v_metadata ->> 'phone'), '');
+    v_city  := coalesce(trim(v_metadata ->> 'city'), '');
+    v_state := coalesce(nullif(trim(v_metadata ->> 'state'), ''), 'Gujarat');
+
     insert into public.profiles (
-      id, role, status, full_name, firm_name, phone, city, state, gst_number, address
+      id, role, status, full_name, firm_name, phone, city, state, gst_number, address, created_at
     )
     values (
-      new.id, v_role, 'approved',
-      coalesce(v_metadata ->> 'full_name', ''),
-      coalesce(v_metadata ->> 'firm_name', ''),
-      coalesce(v_metadata ->> 'phone', ''),
-      coalesce(v_metadata ->> 'city', ''),
-      coalesce(nullif(v_metadata ->> 'state', ''), 'Gujarat'),
-      nullif(v_metadata ->> 'gst_number', ''),
-      nullif(v_metadata ->> 'address', '')
+      new.id,
+      v_role,
+      v_status,
+      v_name,
+      v_firm,
+      v_phone,
+      v_city,
+      v_state,
+      nullif(trim(v_metadata ->> 'gst_number'), ''),
+      nullif(trim(v_metadata ->> 'address'), ''),
+      coalesce(new.created_at, now())
+    )
+    on conflict (id) do update set
+      role = case
+               when profiles.role = 'owner' then profiles.role
+               else excluded.role
+             end,
+      full_name = case
+                    when profiles.full_name is null or profiles.full_name = '' or profiles.full_name = 'User'
+                    then excluded.full_name
+                    else profiles.full_name
+                  end,
+      firm_name = case
+                    when profiles.firm_name is null or profiles.firm_name = '' or profiles.firm_name = 'Business'
+                    then excluded.firm_name
+                    else profiles.firm_name
+                  end,
+      phone = case
+                when profiles.phone is null or profiles.phone = ''
+                then excluded.phone
+                else profiles.phone
+              end,
+      city = case
+               when profiles.city is null or profiles.city = ''
+               then excluded.city
+               else profiles.city
+             end,
+      state = case
+                when profiles.state is null or profiles.state = ''
+                then excluded.state
+                else profiles.state
+              end,
+      gst_number = coalesce(profiles.gst_number, excluded.gst_number),
+      address = coalesce(profiles.address, excluded.address);
+
+    return new;
+  exception when others then
+    -- Safe fallback: guarantee profile existence so user is never orphaned
+    insert into public.profiles (
+      id, role, status, full_name, firm_name, phone, city, state, created_at
+    )
+    values (
+      new.id,
+      'retailer'::public.user_role,
+      'approved'::public.account_status,
+      coalesce(nullif(split_part(new.email, '@', 1), ''), 'User'),
+      'Business',
+      '',
+      '',
+      'Gujarat',
+      coalesce(new.created_at, now())
     )
     on conflict (id) do nothing;
     return new;
@@ -616,10 +661,33 @@
     after insert on auth.users
     for each row execute function public.handle_new_user();
 
-  -- Auto-approve all user profiles so no user gets stuck on pending or blocked screens.
-  update public.profiles
-    set status = 'approved',
-        rejection_reason = null;
+  -- Backfill existing orphaned auth.users records into public.profiles
+  insert into public.profiles (
+    id, role, status, full_name, firm_name, phone, city, state, gst_number, address, created_at
+  )
+  select
+    u.id,
+    case lower(coalesce(u.raw_user_meta_data ->> 'role', ''))
+      when 'owner' then 'owner'::public.user_role
+      when 'wholesaler' then 'wholesaler'::public.user_role
+      else 'retailer'::public.user_role
+    end as role,
+    case lower(coalesce(u.raw_user_meta_data ->> 'role', ''))
+      when 'wholesaler' then 'pending'::public.account_status
+      else 'approved'::public.account_status
+    end as status,
+    coalesce(nullif(trim(u.raw_user_meta_data ->> 'full_name'), ''), nullif(split_part(u.email, '@', 1), ''), 'User') as full_name,
+    coalesce(nullif(trim(u.raw_user_meta_data ->> 'firm_name'), ''), 'Business') as firm_name,
+    coalesce(trim(u.raw_user_meta_data ->> 'phone'), '') as phone,
+    coalesce(trim(u.raw_user_meta_data ->> 'city'), '') as city,
+    coalesce(nullif(trim(u.raw_user_meta_data ->> 'state'), ''), 'Gujarat') as state,
+    nullif(trim(u.raw_user_meta_data ->> 'gst_number'), '') as gst_number,
+    nullif(trim(u.raw_user_meta_data ->> 'address'), '') as address,
+    coalesce(u.created_at, now()) as created_at
+  from auth.users u
+  left join public.profiles p on p.id = u.id
+  where p.id is null
+  on conflict (id) do nothing;
 
   -- Prevent a user from elevating their own role/status.
   create or replace function public.guard_profile_privilege_columns()
@@ -753,10 +821,9 @@
   -- =============================================================================
   -- §10  TICKET / CLAIM NUMBER GENERATORS
   -- =============================================================================
-  -- NOTE: generate_ticket_number(), generate_claim_number(), and
-  -- generate_unit_serial() were moved to §3 (immediately after sequences)
-  -- so they exist before the CREATE TABLE statements that reference them
-  -- as column DEFAULT expressions.  Nothing to do here.
+  -- NOTE: generate_ticket_number() and generate_claim_number() were moved to §3
+  -- (immediately after sequences) so they exist before the CREATE TABLE statements
+  -- that reference them as column DEFAULT expressions.
 
 
   -- =============================================================================
@@ -798,7 +865,6 @@
   alter table public.complaints           enable row level security;
   alter table public.complaint_messages   enable row level security;
   alter table public.complaint_attachments enable row level security;
-  alter table public.product_units        enable row level security;
   alter table public.unit_registrations   enable row level security;
   alter table public.unit_services        enable row level security;
   alter table public.warranty_claims      enable row level security;
@@ -989,16 +1055,6 @@
       )
     );
 
-  -- ── product_units ─────────────────────────────────────────────────────────────
-  drop policy if exists product_units_select on public.product_units;
-  drop policy if exists product_units_owner  on public.product_units;
-
-  create policy product_units_select on public.product_units
-    for select using (public.is_approved() or auth.uid() is null);
-
-  create policy product_units_owner on public.product_units
-    for all using (public.is_owner());
-
   -- ── unit_registrations ────────────────────────────────────────────────────────
   drop policy if exists unit_registrations_select on public.unit_registrations;
   drop policy if exists unit_registrations_insert on public.unit_registrations;
@@ -1027,43 +1083,9 @@
   returns trigger language plpgsql security definer
   set search_path = public, pg_temp
   as $$
-  declare
-    v_product_id uuid;
   begin
-    if new.product_id is not null then
-      -- 1. Search in products by UUID string, product_code, or model_number
-      begin
-        select id into v_product_id
-          from public.products
-        where id::text = new.product_id::text
-            or upper(product_code) = upper(new.product_id::text)
-            or upper(model_number) = upper(new.product_id::text)
-        limit 1;
-      exception when others then
-        v_product_id := null;
-      end;
-
-      -- 2. Search in product_units if not found
-      if v_product_id is null then
-        begin
-          select product_id into v_product_id
-            from public.product_units
-          where id::text = new.product_id::text
-              or upper(serial_number) = upper(new.product_id::text)
-          limit 1;
-        exception when others then
-          v_product_id := null;
-        end;
-      end if;
-
-      if v_product_id is not null then
-        update public.products
-          set stock_quantity = greatest(0, coalesce(stock_quantity, 1) - 1),
-              in_stock = (greatest(0, coalesce(stock_quantity, 1) - 1) > 0),
-              updated_at = now()
-        where id = v_product_id;
-      end if;
-    end if;
+    -- No-op to prevent duplicate stock decrements when scan_events are logged.
+    -- Stock decrement is handled atomically by record_product_scan_dispatch RPC.
     return new;
   end;
   $$;
@@ -1078,39 +1100,22 @@
   set search_path = public, pg_temp
   as $$
   declare
-    v_product_id uuid;
+    v_product_id uuid := new.product_id;
   begin
-    -- 1. Try finding product_id from product_units by id or serial_number
-    begin
-      select product_id into v_product_id
-        from public.product_units
-      where id::text = new.unit_id::text
-          or upper(serial_number) = upper(new.unit_id::text)
+    if v_product_id is null and new.unit_id is not null then
+      select id into v_product_id
+      from public.products
+      where id::text = new.unit_id
+         or upper(product_code) = upper(new.unit_id)
+         or upper(model_number) = upper(new.unit_id)
       limit 1;
-    exception when others then
-      v_product_id := null;
-    end;
-
-    -- 2. If not found in product_units, try finding directly in products table
-    if v_product_id is null then
-      begin
-        select id into v_product_id
-          from public.products
-        where id::text = new.unit_id::text
-            or upper(product_code) = upper(new.unit_id::text)
-            or upper(model_number) = upper(new.unit_id::text)
-        limit 1;
-      exception when others then
-        v_product_id := null;
-      end;
     end if;
 
-    -- 3. Decrement product stock if found
     if v_product_id is not null then
       update public.products
-        set stock_quantity = greatest(0, coalesce(stock_quantity, 1) - 1),
-            in_stock = (greatest(0, coalesce(stock_quantity, 1) - 1) > 0),
-            updated_at = now()
+      set stock_quantity = greatest(0, coalesce(stock_quantity, 1) - 1),
+          in_stock = (greatest(0, coalesce(stock_quantity, 1) - 1) > 0),
+          updated_at = now()
       where id = v_product_id;
     end if;
 
@@ -1467,143 +1472,185 @@
   -- §15  UNIT / WARRANTY RPCs
   -- =============================================================================
 
-  -- ── batch_generate_product_units ──────────────────────────────────────────────
-  -- Creates N unit records and returns their serial numbers (for label printing).
-  create or replace function public.batch_generate_product_units(p_product_id uuid, p_quantity int)
-  returns table (unit_id uuid, serial_number text)
-  language plpgsql volatile security definer
-  set search_path = public, pg_temp
-  as $$
-  declare
-    v_category public.product_category;
-    v_serial   text;
-    v_i        int;
-  begin
-    if p_quantity <= 0 or p_quantity > 500 then
-      raise exception 'Quantity must be between 1 and 500' using errcode = '22023';
-    end if;
-    select p.category into v_category from public.products p where p.id = p_product_id;
-    if not found then
-      raise exception 'Product not found: %', p_product_id using errcode = '22023';
-    end if;
-    for v_i in 1 .. p_quantity loop
-      v_serial := public.generate_unit_serial(v_category);
-      insert into public.product_units (product_id, serial_number, created_by)
-      values (p_product_id, v_serial, auth.uid())
-      returning public.product_units.id, public.product_units.serial_number
-      into unit_id, serial_number;
-      return next;
-    end loop;
-  end;
-  $$;
-
-  -- ── lookup_unit_by_serial ─────────────────────────────────────────────────────
-  -- Smart lookup: accepts a unit serial OR a product code.
-  -- If a product code is supplied and no unit exists yet, one is auto-created
-  -- so registration flows without a separate "create unit" step.
-  create or replace function public.lookup_unit_by_serial(p_serial text)
+  -- ── lookup_product_by_barcode ──────────────────────────────────────────────────
+  -- Lookup: accepts a catalogue product code (e.g. MWS-DOM-001010-8) or UUID.
+  -- Resolves directly from public.products and checks for active registration in public.unit_registrations.
+  create or replace function public.lookup_product_by_barcode(p_barcode text)
   returns jsonb
   language plpgsql volatile security definer
   set search_path = public, pg_temp
   as $$
   declare
-    v_unit         record;
     v_reg          record;
     v_prod         record;
-    v_res          jsonb;
     v_clean_serial text;
   begin
-    v_clean_serial := upper(trim(p_serial));
+    v_clean_serial := upper(trim(p_barcode));
 
     if v_clean_serial is null or v_clean_serial = '' then
       return null;
     end if;
 
-    -- 1. Try exact match in product_units
-    select u.* into v_unit
-    from public.product_units u
-    where upper(u.serial_number) = v_clean_serial;
+    -- Look up catalogue products table by product_code, model_number, or ID
+    select p.id, p.name, p.product_code, p.model_number, p.category, p.warranty_months, p.description, p.stock_quantity
+    into v_prod
+    from public.products p
+    where upper(p.product_code) = v_clean_serial
+      or upper(p.model_number) = v_clean_serial
+      or p.id::text = lower(trim(p_barcode))
+    order by length(p.product_code) desc
+    limit 1;
 
-    -- 2. If not found, check products table (product_code, model_number, id, prefix, or active products)
-    if v_unit.id is null then
-      select p.id, p.name, p.model_number, p.category, p.warranty_months, p.description
-      into v_prod
-      from public.products p
-      where upper(p.product_code) = v_clean_serial
-        or upper(p.model_number) = v_clean_serial
-        or p.id::text = lower(trim(p_serial))
-        or v_clean_serial like (upper(p.product_code) || '%')
-        or v_clean_serial like (upper(p.model_number) || '%')
-        or upper(p.product_code) like (v_clean_serial || '%')
-      order by length(p.product_code) desc
+    if v_prod.id is not null then
+      select r.* into v_reg
+      from public.unit_registrations r
+      where r.product_id = v_prod.id
+      order by r.created_at desc
       limit 1;
 
-      -- If still not found, fallback to the latest active product in products table
-      if v_prod.id is null then
-        select p.id, p.name, p.model_number, p.category, p.warranty_months, p.description
-        into v_prod
-        from public.products p
-        where p.is_active = true
-        order by p.created_at desc
-        limit 1;
-      end if;
-
-      if v_prod.id is not null then
-        -- Auto-create a unit record keyed on the serial number
-        insert into public.product_units (product_id, serial_number, created_by)
-        values (v_prod.id, v_clean_serial, auth.uid())
-        on conflict (serial_number) do update set product_id = excluded.product_id
-        returning * into v_unit;
-      end if;
+      return jsonb_build_object(
+        'unit_id',                v_prod.id,
+        'serial_number',          coalesce(v_prod.product_code, v_clean_serial),
+        'status',                 'available',
+        'manufactured_at',        now(),
+        'product_id',             v_prod.id,
+        'product_name',           v_prod.name,
+        'product_code',           v_prod.product_code,
+        'model_number',           v_prod.model_number,
+        'category',               v_prod.category,
+        'description',            v_prod.description,
+        'stock_quantity',         coalesce(v_prod.stock_quantity, 0),
+        'default_warranty_months', coalesce(v_prod.warranty_months, 12),
+        'registration', case when v_reg.id is not null then jsonb_build_object(
+          'id',                 v_reg.id,
+          'registered_by',      v_reg.registered_by,
+          'customer_name',      v_reg.customer_name,
+          'customer_phone',     v_reg.customer_phone,
+          'customer_city',      v_reg.customer_city,
+          'customer_address',   v_reg.customer_address,
+          'purchase_date',      v_reg.purchase_date,
+          'installation_date',  v_reg.installation_date,
+          'warranty_start_date',v_reg.warranty_start_date,
+          'warranty_months',    v_reg.warranty_months,
+          'warranty_end_date',  (v_reg.warranty_start_date + (v_reg.warranty_months || ' months')::interval),
+          'invoice_number',     v_reg.invoice_number,
+          'seller_name',        v_reg.seller_name,
+          'seller_phone',       v_reg.seller_phone,
+          'created_at',         v_reg.created_at
+        ) else null end
+      );
     end if;
 
-    -- 3. Still not found
-    if v_unit.id is null then
-      return null;
+    return null;
+  end;
+  $$;
+
+  -- ── record_product_scan_dispatch ──────────────────────────────────────────────
+  -- Atomic stock decrement & scan event logger for product scan/dispatch actions.
+  -- 1. Verifies authenticated caller role ('owner' or 'dealer').
+  -- 2. Locks product row FOR UPDATE.
+  -- 3. Verifies stock_quantity > 0 (prevents negative stock).
+  -- 4. Decrements stock_quantity by 1 exactly once.
+  -- 5. Inserts a single record into scan_events.
+  create or replace function public.record_product_scan_dispatch(
+    p_product_identifier text,
+    p_source text default 'camera'
+  )
+  returns jsonb
+  language plpgsql volatile security definer
+  set search_path = public, pg_temp
+  as $$
+  declare
+    v_user_id     uuid;
+    v_user_role   public.user_role;
+    v_product     record;
+    v_new_stock   int;
+    v_scan_id     uuid;
+    v_clean_ident text;
+  begin
+    -- 1. Security Check: Authenticated User & Role Verification
+    v_user_id := auth.uid();
+    if v_user_id is null then
+      raise exception 'Authentication required to perform scan/dispatch'
+        using errcode = '42501';
     end if;
 
-    -- Fetch product if not loaded above
-    if v_prod.id is null then
-      select p.id, p.name, p.model_number, p.category, p.warranty_months, p.description
-      into v_prod
-      from public.products p where p.id = v_unit.product_id;
+    select role into v_user_role
+    from public.profiles
+    where id = v_user_id;
+
+    if v_user_role is null or v_user_role not in ('owner', 'dealer') then
+      raise exception 'User role % is not authorized for scan/dispatch', coalesce(v_user_role::text, 'unknown')
+        using errcode = '42501';
     end if;
 
-    -- Fetch registration
-    select r.* into v_reg
-    from public.unit_registrations r where r.unit_id = v_unit.id;
+    -- Clean inputs
+    v_clean_ident := trim(p_product_identifier);
+    if v_clean_ident is null or v_clean_ident = '' then
+      raise exception 'Product identifier cannot be empty'
+        using errcode = '22023';
+    end if;
 
-    v_res := jsonb_build_object(
-      'unit_id',                v_unit.id,
-      'serial_number',          v_unit.serial_number,
-      'manufactured_at',        v_unit.manufactured_at,
-      'product_id',             v_prod.id,
-      'product_name',           v_prod.name,
-      'model_number',           v_prod.model_number,
-      'category',               v_prod.category,
-      'description',            v_prod.description,
-      'default_warranty_months', coalesce(v_prod.warranty_months, 12),
-      'registration', case when v_reg.id is not null then jsonb_build_object(
-        'id',                 v_reg.id,
-        'registered_by',      v_reg.registered_by,
-        'customer_name',      v_reg.customer_name,
-        'customer_phone',     v_reg.customer_phone,
-        'customer_city',      v_reg.customer_city,
-        'customer_address',   v_reg.customer_address,
-        'purchase_date',      v_reg.purchase_date,
-        'installation_date',  v_reg.installation_date,
-        'warranty_start_date',v_reg.warranty_start_date,
-        'warranty_months',    v_reg.warranty_months,
-        'warranty_end_date',  (v_reg.warranty_start_date
-                                + (v_reg.warranty_months || ' months')::interval)::date,
-        'invoice_number',     v_reg.invoice_number,
-        'seller_name',        v_reg.seller_name,
-        'seller_phone',       v_reg.seller_phone,
-        'created_at',         v_reg.created_at
-      ) else null end
+    if p_source is null or p_source not in ('camera', 'manual') then
+      p_source := 'camera';
+    end if;
+
+    -- 2. Resolve Product and Lock Row (FOR UPDATE) atomically
+    select p.id, p.product_code, p.name, p.stock_quantity
+    into v_product
+    from public.products p
+    where p.id::text = lower(v_clean_ident)
+       or upper(p.product_code) = upper(v_clean_ident)
+       or upper(p.model_number) = upper(v_clean_ident)
+    order by length(p.product_code) desc
+    limit 1
+    for update;
+
+    if v_product.id is null then
+      raise exception 'Product not found for identifier %', p_product_identifier
+        using errcode = 'P0002';
+    end if;
+
+    -- 3. Check stock_quantity > 0 (Never allow negative stock)
+    if coalesce(v_product.stock_quantity, 0) <= 0 then
+      raise exception 'Stock depleted for product % (Current stock: 0)', v_product.name
+        using errcode = 'P0001';
+    end if;
+
+    -- 4. Atomic Decrement: stock_quantity - 1 exactly once
+    v_new_stock := v_product.stock_quantity - 1;
+
+    update public.products
+    set stock_quantity = v_new_stock,
+        in_stock = (v_new_stock > 0),
+        updated_at = now()
+    where id = v_product.id;
+
+    -- 5. Record scan in scan_events
+    insert into public.scan_events (
+      product_id,
+      scanned_by,
+      scanned_role,
+      source,
+      scanned_at
+    ) values (
+      v_product.id,
+      v_user_id,
+      v_user_role,
+      p_source,
+      now()
+    )
+    returning id into v_scan_id;
+
+    return jsonb_build_object(
+      'success',        true,
+      'scan_id',        v_scan_id,
+      'product_id',     v_product.id,
+      'product_code',   v_product.product_code,
+      'product_name',   v_product.name,
+      'previous_stock', v_product.stock_quantity,
+      'new_stock',      v_new_stock
     );
-
-    return v_res;
   end;
   $$;
 
@@ -1624,14 +1671,18 @@
     select c.* into v_claim from public.warranty_claims c where c.id = p_claim_id;
     if not found then return null; end if;
 
-    select u.* into v_unit from public.product_units u where u.id = v_claim.unit_id;
-    select p.id, p.name, p.model_number, p.category, p.description
-    into v_prod from public.products p where p.id = v_unit.product_id;
+    select p.id, p.name, p.model_number, p.product_code, p.category, p.description
+    into v_prod from public.products p
+    where p.id = v_claim.product_id
+       or upper(p.product_code) = upper(v_claim.unit_id)
+       or upper(p.model_number) = upper(v_claim.unit_id)
+       or p.id::text = v_claim.unit_id;
 
     select pr.full_name, pr.phone, pr.firm_name, pr.role
     into v_user from public.profiles pr where pr.id = v_claim.user_id;
 
-    select r.* into v_reg from public.unit_registrations r where r.unit_id = v_unit.id;
+    select r.* into v_reg from public.unit_registrations r
+    where r.product_id = v_prod.id or r.unit_id = v_claim.unit_id;
 
     v_res := jsonb_build_object(
       'id',             v_claim.id,
@@ -1648,8 +1699,8 @@
       'user_company',   v_user.firm_name,
       'user_phone',     v_user.phone,
       'user_role',      v_user.role,
-      'unit_id',        v_unit.id,
-      'serial_number',  v_unit.serial_number,
+      'unit_id',        v_claim.unit_id,
+      'serial_number',  coalesce(v_prod.product_code, v_claim.unit_id),
       'product_id',     v_prod.id,
       'product_name',   v_prod.name,
       'model_number',   v_prod.model_number,
@@ -1703,7 +1754,6 @@
   grant select, insert, update on public.complaints        to authenticated;
   grant select, insert on public.complaint_messages        to authenticated;
   grant select, insert on public.complaint_attachments     to authenticated;
-  grant select, insert, update, delete on public.product_units   to authenticated;
   grant select, insert, update, delete on public.unit_registrations to authenticated;
   grant select, insert, update, delete on public.unit_services    to authenticated;
   grant select, insert, update on public.warranty_claims   to authenticated;
@@ -1744,8 +1794,7 @@
   grant execute on function public.get_warranty_claim_details(uuid)   to authenticated;
 
   -- Unit helpers
-  grant execute on function public.batch_generate_product_units(uuid, int) to authenticated;
-  grant execute on function public.lookup_unit_by_serial(text) to authenticated, anon;
+  grant execute on function public.lookup_product_by_barcode(text) to authenticated, anon;
 
   -- ── Revoke internal helpers from everyone ─────────────────────────────────────
   -- Trigger bodies, the audit writer, the sequence consumers, and the bootstrap
@@ -1787,8 +1836,8 @@
   grant execute on function public.generate_ticket_number()           to authenticated;
   grant execute on function public.generate_claim_number()            to authenticated;
   grant execute on function public.get_warranty_claim_details(uuid)   to authenticated;
-  grant execute on function public.batch_generate_product_units(uuid, int) to authenticated;
-  grant execute on function public.lookup_unit_by_serial(text) to authenticated, anon;
+  grant execute on function public.lookup_product_by_barcode(text) to authenticated, anon;
+  grant execute on function public.record_product_scan_dispatch(text, text) to authenticated;
 
   -- Keep these revoked (internal only):
   revoke all on function public.handle_new_user()                 from public, authenticated;
@@ -1801,10 +1850,7 @@
     from public, authenticated;
   revoke all on function public.generate_product_code(public.product_category)
     from public, authenticated;
-  revoke all on function public.generate_unit_serial(public.product_category)
-    from public, authenticated;
   revoke all on sequence public.product_code_seq from public, anon, authenticated;
-  revoke all on sequence public.product_unit_seq from public, anon, authenticated;
 
 
   -- =============================================================================
@@ -1814,12 +1860,6 @@
 
   insert into public.business_settings (id) values (true)
     on conflict (id) do nothing;
-
-  -- Clean up all existing unit registrations, claims, scan events, and services for clean fresh testing.
-  truncate table public.unit_registrations cascade;
-  truncate table public.warranty_claims cascade;
-  truncate table public.scan_events cascade;
-  truncate table public.unit_services cascade;
 
   -- =============================================================================
   -- END OF MASTER SCHEMA

@@ -11,8 +11,8 @@ import '../../../../core/widgets/app_button.dart';
 import '../../../../core/widgets/app_card.dart';
 import '../../../../core/widgets/app_snackbar.dart';
 import '../../../../core/errors/failure_presentation.dart';
-import '../../../../data/repositories/supabase_unit_repository.dart';
-import '../../../../domain/models/product_unit.dart';
+import '../../../../data/repositories/supabase_product_registration_repository.dart';
+import '../../../../domain/models/product_lookup.dart';
 
 /// Screen for registering a physical RO machine unit by serial number (MWS-SN).
 ///
@@ -54,7 +54,7 @@ class _ProductRegistrationScreenState
 
   bool _isSearching = false;
   bool _isSubmitting = false;
-  ProductUnit? _foundUnit;
+  ProductLookup? _foundUnit;
   String? _searchError;
 
   @override
@@ -92,8 +92,8 @@ class _ProductRegistrationScreenState
       _foundUnit = null;
     });
 
-    final repository = ref.read(unitRepositoryProvider);
-    final result = await repository.findUnitBySerial(clean);
+    final repository = ref.read(productRegistrationRepositoryProvider);
+    final result = await repository.findProductByBarcode(clean);
 
     if (!mounted) return;
 
@@ -150,7 +150,7 @@ class _ProductRegistrationScreenState
 
     setState(() => _isSubmitting = true);
 
-    final repository = ref.read(unitRepositoryProvider);
+    final repository = ref.read(productRegistrationRepositoryProvider);
     final result = await repository.registerUnit(
       unitId: unit.unitId,
       customerName: _customerNameController.text.trim(),

@@ -69,11 +69,20 @@ class SupabaseAuthRepository implements AuthRepository {
   @override
   Future<Result<void>> signUp(SignUpRequest request) async {
     try {
-      await _client.auth.signUp(
+      final response = await _client.auth.signUp(
         email: request.email.trim(),
         password: request.password,
         data: request.toUserMetadata(),
       );
+
+      // Registration completes at the login screen. If GoTrue created a session
+      // immediately upon signUp, sign out so the user starts from a fresh login state.
+      if (response.session != null || _client.auth.currentUser != null) {
+        try {
+          await _client.auth.signOut();
+        } catch (_) {}
+      }
+
       return const Success<void>(null);
     } on Object catch (error, stackTrace) {
       return ResultFailure<void>(_mapError(error, stackTrace));

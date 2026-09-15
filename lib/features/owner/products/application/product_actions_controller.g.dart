@@ -7,7 +7,7 @@ part of 'product_actions_controller.dart';
 // **************************************************************************
 
 String _$productActionsControllerHash() =>
-    r'3d4b15f3178d504a47461f077c23261494cad7d6';
+    r'3ca4cc39708199edb86b10e5e9f94520173dc283';
 
 /// The quick actions available on a product without opening the form.
 ///

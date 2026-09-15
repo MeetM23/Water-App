@@ -6,12 +6,12 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/widgets/app_card.dart';
 import '../../../../core/widgets/app_empty_state.dart';
-import '../../../../data/repositories/supabase_unit_repository.dart';
+import '../../../../data/repositories/supabase_product_registration_repository.dart';
 import '../../../../domain/enums/product_category.dart';
-import '../../../../domain/models/product_unit.dart';
+import '../../../../domain/models/product_lookup.dart';
 import '../../../shared/unit/presentation/widgets/edit_registration_dialog.dart';
 
-/// Admin/Owner screen to view and search all registered physical RO units.
+/// Admin/Owner screen to view and search all registered products.
 ///
 /// Products are grouped by [ProductCategory] so the admin can quickly scan
 /// how many Domestic, Commercial, Industrial, etc. units have been registered.
@@ -27,7 +27,7 @@ class AdminRegistrationsScreen extends ConsumerStatefulWidget {
 class _AdminRegistrationsScreenState
     extends ConsumerState<AdminRegistrationsScreen> {
   String _searchQuery = '';
-  late Future<List<ProductUnit>> _future;
+  late Future<List<ProductLookup>> _future;
 
   /// Which category sections are currently expanded (all open by default).
   final Set<ProductCategory> _expandedCategories = <ProductCategory>{
@@ -44,10 +44,10 @@ class _AdminRegistrationsScreenState
   }
 
   void _loadRegistrations() {
-    _future = ref.read(unitRepositoryProvider).fetchRegistrations().then(
+    _future = ref.read(productRegistrationRepositoryProvider).fetchRegistrations().then(
           (result) => result.fold(
             onSuccess: (units) => units,
-            onFailure: (_) => <ProductUnit>[],
+            onFailure: (_) => <ProductLookup>[],
           ),
         );
   }
@@ -57,7 +57,7 @@ class _AdminRegistrationsScreenState
         ProductCategory.domestic => 'Domestic',
         ProductCategory.commercial => 'Commercial',
         ProductCategory.industrial => 'Industrial',
-        ProductCategory.sparePart => 'Accessories',
+        ProductCategory.sparePart => 'Spare Parts',
         ProductCategory.accessory => 'Accessories',
       };
 
@@ -72,10 +72,10 @@ class _AdminRegistrationsScreenState
 
   /// Groups [units] by category, preserving [ProductCategory.values] order.
   /// Only categories that have at least one unit are included.
-  Map<ProductCategory, List<ProductUnit>> _groupByCategory(
-      List<ProductUnit> units) {
-    final map = <ProductCategory, List<ProductUnit>>{};
-    for (final cat in ProductCategory.values.where((c) => c != ProductCategory.sparePart)) {
+  Map<ProductCategory, List<ProductLookup>> _groupByCategory(
+      List<ProductLookup> units) {
+    final map = <ProductCategory, List<ProductLookup>>{};
+    for (final cat in ProductCategory.values) {
       final items = units.where((u) => u.category == cat).toList();
       if (items.isNotEmpty) map[cat] = items;
     }
@@ -104,7 +104,7 @@ class _AdminRegistrationsScreenState
             padding: const EdgeInsets.all(Spacing.x4),
             child: TextField(
               decoration: const InputDecoration(
-                hintText: 'Search by customer, phone, or serial number...',
+                hintText: 'Search by customer, phone, or barcode...',
                 prefixIcon: Icon(Icons.search_rounded),
               ),
               onChanged: (value) {
@@ -115,7 +115,7 @@ class _AdminRegistrationsScreenState
             ),
           ),
           Expanded(
-            child: FutureBuilder<List<ProductUnit>>(
+            child: FutureBuilder<List<ProductLookup>>(
               future: _future,
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
@@ -129,7 +129,7 @@ class _AdminRegistrationsScreenState
                   );
                 }
 
-                final units = snapshot.data ?? <ProductUnit>[];
+                final units = snapshot.data ?? <ProductLookup>[];
 
                 // Apply search filter.
                 final filtered = units.where((unit) {
@@ -168,7 +168,7 @@ class _AdminRegistrationsScreenState
                         ? 'No Product Registrations Found'
                         : 'No Matching Registrations',
                     message: _searchQuery.isEmpty
-                        ? 'Registered machine units will appear here once dealers submit customer installation records.'
+                        ? 'Registered products will appear here once dealers submit customer installation records.'
                         : 'No registration records match your search "$_searchQuery".',
                   );
                 }
@@ -237,11 +237,11 @@ class _AdminRegistrationsScreenState
   }
 
   Future<void> _editRegistration(
-      UnitRegistrationInfo reg, ProductUnit unit) async {
+      ProductRegistrationInfo reg, ProductLookup unit) async {
     final result = await EditRegistrationDialog.show(context, reg);
 
     if (result != null && mounted) {
-      await ref.read(unitRepositoryProvider).updateRegistration(
+      await ref.read(productRegistrationRepositoryProvider).updateRegistration(
             registrationId: reg.id,
             customerName: result['customerName']!,
             customerPhone: result['customerPhone']!,
@@ -260,7 +260,7 @@ class _AdminRegistrationsScreenState
     }
   }
 
-  Future<void> _deleteRegistration(UnitRegistrationInfo reg) async {
+  Future<void> _deleteRegistration(ProductRegistrationInfo reg) async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogCtx) => AlertDialog(
@@ -284,7 +284,7 @@ class _AdminRegistrationsScreenState
     );
 
     if (confirmed == true && mounted) {
-      await ref.read(unitRepositoryProvider).deleteRegistration(reg.id);
+      await ref.read(productRegistrationRepositoryProvider).deleteRegistration(reg.id);
       if (mounted) {
         setState(() {
           _loadRegistrations();
@@ -403,9 +403,9 @@ class _RegistrationCard extends StatelessWidget {
     required this.onDelete,
   });
 
-  final ProductUnit unit;
-  final void Function(UnitRegistrationInfo) onEdit;
-  final void Function(UnitRegistrationInfo) onDelete;
+  final ProductLookup unit;
+  final void Function(ProductRegistrationInfo) onEdit;
+  final void Function(ProductRegistrationInfo) onDelete;
 
   @override
   Widget build(BuildContext context) {
@@ -474,7 +474,7 @@ class _RegistrationCard extends StatelessWidget {
             Row(
               children: <Widget>[
                 Text(
-                  'Serial: ${unit.serialNumber}',
+                  'Product Barcode: ${unit.serialNumber}',
                   style: context.textTheme.bodySmall?.copyWith(
                     color: Colors.grey.shade700,
                     fontWeight: FontWeight.w600,

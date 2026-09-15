@@ -377,64 +377,9 @@ class _BannerCard extends StatelessWidget {
   }
 
   Widget _buildBannerPreview(DashboardBanner banner) {
-    if (banner.storagePath.startsWith('test_banner_')) {
-      final index = int.tryParse(banner.id.replaceAll('test_', '')) ?? 1;
-      return _TestBannerCardItem(index: index - 1);
-    }
     return BannerImage(
       storagePath: banner.storagePath,
       fit: BoxFit.cover,
-    );
-  }
-}
-
-class _TestBannerCardItem extends StatelessWidget {
-  const _TestBannerCardItem({required this.index});
-
-  final int index;
-
-  static const List<List<Color>> _gradients = <List<Color>>[
-    <Color>[Color(0xFF0052D4), Color(0xFF4364F7), Color(0xFF6FB1FC)],
-    <Color>[Color(0xFF11998E), Color(0xFF38EF7D)],
-    <Color>[Color(0xFF8E2DE2), Color(0xFF4A00E0)],
-  ];
-
-  static const List<String> _titles = <String>[
-    'BANNER 1 — Special RO Deals',
-    'BANNER 2 — Genuine Spare Parts',
-    'BANNER 3 — Premium Water Filters',
-  ];
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = _gradients[index % _gradients.length];
-    final title = _titles[index % _titles.length];
-
-    return Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: colors,
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-      ),
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Icon(Icons.water_drop, color: Colors.white, size: 36),
-            const SizedBox(height: Spacing.x2),
-            Text(
-              title,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 15,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }

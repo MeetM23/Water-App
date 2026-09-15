@@ -20,6 +20,7 @@ import '../../../../core/widgets/app_skeleton.dart';
 import '../../../../core/widgets/app_snackbar.dart';
 import '../../../../core/widgets/brand_wordmark.dart';
 import '../../../../data/cache/hive_catalogue_cache.dart';
+import '../../../../domain/enums/user_role.dart';
 import '../../../../domain/models/profile.dart';
 import '../../../auth/application/auth_controller.dart';
 import '../../../auth/application/session_controller.dart';
@@ -124,6 +125,8 @@ class DealerAccountScreen extends ConsumerWidget {
     final profile = session is SessionSignedIn ? session.profile : null;
     final locale = ref.watch(localeControllerProvider);
 
+    final isRetailer = profile?.role == UserRole.retailer;
+
     return Scaffold(
       appBar: AppBar(title: const BrandWordmark.compact()),
       body: ListView(
@@ -147,14 +150,15 @@ class DealerAccountScreen extends ConsumerWidget {
                     ? context.push('${AppRoutes.login}?from=${Uri.encodeComponent(AppRoutes.complaints)}')
                     : context.push(AppRoutes.complaints),
               ),
-              _Row(
-                icon: Icons.app_registration_rounded,
-                label: 'My Registered Units',
-                subtitle: 'View your registered physical machines',
-                onTap: () => profile == null
-                    ? context.push(AppRoutes.login)
-                    : context.push(AppRoutes.userRegistrations),
-              ),
+              if (!isRetailer)
+                _Row(
+                  icon: Icons.app_registration_rounded,
+                  label: 'My Registered Units',
+                  subtitle: 'View your registered physical machines',
+                  onTap: () => profile == null
+                      ? context.push(AppRoutes.login)
+                      : context.push(AppRoutes.userRegistrations),
+                ),
               _Row(
                 icon: Icons.verified_outlined,
                 label: 'My Warranty Claims',

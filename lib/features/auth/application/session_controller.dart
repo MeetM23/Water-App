@@ -50,13 +50,15 @@ Stream<String?> authUserId(Ref<AsyncValue<String?>> ref) =>
 class SessionController extends _$SessionController {
   @override
   Future<SessionState> build() async {
-    final userId = await ref.watch(authUserIdProvider.future);
+    final repository = ref.watch(authRepositoryProvider);
+    final userId =
+        repository.currentUserId ?? await ref.watch(authUserIdProvider.future);
 
     if (userId == null) {
       return const SessionSignedOut();
     }
 
-    final result = await ref.watch(authRepositoryProvider).fetchProfile(userId);
+    final result = await repository.fetchProfile(userId);
 
     return result.fold(
       onSuccess: SessionSignedIn.new,

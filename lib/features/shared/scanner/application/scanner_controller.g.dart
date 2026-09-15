@@ -6,7 +6,7 @@ part of 'scanner_controller.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$scannerControllerHash() => r'cf9bd1c872ff8c3a30ec49001cdba830ca7f6a7b';
+String _$scannerControllerHash() => r'0f36b40d95212ee00cfa38576ede43246c8e8f07';
 
 /// Camera lifecycle, scan debouncing and code resolution.
 ///

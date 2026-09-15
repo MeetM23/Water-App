@@ -31,32 +31,20 @@ class _SystemHash {
 
 /// One product resolved by code, for the detail screen.
 ///
-/// Offline-first for the same reason as the scanner: a dealer who scanned a
-/// label with no signal must still see the product they scanned.
-///
 /// Copied from [productByCode].
 @ProviderFor(productByCode)
 const productByCodeProvider = ProductByCodeFamily();
 
 /// One product resolved by code, for the detail screen.
 ///
-/// Offline-first for the same reason as the scanner: a dealer who scanned a
-/// label with no signal must still see the product they scanned.
-///
 /// Copied from [productByCode].
 class ProductByCodeFamily extends Family<AsyncValue<CatalogProduct?>> {
   /// One product resolved by code, for the detail screen.
-  ///
-  /// Offline-first for the same reason as the scanner: a dealer who scanned a
-  /// label with no signal must still see the product they scanned.
   ///
   /// Copied from [productByCode].
   const ProductByCodeFamily();
 
   /// One product resolved by code, for the detail screen.
-  ///
-  /// Offline-first for the same reason as the scanner: a dealer who scanned a
-  /// label with no signal must still see the product they scanned.
   ///
   /// Copied from [productByCode].
   ProductByCodeProvider call(
@@ -93,15 +81,9 @@ class ProductByCodeFamily extends Family<AsyncValue<CatalogProduct?>> {
 
 /// One product resolved by code, for the detail screen.
 ///
-/// Offline-first for the same reason as the scanner: a dealer who scanned a
-/// label with no signal must still see the product they scanned.
-///
 /// Copied from [productByCode].
 class ProductByCodeProvider extends AutoDisposeFutureProvider<CatalogProduct?> {
   /// One product resolved by code, for the detail screen.
-  ///
-  /// Offline-first for the same reason as the scanner: a dealer who scanned a
-  /// label with no signal must still see the product they scanned.
   ///
   /// Copied from [productByCode].
   ProductByCodeProvider(
@@ -189,9 +171,9 @@ class _ProductByCodeProviderElement
 }
 
 String _$productLookupControllerHash() =>
-    r'a351be66b12d5615ce35dbe89ced709e5c86c834';
+    r'255454e090d1f446532d7db34decec266aea99a4';
 
-/// Resolves a product code or unit serial number, offline first.
+/// Resolves a product code or barcode, offline first.
 ///
 /// Copied from [ProductLookupController].
 @ProviderFor(ProductLookupController)

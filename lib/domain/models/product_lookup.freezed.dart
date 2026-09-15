@@ -3,7 +3,7 @@
 // ignore_for_file: type=lint
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
-part of 'product_unit.dart';
+part of 'product_lookup.dart';
 
 // **************************************************************************
 // FreezedGenerator
@@ -14,37 +14,41 @@ T _$identity<T>(T value) => value;
 final _privateConstructorUsedError = UnsupportedError(
     'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
 
-ProductUnit _$ProductUnitFromJson(Map<String, dynamic> json) {
-  return _ProductUnit.fromJson(json);
+ProductLookup _$ProductLookupFromJson(Map<String, dynamic> json) {
+  return _ProductLookup.fromJson(json);
 }
 
 /// @nodoc
-mixin _$ProductUnit {
+mixin _$ProductLookup {
   String get unitId => throw _privateConstructorUsedError;
   String get serialNumber => throw _privateConstructorUsedError;
   String get productId => throw _privateConstructorUsedError;
   String get productName => throw _privateConstructorUsedError;
   ProductCategory get category => throw _privateConstructorUsedError;
   DateTime get manufacturedAt => throw _privateConstructorUsedError;
+  String get status => throw _privateConstructorUsedError;
   String? get modelNumber => throw _privateConstructorUsedError;
+  String? get productCode => throw _privateConstructorUsedError;
+  int get stockQuantity => throw _privateConstructorUsedError;
   int? get defaultWarrantyMonths => throw _privateConstructorUsedError;
-  UnitRegistrationInfo? get registration => throw _privateConstructorUsedError;
+  ProductRegistrationInfo? get registration =>
+      throw _privateConstructorUsedError;
 
-  /// Serializes this ProductUnit to a JSON map.
+  /// Serializes this ProductLookup to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
 
-  /// Create a copy of ProductUnit
+  /// Create a copy of ProductLookup
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
-  $ProductUnitCopyWith<ProductUnit> get copyWith =>
+  $ProductLookupCopyWith<ProductLookup> get copyWith =>
       throw _privateConstructorUsedError;
 }
 
 /// @nodoc
-abstract class $ProductUnitCopyWith<$Res> {
-  factory $ProductUnitCopyWith(
-          ProductUnit value, $Res Function(ProductUnit) then) =
-      _$ProductUnitCopyWithImpl<$Res, ProductUnit>;
+abstract class $ProductLookupCopyWith<$Res> {
+  factory $ProductLookupCopyWith(
+          ProductLookup value, $Res Function(ProductLookup) then) =
+      _$ProductLookupCopyWithImpl<$Res, ProductLookup>;
   @useResult
   $Res call(
       {String unitId,
@@ -53,24 +57,27 @@ abstract class $ProductUnitCopyWith<$Res> {
       String productName,
       ProductCategory category,
       DateTime manufacturedAt,
+      String status,
       String? modelNumber,
+      String? productCode,
+      int stockQuantity,
       int? defaultWarrantyMonths,
-      UnitRegistrationInfo? registration});
+      ProductRegistrationInfo? registration});
 
-  $UnitRegistrationInfoCopyWith<$Res>? get registration;
+  $ProductRegistrationInfoCopyWith<$Res>? get registration;
 }
 
 /// @nodoc
-class _$ProductUnitCopyWithImpl<$Res, $Val extends ProductUnit>
-    implements $ProductUnitCopyWith<$Res> {
-  _$ProductUnitCopyWithImpl(this._value, this._then);
+class _$ProductLookupCopyWithImpl<$Res, $Val extends ProductLookup>
+    implements $ProductLookupCopyWith<$Res> {
+  _$ProductLookupCopyWithImpl(this._value, this._then);
 
   // ignore: unused_field
   final $Val _value;
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of ProductUnit
+  /// Create a copy of ProductLookup
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
@@ -81,7 +88,10 @@ class _$ProductUnitCopyWithImpl<$Res, $Val extends ProductUnit>
     Object? productName = null,
     Object? category = null,
     Object? manufacturedAt = null,
+    Object? status = null,
     Object? modelNumber = freezed,
+    Object? productCode = freezed,
+    Object? stockQuantity = null,
     Object? defaultWarrantyMonths = freezed,
     Object? registration = freezed,
   }) {
@@ -110,10 +120,22 @@ class _$ProductUnitCopyWithImpl<$Res, $Val extends ProductUnit>
           ? _value.manufacturedAt
           : manufacturedAt // ignore: cast_nullable_to_non_nullable
               as DateTime,
+      status: null == status
+          ? _value.status
+          : status // ignore: cast_nullable_to_non_nullable
+              as String,
       modelNumber: freezed == modelNumber
           ? _value.modelNumber
           : modelNumber // ignore: cast_nullable_to_non_nullable
               as String?,
+      productCode: freezed == productCode
+          ? _value.productCode
+          : productCode // ignore: cast_nullable_to_non_nullable
+              as String?,
+      stockQuantity: null == stockQuantity
+          ? _value.stockQuantity
+          : stockQuantity // ignore: cast_nullable_to_non_nullable
+              as int,
       defaultWarrantyMonths: freezed == defaultWarrantyMonths
           ? _value.defaultWarrantyMonths
           : defaultWarrantyMonths // ignore: cast_nullable_to_non_nullable
@@ -121,31 +143,32 @@ class _$ProductUnitCopyWithImpl<$Res, $Val extends ProductUnit>
       registration: freezed == registration
           ? _value.registration
           : registration // ignore: cast_nullable_to_non_nullable
-              as UnitRegistrationInfo?,
+              as ProductRegistrationInfo?,
     ) as $Val);
   }
 
-  /// Create a copy of ProductUnit
+  /// Create a copy of ProductLookup
   /// with the given fields replaced by the non-null parameter values.
   @override
   @pragma('vm:prefer-inline')
-  $UnitRegistrationInfoCopyWith<$Res>? get registration {
+  $ProductRegistrationInfoCopyWith<$Res>? get registration {
     if (_value.registration == null) {
       return null;
     }
 
-    return $UnitRegistrationInfoCopyWith<$Res>(_value.registration!, (value) {
+    return $ProductRegistrationInfoCopyWith<$Res>(_value.registration!,
+        (value) {
       return _then(_value.copyWith(registration: value) as $Val);
     });
   }
 }
 
 /// @nodoc
-abstract class _$$ProductUnitImplCopyWith<$Res>
-    implements $ProductUnitCopyWith<$Res> {
-  factory _$$ProductUnitImplCopyWith(
-          _$ProductUnitImpl value, $Res Function(_$ProductUnitImpl) then) =
-      __$$ProductUnitImplCopyWithImpl<$Res>;
+abstract class _$$ProductLookupImplCopyWith<$Res>
+    implements $ProductLookupCopyWith<$Res> {
+  factory _$$ProductLookupImplCopyWith(
+          _$ProductLookupImpl value, $Res Function(_$ProductLookupImpl) then) =
+      __$$ProductLookupImplCopyWithImpl<$Res>;
   @override
   @useResult
   $Res call(
@@ -155,23 +178,26 @@ abstract class _$$ProductUnitImplCopyWith<$Res>
       String productName,
       ProductCategory category,
       DateTime manufacturedAt,
+      String status,
       String? modelNumber,
+      String? productCode,
+      int stockQuantity,
       int? defaultWarrantyMonths,
-      UnitRegistrationInfo? registration});
+      ProductRegistrationInfo? registration});
 
   @override
-  $UnitRegistrationInfoCopyWith<$Res>? get registration;
+  $ProductRegistrationInfoCopyWith<$Res>? get registration;
 }
 
 /// @nodoc
-class __$$ProductUnitImplCopyWithImpl<$Res>
-    extends _$ProductUnitCopyWithImpl<$Res, _$ProductUnitImpl>
-    implements _$$ProductUnitImplCopyWith<$Res> {
-  __$$ProductUnitImplCopyWithImpl(
-      _$ProductUnitImpl _value, $Res Function(_$ProductUnitImpl) _then)
+class __$$ProductLookupImplCopyWithImpl<$Res>
+    extends _$ProductLookupCopyWithImpl<$Res, _$ProductLookupImpl>
+    implements _$$ProductLookupImplCopyWith<$Res> {
+  __$$ProductLookupImplCopyWithImpl(
+      _$ProductLookupImpl _value, $Res Function(_$ProductLookupImpl) _then)
       : super(_value, _then);
 
-  /// Create a copy of ProductUnit
+  /// Create a copy of ProductLookup
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
@@ -182,11 +208,14 @@ class __$$ProductUnitImplCopyWithImpl<$Res>
     Object? productName = null,
     Object? category = null,
     Object? manufacturedAt = null,
+    Object? status = null,
     Object? modelNumber = freezed,
+    Object? productCode = freezed,
+    Object? stockQuantity = null,
     Object? defaultWarrantyMonths = freezed,
     Object? registration = freezed,
   }) {
-    return _then(_$ProductUnitImpl(
+    return _then(_$ProductLookupImpl(
       unitId: null == unitId
           ? _value.unitId
           : unitId // ignore: cast_nullable_to_non_nullable
@@ -211,10 +240,22 @@ class __$$ProductUnitImplCopyWithImpl<$Res>
           ? _value.manufacturedAt
           : manufacturedAt // ignore: cast_nullable_to_non_nullable
               as DateTime,
+      status: null == status
+          ? _value.status
+          : status // ignore: cast_nullable_to_non_nullable
+              as String,
       modelNumber: freezed == modelNumber
           ? _value.modelNumber
           : modelNumber // ignore: cast_nullable_to_non_nullable
               as String?,
+      productCode: freezed == productCode
+          ? _value.productCode
+          : productCode // ignore: cast_nullable_to_non_nullable
+              as String?,
+      stockQuantity: null == stockQuantity
+          ? _value.stockQuantity
+          : stockQuantity // ignore: cast_nullable_to_non_nullable
+              as int,
       defaultWarrantyMonths: freezed == defaultWarrantyMonths
           ? _value.defaultWarrantyMonths
           : defaultWarrantyMonths // ignore: cast_nullable_to_non_nullable
@@ -222,27 +263,30 @@ class __$$ProductUnitImplCopyWithImpl<$Res>
       registration: freezed == registration
           ? _value.registration
           : registration // ignore: cast_nullable_to_non_nullable
-              as UnitRegistrationInfo?,
+              as ProductRegistrationInfo?,
     ));
   }
 }
 
 /// @nodoc
 @JsonSerializable()
-class _$ProductUnitImpl implements _ProductUnit {
-  const _$ProductUnitImpl(
+class _$ProductLookupImpl implements _ProductLookup {
+  const _$ProductLookupImpl(
       {required this.unitId,
       required this.serialNumber,
       required this.productId,
       required this.productName,
       required this.category,
       required this.manufacturedAt,
+      this.status = 'available',
       this.modelNumber,
+      this.productCode,
+      this.stockQuantity = 0,
       this.defaultWarrantyMonths,
       this.registration});
 
-  factory _$ProductUnitImpl.fromJson(Map<String, dynamic> json) =>
-      _$$ProductUnitImplFromJson(json);
+  factory _$ProductLookupImpl.fromJson(Map<String, dynamic> json) =>
+      _$$ProductLookupImplFromJson(json);
 
   @override
   final String unitId;
@@ -257,22 +301,30 @@ class _$ProductUnitImpl implements _ProductUnit {
   @override
   final DateTime manufacturedAt;
   @override
+  @JsonKey()
+  final String status;
+  @override
   final String? modelNumber;
+  @override
+  final String? productCode;
+  @override
+  @JsonKey()
+  final int stockQuantity;
   @override
   final int? defaultWarrantyMonths;
   @override
-  final UnitRegistrationInfo? registration;
+  final ProductRegistrationInfo? registration;
 
   @override
   String toString() {
-    return 'ProductUnit(unitId: $unitId, serialNumber: $serialNumber, productId: $productId, productName: $productName, category: $category, manufacturedAt: $manufacturedAt, modelNumber: $modelNumber, defaultWarrantyMonths: $defaultWarrantyMonths, registration: $registration)';
+    return 'ProductLookup(unitId: $unitId, serialNumber: $serialNumber, productId: $productId, productName: $productName, category: $category, manufacturedAt: $manufacturedAt, status: $status, modelNumber: $modelNumber, productCode: $productCode, stockQuantity: $stockQuantity, defaultWarrantyMonths: $defaultWarrantyMonths, registration: $registration)';
   }
 
   @override
   bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$ProductUnitImpl &&
+            other is _$ProductLookupImpl &&
             (identical(other.unitId, unitId) || other.unitId == unitId) &&
             (identical(other.serialNumber, serialNumber) ||
                 other.serialNumber == serialNumber) &&
@@ -284,8 +336,13 @@ class _$ProductUnitImpl implements _ProductUnit {
                 other.category == category) &&
             (identical(other.manufacturedAt, manufacturedAt) ||
                 other.manufacturedAt == manufacturedAt) &&
+            (identical(other.status, status) || other.status == status) &&
             (identical(other.modelNumber, modelNumber) ||
                 other.modelNumber == modelNumber) &&
+            (identical(other.productCode, productCode) ||
+                other.productCode == productCode) &&
+            (identical(other.stockQuantity, stockQuantity) ||
+                other.stockQuantity == stockQuantity) &&
             (identical(other.defaultWarrantyMonths, defaultWarrantyMonths) ||
                 other.defaultWarrantyMonths == defaultWarrantyMonths) &&
             (identical(other.registration, registration) ||
@@ -302,40 +359,46 @@ class _$ProductUnitImpl implements _ProductUnit {
       productName,
       category,
       manufacturedAt,
+      status,
       modelNumber,
+      productCode,
+      stockQuantity,
       defaultWarrantyMonths,
       registration);
 
-  /// Create a copy of ProductUnit
+  /// Create a copy of ProductLookup
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
-  _$$ProductUnitImplCopyWith<_$ProductUnitImpl> get copyWith =>
-      __$$ProductUnitImplCopyWithImpl<_$ProductUnitImpl>(this, _$identity);
+  _$$ProductLookupImplCopyWith<_$ProductLookupImpl> get copyWith =>
+      __$$ProductLookupImplCopyWithImpl<_$ProductLookupImpl>(this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$ProductUnitImplToJson(
+    return _$$ProductLookupImplToJson(
       this,
     );
   }
 }
 
-abstract class _ProductUnit implements ProductUnit {
-  const factory _ProductUnit(
+abstract class _ProductLookup implements ProductLookup {
+  const factory _ProductLookup(
       {required final String unitId,
       required final String serialNumber,
       required final String productId,
       required final String productName,
       required final ProductCategory category,
       required final DateTime manufacturedAt,
+      final String status,
       final String? modelNumber,
+      final String? productCode,
+      final int stockQuantity,
       final int? defaultWarrantyMonths,
-      final UnitRegistrationInfo? registration}) = _$ProductUnitImpl;
+      final ProductRegistrationInfo? registration}) = _$ProductLookupImpl;
 
-  factory _ProductUnit.fromJson(Map<String, dynamic> json) =
-      _$ProductUnitImpl.fromJson;
+  factory _ProductLookup.fromJson(Map<String, dynamic> json) =
+      _$ProductLookupImpl.fromJson;
 
   @override
   String get unitId;
@@ -350,26 +413,33 @@ abstract class _ProductUnit implements ProductUnit {
   @override
   DateTime get manufacturedAt;
   @override
+  String get status;
+  @override
   String? get modelNumber;
+  @override
+  String? get productCode;
+  @override
+  int get stockQuantity;
   @override
   int? get defaultWarrantyMonths;
   @override
-  UnitRegistrationInfo? get registration;
+  ProductRegistrationInfo? get registration;
 
-  /// Create a copy of ProductUnit
+  /// Create a copy of ProductLookup
   /// with the given fields replaced by the non-null parameter values.
   @override
   @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$ProductUnitImplCopyWith<_$ProductUnitImpl> get copyWith =>
+  _$$ProductLookupImplCopyWith<_$ProductLookupImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
 
-UnitRegistrationInfo _$UnitRegistrationInfoFromJson(Map<String, dynamic> json) {
-  return _UnitRegistrationInfo.fromJson(json);
+ProductRegistrationInfo _$ProductRegistrationInfoFromJson(
+    Map<String, dynamic> json) {
+  return _ProductRegistrationInfo.fromJson(json);
 }
 
 /// @nodoc
-mixin _$UnitRegistrationInfo {
+mixin _$ProductRegistrationInfo {
   String get id => throw _privateConstructorUsedError;
   String? get customerName => throw _privateConstructorUsedError;
   String? get customerPhone => throw _privateConstructorUsedError;
@@ -386,21 +456,21 @@ mixin _$UnitRegistrationInfo {
   String? get registeredBy => throw _privateConstructorUsedError;
   DateTime? get createdAt => throw _privateConstructorUsedError;
 
-  /// Serializes this UnitRegistrationInfo to a JSON map.
+  /// Serializes this ProductRegistrationInfo to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
 
-  /// Create a copy of UnitRegistrationInfo
+  /// Create a copy of ProductRegistrationInfo
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
-  $UnitRegistrationInfoCopyWith<UnitRegistrationInfo> get copyWith =>
+  $ProductRegistrationInfoCopyWith<ProductRegistrationInfo> get copyWith =>
       throw _privateConstructorUsedError;
 }
 
 /// @nodoc
-abstract class $UnitRegistrationInfoCopyWith<$Res> {
-  factory $UnitRegistrationInfoCopyWith(UnitRegistrationInfo value,
-          $Res Function(UnitRegistrationInfo) then) =
-      _$UnitRegistrationInfoCopyWithImpl<$Res, UnitRegistrationInfo>;
+abstract class $ProductRegistrationInfoCopyWith<$Res> {
+  factory $ProductRegistrationInfoCopyWith(ProductRegistrationInfo value,
+          $Res Function(ProductRegistrationInfo) then) =
+      _$ProductRegistrationInfoCopyWithImpl<$Res, ProductRegistrationInfo>;
   @useResult
   $Res call(
       {String id,
@@ -421,17 +491,17 @@ abstract class $UnitRegistrationInfoCopyWith<$Res> {
 }
 
 /// @nodoc
-class _$UnitRegistrationInfoCopyWithImpl<$Res,
-        $Val extends UnitRegistrationInfo>
-    implements $UnitRegistrationInfoCopyWith<$Res> {
-  _$UnitRegistrationInfoCopyWithImpl(this._value, this._then);
+class _$ProductRegistrationInfoCopyWithImpl<$Res,
+        $Val extends ProductRegistrationInfo>
+    implements $ProductRegistrationInfoCopyWith<$Res> {
+  _$ProductRegistrationInfoCopyWithImpl(this._value, this._then);
 
   // ignore: unused_field
   final $Val _value;
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of UnitRegistrationInfo
+  /// Create a copy of ProductRegistrationInfo
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
@@ -518,11 +588,12 @@ class _$UnitRegistrationInfoCopyWithImpl<$Res,
 }
 
 /// @nodoc
-abstract class _$$UnitRegistrationInfoImplCopyWith<$Res>
-    implements $UnitRegistrationInfoCopyWith<$Res> {
-  factory _$$UnitRegistrationInfoImplCopyWith(_$UnitRegistrationInfoImpl value,
-          $Res Function(_$UnitRegistrationInfoImpl) then) =
-      __$$UnitRegistrationInfoImplCopyWithImpl<$Res>;
+abstract class _$$ProductRegistrationInfoImplCopyWith<$Res>
+    implements $ProductRegistrationInfoCopyWith<$Res> {
+  factory _$$ProductRegistrationInfoImplCopyWith(
+          _$ProductRegistrationInfoImpl value,
+          $Res Function(_$ProductRegistrationInfoImpl) then) =
+      __$$ProductRegistrationInfoImplCopyWithImpl<$Res>;
   @override
   @useResult
   $Res call(
@@ -544,14 +615,16 @@ abstract class _$$UnitRegistrationInfoImplCopyWith<$Res>
 }
 
 /// @nodoc
-class __$$UnitRegistrationInfoImplCopyWithImpl<$Res>
-    extends _$UnitRegistrationInfoCopyWithImpl<$Res, _$UnitRegistrationInfoImpl>
-    implements _$$UnitRegistrationInfoImplCopyWith<$Res> {
-  __$$UnitRegistrationInfoImplCopyWithImpl(_$UnitRegistrationInfoImpl _value,
-      $Res Function(_$UnitRegistrationInfoImpl) _then)
+class __$$ProductRegistrationInfoImplCopyWithImpl<$Res>
+    extends _$ProductRegistrationInfoCopyWithImpl<$Res,
+        _$ProductRegistrationInfoImpl>
+    implements _$$ProductRegistrationInfoImplCopyWith<$Res> {
+  __$$ProductRegistrationInfoImplCopyWithImpl(
+      _$ProductRegistrationInfoImpl _value,
+      $Res Function(_$ProductRegistrationInfoImpl) _then)
       : super(_value, _then);
 
-  /// Create a copy of UnitRegistrationInfo
+  /// Create a copy of ProductRegistrationInfo
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
@@ -572,7 +645,7 @@ class __$$UnitRegistrationInfoImplCopyWithImpl<$Res>
     Object? registeredBy = freezed,
     Object? createdAt = freezed,
   }) {
-    return _then(_$UnitRegistrationInfoImpl(
+    return _then(_$ProductRegistrationInfoImpl(
       id: null == id
           ? _value.id
           : id // ignore: cast_nullable_to_non_nullable
@@ -639,8 +712,8 @@ class __$$UnitRegistrationInfoImplCopyWithImpl<$Res>
 
 /// @nodoc
 @JsonSerializable()
-class _$UnitRegistrationInfoImpl extends _UnitRegistrationInfo {
-  const _$UnitRegistrationInfoImpl(
+class _$ProductRegistrationInfoImpl extends _ProductRegistrationInfo {
+  const _$ProductRegistrationInfoImpl(
       {required this.id,
       this.customerName,
       this.customerPhone,
@@ -658,8 +731,8 @@ class _$UnitRegistrationInfoImpl extends _UnitRegistrationInfo {
       this.createdAt})
       : super._();
 
-  factory _$UnitRegistrationInfoImpl.fromJson(Map<String, dynamic> json) =>
-      _$$UnitRegistrationInfoImplFromJson(json);
+  factory _$ProductRegistrationInfoImpl.fromJson(Map<String, dynamic> json) =>
+      _$$ProductRegistrationInfoImplFromJson(json);
 
   @override
   final String id;
@@ -694,14 +767,14 @@ class _$UnitRegistrationInfoImpl extends _UnitRegistrationInfo {
 
   @override
   String toString() {
-    return 'UnitRegistrationInfo(id: $id, customerName: $customerName, customerPhone: $customerPhone, purchaseDate: $purchaseDate, installationDate: $installationDate, warrantyStartDate: $warrantyStartDate, warrantyMonths: $warrantyMonths, warrantyEndDate: $warrantyEndDate, customerCity: $customerCity, customerAddress: $customerAddress, invoiceNumber: $invoiceNumber, sellerName: $sellerName, sellerPhone: $sellerPhone, registeredBy: $registeredBy, createdAt: $createdAt)';
+    return 'ProductRegistrationInfo(id: $id, customerName: $customerName, customerPhone: $customerPhone, purchaseDate: $purchaseDate, installationDate: $installationDate, warrantyStartDate: $warrantyStartDate, warrantyMonths: $warrantyMonths, warrantyEndDate: $warrantyEndDate, customerCity: $customerCity, customerAddress: $customerAddress, invoiceNumber: $invoiceNumber, sellerName: $sellerName, sellerPhone: $sellerPhone, registeredBy: $registeredBy, createdAt: $createdAt)';
   }
 
   @override
   bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$UnitRegistrationInfoImpl &&
+            other is _$ProductRegistrationInfoImpl &&
             (identical(other.id, id) || other.id == id) &&
             (identical(other.customerName, customerName) ||
                 other.customerName == customerName) &&
@@ -753,26 +826,25 @@ class _$UnitRegistrationInfoImpl extends _UnitRegistrationInfo {
       registeredBy,
       createdAt);
 
-  /// Create a copy of UnitRegistrationInfo
+  /// Create a copy of ProductRegistrationInfo
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
-  _$$UnitRegistrationInfoImplCopyWith<_$UnitRegistrationInfoImpl>
-      get copyWith =>
-          __$$UnitRegistrationInfoImplCopyWithImpl<_$UnitRegistrationInfoImpl>(
-              this, _$identity);
+  _$$ProductRegistrationInfoImplCopyWith<_$ProductRegistrationInfoImpl>
+      get copyWith => __$$ProductRegistrationInfoImplCopyWithImpl<
+          _$ProductRegistrationInfoImpl>(this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$UnitRegistrationInfoImplToJson(
+    return _$$ProductRegistrationInfoImplToJson(
       this,
     );
   }
 }
 
-abstract class _UnitRegistrationInfo extends UnitRegistrationInfo {
-  const factory _UnitRegistrationInfo(
+abstract class _ProductRegistrationInfo extends ProductRegistrationInfo {
+  const factory _ProductRegistrationInfo(
       {required final String id,
       final String? customerName,
       final String? customerPhone,
@@ -787,11 +859,11 @@ abstract class _UnitRegistrationInfo extends UnitRegistrationInfo {
       final String? sellerName,
       final String? sellerPhone,
       final String? registeredBy,
-      final DateTime? createdAt}) = _$UnitRegistrationInfoImpl;
-  const _UnitRegistrationInfo._() : super._();
+      final DateTime? createdAt}) = _$ProductRegistrationInfoImpl;
+  const _ProductRegistrationInfo._() : super._();
 
-  factory _UnitRegistrationInfo.fromJson(Map<String, dynamic> json) =
-      _$UnitRegistrationInfoImpl.fromJson;
+  factory _ProductRegistrationInfo.fromJson(Map<String, dynamic> json) =
+      _$ProductRegistrationInfoImpl.fromJson;
 
   @override
   String get id;
@@ -824,10 +896,10 @@ abstract class _UnitRegistrationInfo extends UnitRegistrationInfo {
   @override
   DateTime? get createdAt;
 
-  /// Create a copy of UnitRegistrationInfo
+  /// Create a copy of ProductRegistrationInfo
   /// with the given fields replaced by the non-null parameter values.
   @override
   @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$UnitRegistrationInfoImplCopyWith<_$UnitRegistrationInfoImpl>
+  _$$ProductRegistrationInfoImplCopyWith<_$ProductRegistrationInfoImpl>
       get copyWith => throw _privateConstructorUsedError;
 }

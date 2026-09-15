@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import '../../domain/enums/account_status.dart';
 import '../../domain/enums/complaint_category.dart';
 import '../../domain/enums/user_role.dart';
 import '../../domain/models/profile.dart';
@@ -459,15 +460,42 @@ String? _redirectForProfile(Profile profile, String location) {
   };
 
   final isDealer = profile.role == UserRole.wholesaler || profile.role == UserRole.retailer;
-  final isDealerOnlyRoute = uri.path == AppRoutes.productRegistration ||
-      uri.path == AppRoutes.warrantyClaim ||
-      uri.path == AppRoutes.userRegistrations ||
+
+  // Account approval & status redirection
+  switch (profile.status) {
+    case AccountStatus.pending:
+      if (profile.role == UserRole.wholesaler) {
+        return uri.path == AppRoutes.pending ? null : AppRoutes.pending;
+      }
+    case AccountStatus.rejected:
+      return uri.path == AppRoutes.rejected ? null : AppRoutes.rejected;
+    case AccountStatus.suspended:
+      return uri.path == AppRoutes.suspended ? null : AppRoutes.suspended;
+    case AccountStatus.approved:
+      break;
+  }
+
+  // If user is on an account status route but is now approved or auto-passing (Owner/Retailer), send to landing.
+  if (uri.path == AppRoutes.pending ||
+      uri.path == AppRoutes.rejected ||
+      uri.path == AppRoutes.suspended) {
+    return landing;
+  }
+
+  // Product Registration and Registered Units screens are NOT accessible to Retailer.
+  if (profile.role == UserRole.retailer &&
+      (uri.path == AppRoutes.productRegistration ||
+       uri.path == AppRoutes.serialScanRegister ||
+       uri.path == AppRoutes.userRegistrations)) {
+    return landing;
+  }
+
+  // Warranty claim features are only accessible to approved dealers (wholesalers / retailers).
+  final isDealerClaimRoute = uri.path == AppRoutes.warrantyClaim ||
       uri.path == AppRoutes.userClaims ||
-      uri.path == AppRoutes.serialScanRegister ||
       uri.path == AppRoutes.serialScanClaim;
 
-  // Product Registration and Warranty Claim features are ONLY accessible to approved Retailers or Wholesalers.
-  if (isDealerOnlyRoute && !isDealer) {
+  if (isDealerClaimRoute && !isDealer) {
     return landing;
   }
 
@@ -476,14 +504,15 @@ String? _redirectForProfile(Profile profile, String location) {
     final fromUri = Uri.parse(fromParam);
     if (fromUri.path == landing ||
         fromUri.path.startsWith('$area/') ||
+        fromUri.path.startsWith('/wholesaler/product/') ||
+        fromUri.path.startsWith('/retailer/product/') ||
         fromUri.path == AppRoutes.complaints ||
         fromUri.path.startsWith('/complaint') ||
         fromUri.path.startsWith('/unit') ||
-        (isDealer &&
-            (fromUri.path == AppRoutes.productRegistration ||
-                fromUri.path == AppRoutes.warrantyClaim ||
-                fromUri.path == AppRoutes.userRegistrations ||
-                fromUri.path == AppRoutes.userClaims))) {
+        fromUri.path == AppRoutes.productRegistration ||
+        fromUri.path == AppRoutes.warrantyClaim ||
+        fromUri.path == AppRoutes.userRegistrations ||
+        fromUri.path == AppRoutes.userClaims) {
       return fromParam;
     }
   }
@@ -494,6 +523,8 @@ String? _redirectForProfile(Profile profile, String location) {
   // itself is not a destination, so it falls through to the landing route.
   if (uri.path == landing ||
       uri.path.startsWith('$area/') ||
+      uri.path.startsWith('/wholesaler/product/') ||
+      uri.path.startsWith('/retailer/product/') ||
       uri.path == AppRoutes.complaints ||
       uri.path.startsWith('/complaint') ||
       uri.path.startsWith('/unit') ||

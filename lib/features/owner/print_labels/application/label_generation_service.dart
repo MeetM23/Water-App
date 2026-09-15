@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/errors/app_failure.dart';
 import '../../../../core/errors/result.dart';
-import '../../../../data/repositories/supabase_unit_repository.dart';
 import '../../../../domain/models/business_settings.dart';
 import '../../../../domain/models/product.dart';
 import '../../labels/data/label_pdf_builder.dart';
@@ -21,13 +20,13 @@ class LabelGenerationResult {
   final Uint8List pdfBytes;
 }
 
-/// Service class for batch generating physical units and compiling PDF.
+/// Service class for batch generating product labels and compiling PDF.
 class LabelGenerationService {
   const LabelGenerationService(this._ref);
 
   final Ref _ref;
 
-  /// Batch generates physical unit serial numbers and compiles PDF bytes.
+  /// Batch generates product label items and compiles PDF bytes.
   Future<Result<LabelGenerationResult>> generateLabelsPdf({
     required List<Product> selectedProducts,
     required Map<String, int> quantities,
@@ -35,7 +34,6 @@ class LabelGenerationService {
     List<LabelJobItem>? existingJobItems,
   }) async {
     try {
-      final unitRepo = _ref.read(unitRepositoryProvider);
       final jobItems = <LabelJobItem>[];
 
       if (existingJobItems != null && existingJobItems.isNotEmpty) {
@@ -43,18 +41,8 @@ class LabelGenerationService {
       } else {
         for (final product in selectedProducts) {
           final qty = quantities[product.id] ?? 1;
-          final genResult = await unitRepo.batchGenerateUnits(
-            productId: product.id,
-            quantity: qty,
-          );
-
-          if (genResult.failureOrNull != null) {
-            return ResultFailure<LabelGenerationResult>(
-              genResult.failureOrNull!,
-            );
-          }
-
-          final serials = genResult.valueOrNull!;
+          final code = (product.productCode.isNotEmpty) ? product.productCode : product.id;
+          final serials = List<String>.generate(qty, (_) => code);
           jobItems.add(
             LabelJobItem(
               product: product,

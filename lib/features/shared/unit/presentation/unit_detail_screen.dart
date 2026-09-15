@@ -15,18 +15,18 @@ import '../../../../core/widgets/app_empty_state.dart';
 import '../../../../core/widgets/app_error_state.dart';
 import '../../../../core/widgets/app_skeleton.dart';
 import '../../../../core/widgets/app_snackbar.dart';
-import '../../../../data/repositories/supabase_unit_repository.dart';
-import '../../../../domain/models/product_unit.dart';
+import '../../../../data/repositories/supabase_product_registration_repository.dart';
+import '../../../../domain/models/product_lookup.dart';
 
-/// Screen displaying product, machine, and warranty details for a scanned physical RO unit.
+/// Screen displaying product and warranty details for a scanned product barcode.
 class UnitDetailScreen extends ConsumerWidget {
-  /// Creates the physical unit detail screen.
+  /// Creates the product detail screen.
   const UnitDetailScreen({
     required this.serialNumber,
     super.key,
   });
 
-  /// The machine serial number scanned or looked up.
+  /// The product barcode scanned or looked up.
   final String serialNumber;
 
   @override
@@ -46,7 +46,7 @@ class UnitDetailScreen extends ConsumerWidget {
               : UnexpectedFailure(cause: error, stackTrace: stackTrace),
           onRetry: () => ref.invalidate(_unitProvider(serialNumber)),
         ),
-        data: (ProductUnit? unit) {
+        data: (ProductLookup? unit) {
           if (unit == null) {
             return AppEmptyState(
               icon: Icons.qr_code_scanner_rounded,
@@ -66,7 +66,7 @@ class UnitDetailScreen extends ConsumerWidget {
                 _ProductHeaderCard(unit: unit),
                 const SizedBox(height: Spacing.x4),
 
-                // Physical Machine Information
+                // Product Information
                 _MachineDetailsCard(unit: unit),
                 const SizedBox(height: Spacing.x4),
 
@@ -74,13 +74,13 @@ class UnitDetailScreen extends ConsumerWidget {
                 _WarrantyDetailsCard(unit: unit),
                 const SizedBox(height: Spacing.x6),
 
-                // Primary Action: Raise Complaint linked to Unit
+                // Primary Action: Raise Complaint linked to Product
                 AppButton(
                   label: l10n.unitActionRaiseComplaint,
                   icon: Icons.report_problem_outlined,
                   onPressed: () {
                     context.push(
-                      '/complaint/new?unitId=${unit.unitId}&reference=${Uri.encodeComponent(unit.serialNumber)}',
+                      '/complaint/new?unitId=${unit.productId}&reference=${Uri.encodeComponent(unit.serialNumber)}',
                     );
                   },
                 ),
@@ -94,9 +94,9 @@ class UnitDetailScreen extends ConsumerWidget {
 }
 
 final _unitProvider =
-    FutureProvider.family<ProductUnit?, String>((ref, serial) async {
-  final repository = ref.watch(unitRepositoryProvider);
-  final result = await repository.findUnitBySerial(serial);
+    FutureProvider.family<ProductLookup?, String>((ref, barcode) async {
+  final repository = ref.watch(productRegistrationRepositoryProvider);
+  final result = await repository.findProductByBarcode(barcode);
   return result.fold(
     onSuccess: (unit) => unit,
     onFailure: (failure) => throw failure,
@@ -106,7 +106,7 @@ final _unitProvider =
 class _ProductHeaderCard extends StatelessWidget {
   const _ProductHeaderCard({required this.unit});
 
-  final ProductUnit unit;
+  final ProductLookup unit;
 
   @override
   Widget build(BuildContext context) {
@@ -167,7 +167,7 @@ class _ProductHeaderCard extends StatelessWidget {
 class _MachineDetailsCard extends StatelessWidget {
   const _MachineDetailsCard({required this.unit});
 
-  final ProductUnit unit;
+  final ProductLookup unit;
 
   @override
   Widget build(BuildContext context) {
@@ -210,7 +210,7 @@ class _MachineDetailsCard extends StatelessWidget {
 class _WarrantyDetailsCard extends StatelessWidget {
   const _WarrantyDetailsCard({required this.unit});
 
-  final ProductUnit unit;
+  final ProductLookup unit;
 
   @override
   Widget build(BuildContext context) {

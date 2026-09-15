@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
 import '../../../../../core/theme/app_spacing.dart';
-import '../../../../../domain/models/product_unit.dart';
+import '../../../../../domain/models/product_lookup.dart';
 
-/// Clean modal dialog for editing a unit registration.
+/// Clean modal dialog for editing a product registration.
 class EditRegistrationDialog extends StatefulWidget {
   /// Creates the dialog.
   const EditRegistrationDialog({
@@ -12,12 +12,12 @@ class EditRegistrationDialog extends StatefulWidget {
   });
 
   /// Initial registration details.
-  final UnitRegistrationInfo initialReg;
+  final ProductRegistrationInfo initialReg;
 
   /// Utility helper to present the dialog.
   static Future<Map<String, String?>?> show(
     BuildContext context,
-    UnitRegistrationInfo reg,
+    ProductRegistrationInfo reg,
   ) {
     return showDialog<Map<String, String?>?>(
       context: context,

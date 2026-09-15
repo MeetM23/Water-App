@@ -1,28 +1,31 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'product_unit.dart';
+part of 'product_lookup.dart';
 
 // **************************************************************************
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$ProductUnitImpl _$$ProductUnitImplFromJson(Map<String, dynamic> json) =>
-    _$ProductUnitImpl(
+_$ProductLookupImpl _$$ProductLookupImplFromJson(Map<String, dynamic> json) =>
+    _$ProductLookupImpl(
       unitId: json['unit_id'] as String,
       serialNumber: json['serial_number'] as String,
       productId: json['product_id'] as String,
       productName: json['product_name'] as String,
       category: $enumDecode(_$ProductCategoryEnumMap, json['category']),
       manufacturedAt: DateTime.parse(json['manufactured_at'] as String),
+      status: json['status'] as String? ?? 'available',
       modelNumber: json['model_number'] as String?,
+      productCode: json['product_code'] as String?,
+      stockQuantity: (json['stock_quantity'] as num?)?.toInt() ?? 0,
       defaultWarrantyMonths: (json['default_warranty_months'] as num?)?.toInt(),
       registration: json['registration'] == null
           ? null
-          : UnitRegistrationInfo.fromJson(
+          : ProductRegistrationInfo.fromJson(
               json['registration'] as Map<String, dynamic>),
     );
 
-Map<String, dynamic> _$$ProductUnitImplToJson(_$ProductUnitImpl instance) =>
+Map<String, dynamic> _$$ProductLookupImplToJson(_$ProductLookupImpl instance) =>
     <String, dynamic>{
       'unit_id': instance.unitId,
       'serial_number': instance.serialNumber,
@@ -30,7 +33,10 @@ Map<String, dynamic> _$$ProductUnitImplToJson(_$ProductUnitImpl instance) =>
       'product_name': instance.productName,
       'category': _$ProductCategoryEnumMap[instance.category]!,
       'manufactured_at': instance.manufacturedAt.toIso8601String(),
+      'status': instance.status,
       'model_number': instance.modelNumber,
+      'product_code': instance.productCode,
+      'stock_quantity': instance.stockQuantity,
       'default_warranty_months': instance.defaultWarrantyMonths,
       'registration': instance.registration,
     };
@@ -43,9 +49,9 @@ const _$ProductCategoryEnumMap = {
   ProductCategory.accessory: 'accessory',
 };
 
-_$UnitRegistrationInfoImpl _$$UnitRegistrationInfoImplFromJson(
+_$ProductRegistrationInfoImpl _$$ProductRegistrationInfoImplFromJson(
         Map<String, dynamic> json) =>
-    _$UnitRegistrationInfoImpl(
+    _$ProductRegistrationInfoImpl(
       id: json['id'] as String,
       customerName: json['customer_name'] as String?,
       customerPhone: json['customer_phone'] as String?,
@@ -65,8 +71,8 @@ _$UnitRegistrationInfoImpl _$$UnitRegistrationInfoImplFromJson(
           : DateTime.parse(json['created_at'] as String),
     );
 
-Map<String, dynamic> _$$UnitRegistrationInfoImplToJson(
-        _$UnitRegistrationInfoImpl instance) =>
+Map<String, dynamic> _$$ProductRegistrationInfoImplToJson(
+        _$ProductRegistrationInfoImpl instance) =>
     <String, dynamic>{
       'id': instance.id,
       'customer_name': instance.customerName,

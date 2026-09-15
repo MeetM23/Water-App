@@ -6,6 +6,7 @@ import '../../../core/errors/app_failure.dart';
 import '../../../core/errors/result.dart';
 import '../../../data/repositories/supabase_auth_repository.dart';
 import '../../../domain/models/sign_up_request.dart';
+import 'session_controller.dart';
 
 part 'auth_controller.g.dart';
 
@@ -27,13 +28,28 @@ class AuthController extends _$AuthController {
   Future<AppFailure?> signIn({
     required String email,
     required String password,
-  }) => _run(
-    () => ref
-        .read(authRepositoryProvider)
-        .signIn(email: email, password: password),
-  );
+  }) async {
+    final failure = await _run(
+      () => ref
+          .read(authRepositoryProvider)
+          .signIn(email: email, password: password),
+    );
 
-  /// Registers a new dealer. The resulting account is always pending approval.
+    if (failure != null) {
+      return failure;
+    }
+
+    try {
+      await ref.read(sessionControllerProvider.notifier).reload();
+      return null;
+    } on AppFailure catch (e) {
+      return e;
+    } catch (e, st) {
+      return UnexpectedFailure(cause: e, stackTrace: st);
+    }
+  }
+
+  /// Registers a new dealer.
   Future<AppFailure?> signUp(SignUpRequest request) =>
       _run(() => ref.read(authRepositoryProvider).signUp(request));
 

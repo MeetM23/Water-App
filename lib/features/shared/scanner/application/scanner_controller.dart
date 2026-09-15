@@ -9,7 +9,7 @@ import '../../../../core/utils/product_code.dart';
 import '../../../../data/repositories/supabase_scan_repository.dart';
 import '../../../../domain/enums/user_role.dart';
 import '../../../../domain/models/catalog_product.dart';
-import '../../../../domain/models/product_unit.dart';
+import '../../../../domain/models/product_lookup.dart';
 import '../../../../domain/repositories/scan_repository.dart';
 import '../../../../l10n/generated/app_localizations.dart';
 import '../../../auth/application/session_controller.dart';
@@ -104,8 +104,8 @@ final class ScanUnitMatched extends ScanOutcome {
   /// Creates a unit matched outcome.
   const ScanUnitMatched(this.unit);
 
-  /// The physical unit behind the serial number.
-  final ProductUnit unit;
+  /// The product lookup result.
+  final ProductLookup unit;
 }
 
 /// The code resolved to nothing usable.
@@ -400,8 +400,8 @@ class ScannerController extends _$ScannerController {
     );
   }
 
-  /// Records telemetry when an individual physical machine unit is scanned.
-  void recordScanForUnit(ProductUnit unit, ScanSource source) {
+  /// Records telemetry when a product is scanned.
+  void recordScanForUnit(ProductLookup unit, ScanSource source) {
     final session = ref.read(sessionControllerProvider).valueOrNull;
     if (session is! SessionSignedIn) {
       return;

@@ -11,9 +11,9 @@ import '../../../../core/widgets/app_button.dart';
 import '../../../../core/widgets/app_card.dart';
 import '../../../../core/widgets/app_snackbar.dart';
 import '../../../../core/errors/failure_presentation.dart';
-import '../../../../data/repositories/supabase_unit_repository.dart';
+import '../../../../data/repositories/supabase_product_registration_repository.dart';
 import '../../../../data/repositories/supabase_warranty_claim_repository.dart';
-import '../../../../domain/models/product_unit.dart';
+import '../../../../domain/models/product_lookup.dart';
 
 /// Screen for submitting a warranty or service claim on a physical RO unit.
 ///
@@ -47,7 +47,7 @@ class _WarrantyClaimScreenState extends ConsumerState<WarrantyClaimScreen> {
   String _selectedClaimType = 'Warranty Claim';
   bool _isSearching = false;
   bool _isSubmitting = false;
-  ProductUnit? _foundUnit;
+  ProductLookup? _foundUnit;
   String? _searchError;
 
   static const List<String> _claimTypes = <String>[
@@ -89,8 +89,8 @@ class _WarrantyClaimScreenState extends ConsumerState<WarrantyClaimScreen> {
       _foundUnit = null;
     });
 
-    final repository = ref.read(unitRepositoryProvider);
-    final result = await repository.findUnitBySerial(clean);
+    final repository = ref.read(productRegistrationRepositoryProvider);
+    final result = await repository.findProductByBarcode(clean);
 
     if (!mounted) return;
 

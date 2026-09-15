@@ -13,6 +13,7 @@ import '../../../../core/widgets/app_search_field.dart';
 import '../../../../core/widgets/brand_wordmark.dart';
 import '../../../../domain/enums/user_role.dart';
 import '../../../auth/application/session_controller.dart';
+import '../../banner/application/banner_controller.dart';
 import '../../banner/presentation/widgets/banner_carousel_widget.dart';
 import '../application/catalogue_controller.dart';
 import '../domain/dealer_experience.dart';
@@ -59,6 +60,7 @@ class _CatalogueScreenState extends ConsumerState<CatalogueScreen> {
 
   Future<void> _refresh() async {
     await ref.read(catalogueControllerProvider.notifier).refresh();
+    await ref.read(activeBannersProvider.notifier).loadActiveBanners();
   }
 
   void _openComplaintShortcut() {

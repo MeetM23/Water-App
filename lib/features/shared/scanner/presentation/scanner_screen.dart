@@ -17,9 +17,11 @@ import '../../../../core/utils/media_permissions.dart';
 import '../../../../core/widgets/app_button.dart';
 import '../../../../core/widgets/app_empty_state.dart';
 import '../../../../core/widgets/app_snackbar.dart';
+import '../../../../domain/enums/user_role.dart';
 import '../../../../domain/models/catalog_product.dart';
-import '../../../../domain/models/product_unit.dart';
+import '../../../../domain/models/product_lookup.dart';
 import '../../../../domain/repositories/scan_repository.dart';
+import '../../../auth/application/session_controller.dart';
 import '../application/scanner_controller.dart';
 import 'widgets/manual_entry_sheet.dart';
 import 'widgets/scanner_overlay.dart';
@@ -244,7 +246,10 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen>
     await _scanner.stopCamera();
     if (!mounted) return;
 
-    final route = _mode == ScanMode.registerProduct
+    final session = ref.read(sessionControllerProvider).valueOrNull;
+    final isRetailer = session is SessionSignedIn && session.profile.role == UserRole.retailer;
+
+    final route = (_mode == ScanMode.registerProduct && !isRetailer)
         ? '${AppRoutes.productRegistration}?serialNumber=$upper'
         : '${AppRoutes.warrantyClaim}?serialNumber=$upper';
 
@@ -285,7 +290,7 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen>
     await _activate();
   }
 
-  Future<void> _openUnit(ProductUnit unit, ScanSource source) async {
+  Future<void> _openUnit(ProductLookup unit, ScanSource source) async {
     _scanner.recordScanForUnit(unit, source);
 
     await _scanner.stopCamera();
@@ -406,6 +411,10 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen>
 
   /// Switches to Register Product mode in-place (called from action tile).
   void _switchToRegisterMode() {
+    final session = ref.read(sessionControllerProvider).valueOrNull;
+    if (session is SessionSignedIn && session.profile.role == UserRole.retailer) {
+      return;
+    }
     setState(() => _mode = ScanMode.registerProduct);
   }
 
@@ -857,7 +866,7 @@ class _CameraPlaceholder extends StatelessWidget {
 // Three-action header (general mode only)
 // ---------------------------------------------------------------------------
 
-class _ThreeActionHeader extends StatelessWidget {
+class _ThreeActionHeader extends ConsumerWidget {
   const _ThreeActionHeader({
     required this.onRegisterProduct,
     required this.onClaimWarranty,
@@ -869,8 +878,10 @@ class _ThreeActionHeader extends StatelessWidget {
   final VoidCallback onScanCode;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
+    final session = ref.watch(sessionControllerProvider).valueOrNull;
+    final isRetailer = session is SessionSignedIn && session.profile.role == UserRole.retailer;
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(
@@ -881,14 +892,16 @@ class _ThreeActionHeader extends StatelessWidget {
       ),
       child: Row(
         children: <Widget>[
-          Expanded(
-            child: _ActionTile(
-              label: l10n.scanOptionRegisterProduct,
-              icon: Icons.add_box_outlined,
-              onTap: onRegisterProduct,
+          if (!isRetailer) ...<Widget>[
+            Expanded(
+              child: _ActionTile(
+                label: l10n.scanOptionRegisterProduct,
+                icon: Icons.add_box_outlined,
+                onTap: onRegisterProduct,
+              ),
             ),
-          ),
-          const SizedBox(width: Spacing.x2),
+            const SizedBox(width: Spacing.x2),
+          ],
           Expanded(
             child: _ActionTile(
               label: l10n.scanOptionClaimWarranty,
