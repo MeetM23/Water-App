@@ -72,6 +72,7 @@ class ProductDraft with _$ProductDraft {
     @Default(<DraftImage>[]) List<DraftImage> images,
     @Default(false) bool isManualCode,
     @Default('') String customCode,
+    @Default(<String, dynamic>{}) Map<String, dynamic> extraMetadata,
     String? id,
     String? productCode,
   }) = _ProductDraft;
@@ -83,25 +84,33 @@ class ProductDraft with _$ProductDraft {
     Product product,
     List<DraftImage> images,
     List<SpecificationEntry> specifications,
-  ) => ProductDraft(
-    id: product.id,
-    productCode: product.productCode,
-    customCode: product.productCode,
-    name: product.name,
-    modelNumber: product.modelNumber ?? '',
-    description: product.description ?? '',
-    capacity: product.capacity ?? '',
-    category: product.category,
-    mrp: product.mrp?.toString() ?? '',
-    wholesalePrice: product.wholesalePrice.toString(),
-    retailPrice: product.retailPrice.toString(),
-    warrantyMonths: product.warrantyMonths ?? 12,
-    stockQuantity: product.stockQuantity?.toString() ?? (product.inStock ? '1' : '0'),
-    inStock: product.inStock,
-    isActive: product.isActive,
-    specifications: specifications,
-    images: images,
-  );
+  ) {
+    final extra = <String, dynamic>{
+      for (final entry in product.specifications.entries)
+        if (entry.key.startsWith('_')) entry.key: entry.value,
+    };
+
+    return ProductDraft(
+      id: product.id,
+      productCode: product.productCode,
+      customCode: product.productCode,
+      name: product.name,
+      modelNumber: product.modelNumber ?? '',
+      description: product.description ?? '',
+      capacity: product.capacity ?? '',
+      category: product.category,
+      mrp: product.mrp?.toString() ?? '',
+      wholesalePrice: product.wholesalePrice.toString(),
+      retailPrice: product.retailPrice.toString(),
+      warrantyMonths: product.warrantyMonths ?? 12,
+      stockQuantity: product.stockQuantity?.toString() ?? (product.inStock ? '1' : '0'),
+      inStock: product.inStock,
+      isActive: product.isActive,
+      specifications: specifications,
+      images: images,
+      extraMetadata: extra,
+    );
+  }
 
   /// Whether this draft edits an existing product rather than creating one.
   bool get isEditing => id != null;
@@ -138,10 +147,12 @@ class ProductDraft with _$ProductDraft {
     return (margin / retail) * 100;
   }
 
-  /// Completed specification rows collapsed into the jsonb payload.
+  /// Completed specification rows collapsed into the jsonb payload, merging internal extra metadata.
   Map<String, dynamic> get specificationsMap => <String, dynamic>{
+    ...extraMetadata,
     for (final entry in specifications)
-      if (entry.isComplete) entry.key.trim(): entry.value.trim(),
+      if (entry.isComplete && !entry.key.startsWith('_'))
+        entry.key.trim(): entry.value.trim(),
   };
 
   /// Whether any image is still uploading, which blocks save.
@@ -165,7 +176,7 @@ class ProductDraft with _$ProductDraft {
       final prefix = match.group(1)!;
       final numStr = match.group(2)!;
       final startNum = int.tryParse(numStr) ?? 1;
-      final padLength = numStr.length;
+      final padLength = numStr.length >= 3 ? numStr.length : 3;
 
       final list = <String>[];
       for (var i = 0; i < qty; i++) {
@@ -174,8 +185,8 @@ class ProductDraft with _$ProductDraft {
       }
       return list;
     } else {
-      // Append sequential suffix -01, -02...
-      final padLength = qty >= 100 ? 3 : 2;
+      // Append sequential suffix -001, -002...
+      final padLength = 3;
       final list = <String>[];
       for (var i = 0; i < qty; i++) {
         final currentNum = (i + 1).toString().padLeft(padLength, '0');

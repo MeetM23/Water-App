@@ -54,8 +54,16 @@ class AuthController extends _$AuthController {
       _run(() => ref.read(authRepositoryProvider).signUp(request));
 
   /// Ends the session.
-  Future<AppFailure?> signOut() =>
-      _run(() => ref.read(authRepositoryProvider).signOut());
+  Future<AppFailure?> signOut() async {
+    final failure =
+        await _run(() => ref.read(authRepositoryProvider).signOut());
+    if (failure == null) {
+      try {
+        await ref.read(sessionControllerProvider.notifier).reload();
+      } catch (_) {}
+    }
+    return failure;
+  }
 
   Future<AppFailure?> _run(Future<Result<void>> Function() action) async {
     if (state.isLoading) {

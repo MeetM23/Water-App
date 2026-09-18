@@ -110,7 +110,10 @@ class SupabaseProductRegistrationRepository implements ProductRegistrationReposi
 
   static Map<String, dynamic> sanitizeUnitJson(Map<String, dynamic> raw) {
     final nowIso = DateTime.now().toIso8601String();
-    var serial = raw['serial_number']?.toString() ?? raw['unit_id']?.toString() ?? 'MWS-DOM-001';
+    var serial = raw['serial_number']?.toString() ??
+        raw['product_code']?.toString() ??
+        raw['model_number']?.toString() ??
+        '';
     final unitId = raw['unit_id']?.toString() ?? raw['id']?.toString() ?? serial;
 
     Map<String, dynamic>? regMap;
@@ -140,11 +143,13 @@ class SupabaseProductRegistrationRepository implements ProductRegistrationReposi
       }
     }
 
+    final productId = raw['product_id']?.toString() ?? '';
+
     return <String, dynamic>{
       'unit_id': unitId,
       'serial_number': serial,
-      'product_id': raw['product_id']?.toString() ?? 'prod_001',
-      'product_name': cleanProdName ?? (serial.isNotEmpty ? serial : 'Unregistered Product'),
+      'product_id': productId,
+      'product_name': cleanProdName ?? (serial.isNotEmpty ? serial : 'Unresolved Product'),
       'category': category,
       'status': raw['status']?.toString() ?? (regMap != null ? 'registered' : 'available'),
       'manufactured_at': raw['manufactured_at']?.toString() ?? nowIso,
@@ -180,7 +185,7 @@ class SupabaseProductRegistrationRepository implements ProductRegistrationReposi
 
           Map<String, dynamic>? prod = regMap['products'] as Map<String, dynamic>?;
 
-          if (prod == null && regProductId != null && regProductId.isNotEmpty) {
+          if (prod == null && regProductId != null && regProductId.isNotEmpty && isUuidString(regProductId)) {
             try {
               prod = await _client
                   .from('products')
@@ -212,7 +217,7 @@ class SupabaseProductRegistrationRepository implements ProductRegistrationReposi
 
           final categoryStr = prod?['category']?.toString() ?? 'domestic';
           final prodName = prod?['name']?.toString() ??
-              (displayProductCode.isNotEmpty ? displayProductCode : 'Unregistered Product');
+              (displayProductCode.isNotEmpty ? displayProductCode : 'Unresolved Product');
 
           final combined = <String, dynamic>{
             'unit_id': uId,

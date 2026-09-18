@@ -109,10 +109,9 @@ class CatalogueCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
 
-    // Resolve the displayed price from viewMode.
+    // Resolve displayPrice: Guest/Public sees Admin MRP/public price, dealers see their role price.
     final displayPrice = switch (viewMode) {
-      PriceViewMode.mrpOnly =>
-        product.mrp ?? product.price, // fall back to price if no MRP set
+      PriceViewMode.mrpOnly => product.mrp ?? product.price,
       PriceViewMode.wholesaleOnly => product.price,
       PriceViewMode.retailerWithDiscount => product.price,
     };

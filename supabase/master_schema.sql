@@ -249,6 +249,23 @@
   set in_stock = (stock_quantity > 0)
   where stock_quantity is not null;
 
+  -- ── Product Label Sequences ───────────────────────────────────────────────────
+  -- Independent, deterministic label sequence tracking per product.
+  create table if not exists public.product_label_sequences (
+    product_id          uuid primary key references public.products (id) on delete cascade,
+    prefix              text not null,
+    start_number        integer not null default 1 check (start_number >= 0),
+    pad_length          integer not null default 3 check (pad_length >= 1),
+    last_sequence       integer not null default 0 check (last_sequence >= 0),
+    total_generated     integer not null default 0 check (total_generated >= 0),
+    unprinted_count     integer not null default 0 check (unprinted_count >= 0),
+    last_allocated_labels jsonb not null default '[]'::jsonb,
+    updated_at          timestamptz not null default now()
+  );
+
+  comment on table public.product_label_sequences is
+    'Tracks sequential label generation per product independently of stock count.';
+
   -- ── Product Images ────────────────────────────────────────────────────────────
   create table if not exists public.product_images (
     id           uuid primary key default gen_random_uuid(),
@@ -606,6 +623,10 @@
                when profiles.role = 'owner' then profiles.role
                else excluded.role
              end,
+      status = case
+                 when profiles.role = 'owner' then profiles.status
+                 else excluded.status
+               end,
       full_name = case
                     when profiles.full_name is null or profiles.full_name = '' or profiles.full_name = 'User'
                     then excluded.full_name
@@ -891,12 +912,17 @@
 
   -- ── products ──────────────────────────────────────────────────────────────────
   drop policy if exists products_owner_select on public.products;
+  drop policy if exists products_select       on public.products;
   drop policy if exists products_owner_insert on public.products;
   drop policy if exists products_owner_update on public.products;
   drop policy if exists products_owner_delete on public.products;
 
-  create policy products_owner_select on public.products
-    for select to authenticated using (public.is_owner());
+  create policy products_select on public.products
+    for select to authenticated, anon
+    using (
+      public.is_owner()
+      or (is_active = true and (auth.uid() is null or public.is_approved()))
+    );
 
   create policy products_owner_insert on public.products
     for insert to authenticated with check (public.is_owner());
@@ -1065,7 +1091,6 @@
     for select using (
       public.is_owner()
       or registered_by = auth.uid()
-      or public.is_approved()
     );
 
   create policy unit_registrations_insert on public.unit_registrations
@@ -1579,8 +1604,8 @@
     from public.profiles
     where id = v_user_id;
 
-    if v_user_role is null or v_user_role not in ('owner', 'dealer') then
-      raise exception 'User role % is not authorized for scan/dispatch', coalesce(v_user_role::text, 'unknown')
+    if v_user_role is null or not public.is_approved() then
+      raise exception 'User is not approved to perform scan/dispatch'
         using errcode = '42501';
     end if;
 

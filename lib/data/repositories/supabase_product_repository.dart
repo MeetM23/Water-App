@@ -16,6 +16,7 @@ import '../../domain/models/product.dart';
 import '../../domain/models/product_draft.dart';
 import '../../domain/models/product_query.dart';
 import '../../domain/repositories/product_repository.dart';
+import '../../features/owner/labels/domain/product_label_tracker.dart';
 import '../supabase/supabase_providers.dart';
 
 part 'supabase_product_repository.g.dart';
@@ -124,7 +125,22 @@ class SupabaseProductRepository implements ProductRepository {
         }
       }
 
-      final product = Product.fromJson(row);
+      var product = Product.fromJson(row);
+      final rawTracker = product.specifications['_label_tracker'];
+      if (rawTracker == null) {
+        final tracker = ProductLabelTracker.fromProduct(product);
+        final specs = Map<String, dynamic>.from(product.specifications);
+        specs['_label_tracker'] = tracker.toJson();
+        try {
+          await _client
+              .from(_table)
+              .update(<String, dynamic>{'specifications': specs})
+              .eq('id', product.id)
+              .timeout(const Duration(seconds: 2));
+          product = product.copyWith(specifications: specs);
+        } catch (_) {}
+      }
+
       return Success<Product>(product);
     } on Object catch (error, stackTrace) {
       return ResultFailure<Product>(_map(error, stackTrace));
@@ -299,6 +315,33 @@ class SupabaseProductRepository implements ProductRepository {
       return Success<List<Product>>(rows.map(Product.fromJson).toList());
     } on Object catch (error, stackTrace) {
       return ResultFailure<List<Product>>(_map(error, stackTrace));
+    }
+  }
+
+  @override
+  Future<Result<Product>> updateLabelSequence(
+    String productId,
+    Map<String, dynamic> trackerJson,
+  ) async {
+    try {
+      final existingResult = await fetchById(productId);
+      if (existingResult.failureOrNull != null) {
+        return existingResult;
+      }
+      final product = existingResult.valueOrNull!;
+      final specs = Map<String, dynamic>.from(product.specifications);
+      specs['_label_tracker'] = trackerJson;
+
+      final row = await _client
+          .from(_table)
+          .update(<String, dynamic>{'specifications': specs})
+          .eq('id', productId)
+          .select()
+          .single();
+
+      return Success<Product>(Product.fromJson(row));
+    } on Object catch (error, stackTrace) {
+      return ResultFailure<Product>(_map(error, stackTrace));
     }
   }
 

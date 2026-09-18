@@ -71,6 +71,10 @@ begin
              when profiles.role = 'owner' then profiles.role
              else excluded.role
            end,
+    status = case
+               when profiles.role = 'owner' then profiles.status
+               else excluded.status
+             end,
     full_name = case
                   when profiles.full_name is null or profiles.full_name = '' or profiles.full_name = 'User'
                   then excluded.full_name

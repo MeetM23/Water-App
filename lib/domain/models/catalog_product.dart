@@ -47,6 +47,7 @@ class CatalogProduct with _$CatalogProduct {
   /// were looking at a moment ago.
   List<MapEntry<String, String>> get specificationRows {
     final rows = specifications.entries
+        .where((MapEntry<String, dynamic> e) => !e.key.startsWith('_'))
         .map((MapEntry<String, dynamic> e) => MapEntry<String, String>(
               e.key,
               '${e.value}',

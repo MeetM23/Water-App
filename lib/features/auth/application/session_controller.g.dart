@@ -24,7 +24,7 @@ final authUserIdProvider = StreamProvider<String?>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef AuthUserIdRef = StreamProviderRef<String?>;
-String _$sessionControllerHash() => r'5d161a13563a65b414cde7a1bec3d780b7885d40';
+String _$sessionControllerHash() => r'4a2a1fc0aa01b54b948baff92cd37b26c2e81057';
 
 /// Resolves the signed-in user into a [SessionState] the router can act on.
 ///

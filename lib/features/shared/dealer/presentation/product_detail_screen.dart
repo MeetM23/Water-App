@@ -234,24 +234,9 @@ class _PriceCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final price = product.price;
-    final mrp = product.mrp ?? (price > 0 ? (price * 1.35).roundToDouble() : null);
-
-    // Determine what to display based on the viewer's role.
-    final showMrpOnly = viewMode == PriceViewMode.mrpOnly;
-
-    // Retailer discount: only compute when mrp is available and price is lower.
-    final double? mrpForDiscount = (viewMode == PriceViewMode.retailerWithDiscount
-        && mrp != null && mrp > price && price > 0)
-        ? mrp
-        : null;
-    final showDiscount = mrpForDiscount != null;
-    final discountPercent = showDiscount
-        ? (((mrpForDiscount - price) / mrpForDiscount) * 100).round()
-        : 0;
-
-    // For guests: show MRP value (fall back to price if no MRP set).
-    final displayedPrice = showMrpOnly ? (product.mrp ?? price) : price;
+    final displayedPrice = viewMode == PriceViewMode.mrpOnly
+        ? (product.mrp ?? product.price)
+        : product.price;
 
     return AppCard(
       padding: const EdgeInsets.symmetric(
@@ -261,74 +246,26 @@ class _PriceCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          if (showDiscount) ...<Widget>[
-            FittedBox(
-              fit: BoxFit.scaleDown,
-              alignment: Alignment.centerLeft,
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.baseline,
-                textBaseline: TextBaseline.alphabetic,
-                children: <Widget>[
-                  // Down Arrow & Percentage (e.g. ↑33%)
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: <Widget>[
-                      const Text(
-                        '↓',
-                        style: TextStyle(
-                          color: Color(0xFF006837),
-                          fontSize: 28,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      Text(
-                        '$discountPercent%',
-                        style: const TextStyle(
-                          color: Color(0xFF006837),
-                          fontSize: 28,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(width: Spacing.x3),
-                  // Strikethrough MRP
-                  Text(
-                    AppFormat.rupees(mrpForDiscount),
-                    style: context.textTheme.titleLarge?.copyWith(
-                      color: AppColors.textSecondary,
-                      decoration: TextDecoration.lineThrough,
-                      decorationColor: AppColors.textSecondary,
-                      decorationThickness: 2,
-                    ),
-                  ),
-                  const SizedBox(width: Spacing.x3),
-                  // Retailer price
-                  Text(
-                    AppFormat.rupees(price),
-                    style: context.textTheme.headlineLarge?.copyWith(
-                      color: AppColors.ink,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
+          Text(
+            viewMode == PriceViewMode.mrpOnly ? 'Price' : priceLabel,
+            style: context.textTheme.labelMedium?.copyWith(
+              color: AppColors.textSecondary,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: Spacing.x2),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Text(
+              AppFormat.rupees(displayedPrice),
+              maxLines: 1,
+              style: context.textTheme.headlineLarge?.copyWith(
+                color: AppColors.ink,
+                fontWeight: FontWeight.bold,
               ),
             ),
-          ] else ...<Widget>[
-            FittedBox(
-              fit: BoxFit.scaleDown,
-              alignment: Alignment.centerLeft,
-              child: Text(
-                AppFormat.rupees(displayedPrice),
-                maxLines: 1,
-                style: context.textTheme.headlineLarge?.copyWith(
-                  color: AppColors.ink,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          ],
+          ),
         ],
       ),
     );

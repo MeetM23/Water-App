@@ -46,7 +46,14 @@ class Product with _$Product {
   /// Absolute margin a dealer makes on one unit.
   double get dealerMargin => retailPrice - wholesalePrice;
 
-  /// Margin as a percentage of the retail price, or null when retail is zero.
+  /// Margins as a percentage of the retail price, or null when retail is zero.
   double? get dealerMarginPercent =>
       retailPrice <= 0 ? null : (dealerMargin / retailPrice) * 100;
+
+  /// Retrieves the persisted or default label sequence tracker for this product.
+  Map<String, dynamic>? get rawLabelTracker {
+    final raw = specifications['_label_tracker'];
+    return raw is Map<String, dynamic> ? raw : null;
+  }
 }
+

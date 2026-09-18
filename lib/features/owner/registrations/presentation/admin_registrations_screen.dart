@@ -30,12 +30,8 @@ class _AdminRegistrationsScreenState
   late Future<List<ProductLookup>> _future;
 
   /// Which category sections are currently expanded (all open by default).
-  final Set<ProductCategory> _expandedCategories = <ProductCategory>{
-    ProductCategory.domestic,
-    ProductCategory.commercial,
-    ProductCategory.industrial,
-    ProductCategory.accessory,
-  };
+  final Set<ProductCategory> _expandedCategories =
+      Set<ProductCategory>.from(ProductCategory.values);
 
   @override
   void initState() {
@@ -66,8 +62,8 @@ class _AdminRegistrationsScreenState
         ProductCategory.domestic => Icons.home_rounded,
         ProductCategory.commercial => Icons.store_rounded,
         ProductCategory.industrial => Icons.factory_rounded,
-        ProductCategory.sparePart => Icons.extension_rounded,
-        ProductCategory.accessory => Icons.extension_rounded,
+        ProductCategory.sparePart => Icons.build_rounded,
+        ProductCategory.accessory => Icons.tune_rounded,
       };
 
   /// Groups [units] by category, preserving [ProductCategory.values] order.

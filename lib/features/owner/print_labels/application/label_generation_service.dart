@@ -7,6 +7,7 @@ import '../../../../domain/models/business_settings.dart';
 import '../../../../domain/models/product.dart';
 import '../../labels/data/label_pdf_builder.dart';
 import '../../labels/domain/label_sheet_spec.dart';
+import '../../labels/domain/product_label_tracker.dart';
 import '../../settings/application/business_settings_controller.dart';
 
 /// Generation result holding both raw job items and compiled PDF bytes.
@@ -40,13 +41,13 @@ class LabelGenerationService {
         jobItems.addAll(existingJobItems);
       } else {
         for (final product in selectedProducts) {
-          final qty = quantities[product.id] ?? 1;
-          final code = (product.productCode.isNotEmpty) ? product.productCode : product.id;
-          final serials = List<String>.generate(qty, (_) => code);
+          final qty = quantities[product.id] ?? (product.availableStock > 0 ? product.availableStock : 1);
+          final tracker = ProductLabelTracker.fromProduct(product);
+          final serials = tracker.getCustomLabels(qty);
           jobItems.add(
             LabelJobItem(
               product: product,
-              serialNumbers: serials,
+              serialNumbers: serials.isNotEmpty ? serials : <String>[product.productCode],
             ),
           );
         }

@@ -61,6 +61,13 @@ part 'app_router.g.dart';
 // GoRouter manages branch and root navigator keys dynamically to prevent
 // Flutter keyReservation assertion collisions when providers rebuild.
 
+final GlobalKey<StatefulNavigationShellState> _ownerShellKey =
+    GlobalKey<StatefulNavigationShellState>(debugLabel: 'ownerShell');
+final GlobalKey<StatefulNavigationShellState> _wholesalerShellKey =
+    GlobalKey<StatefulNavigationShellState>(debugLabel: 'wholesalerShell');
+final GlobalKey<StatefulNavigationShellState> _retailerShellKey =
+    GlobalKey<StatefulNavigationShellState>(debugLabel: 'retailerShell');
+
 /// The application router.
 ///
 /// Access is decided in one place, [_redirect], which runs on every navigation.
@@ -76,20 +83,19 @@ GoRouter appRouter(Ref<GoRouter> ref) {
 
   ref.listen<AsyncValue<SessionState>>(
     sessionControllerProvider,
-    (AsyncValue<SessionState>? previous, AsyncValue<SessionState> next) =>
-        refreshNotifier.refresh(),
+    (AsyncValue<SessionState>? previous, AsyncValue<SessionState> next) {
+      refreshNotifier.refresh();
+    },
   );
   ref.onDispose(refreshNotifier.dispose);
 
   return GoRouter(
     initialLocation: AppRoutes.splash,
     refreshListenable: refreshNotifier,
-    // uri.path is the destination path outright. matchedLocation happens to
-    // carry the same value for these flat routes, but it means "the portion
-    // matched so far", which stops being the whole path once nested routes
-    // arrive in a later phase. router_redirect_test.dart covers this table.
+    // Pass the full Uri so redirect can read both the path and query
+    // parameters (such as ?from=) without string-matching the location.
     redirect: (BuildContext context, GoRouterState state) =>
-        _redirect(ref, state.uri.path),
+        _redirect(ref, state.uri),
     routes: <RouteBase>[
       GoRoute(path: AppRoutes.splash, builder: (_, __) => const SplashScreen()),
       GoRoute(path: AppRoutes.login, builder: (_, __) => const LoginScreen()),
@@ -174,11 +180,11 @@ GoRouter appRouter(Ref<GoRouter> ref) {
         builder: (_, __) => const AdminWarrantyClaimsScreen(),
       ),
 
-
       // The owner area is a four-branch shell. Each branch keeps its own
       // navigation stack, so switching tabs does not lose a scroll position or
       // a half-read dealer record.
       StatefulShellRoute.indexedStack(
+        key: _ownerShellKey,
         builder:
             (
               BuildContext context,
@@ -336,7 +342,11 @@ GoRouter appRouter(Ref<GoRouter> ref) {
 /// and then checks their saved list comes back to the product they were looking
 /// at rather than to a fresh camera.
 StatefulShellRoute _dealerShell(DealerExperience experience) {
+  final key = experience == wholesalerExperience
+      ? _wholesalerShellKey
+      : _retailerShellKey;
   return StatefulShellRoute.indexedStack(
+    key: key,
     builder:
         (
           BuildContext context,
@@ -405,40 +415,46 @@ GoRoute _dealerProductRoute(DealerExperience experience) => GoRoute(
       ),
 );
 
-String? _redirect(Ref<GoRouter> ref, String location) {
+String? _redirect(Ref<GoRouter> ref, Uri uri) {
+  final session = ref.read(sessionControllerProvider);
+  final path = uri.path.isEmpty ? AppRoutes.splash : uri.path;
+
   // The gallery is a developer tool reached by typing the path. It is not part
   // of the signed-in experience and is never redirected away from.
-  if (location == AppRoutes.components) {
+  if (path == AppRoutes.components) {
     return null;
   }
 
-  final session = ref.read(sessionControllerProvider);
-
   return session.when(
+    // Must not skip loading on refresh/reload. After sign-in the previous
+    // value is still SessionSignedOut; skipping loading would tell GoRouter
+    // to stay on /login (a guest path) and the subsequent SignedIn update
+    // can be dropped by AsyncValue's loading→loading notify filter.
+    skipLoadingOnRefresh: false,
+    skipLoadingOnReload: false,
     // Hold on the splash screen until the restored session has resolved, so no
     // screen belonging to the wrong role is ever shown, even briefly.
-    loading: () => location == AppRoutes.splash ? null : AppRoutes.splash,
-    error: (Object _, StackTrace __) => _redirectForSignedOut(location),
+    loading: () => path == AppRoutes.splash ? null : AppRoutes.splash,
+    error: (Object _, StackTrace __) => _redirectForSignedOut(uri),
     data: (SessionState sessionState) => switch (sessionState) {
-      SessionSignedOut() => _redirectForSignedOut(location),
-      SessionSignedIn(:final profile) => _redirectForProfile(profile, location),
+      SessionSignedOut() => _redirectForSignedOut(uri),
+      SessionSignedIn(:final profile) => _redirectForProfile(profile, uri),
     },
   );
 }
 
-String? _redirectForSignedOut(String location) {
-  if (location == AppRoutes.splash) {
+String? _redirectForSignedOut(Uri uri) {
+  final path = uri.path.isEmpty ? AppRoutes.splash : uri.path;
+  if (path == AppRoutes.splash) {
     return AppRoutes.wholesalerCatalogue;
   }
-  final uri = Uri.parse(location);
-  if (AppRoutes.isGuestPath(uri.path)) {
+  if (AppRoutes.isGuestPath(path)) {
     return null;
   }
   return AppRoutes.login;
 }
 
-String? _redirectForProfile(Profile profile, String location) {
-  final uri = Uri.parse(location);
+String? _redirectForProfile(Profile profile, Uri uri) {
   final fromParam = uri.queryParameters['from'];
 
   // Two values, not one. `area` is everything this role may reach; `landing`
@@ -482,11 +498,11 @@ String? _redirectForProfile(Profile profile, String location) {
     return landing;
   }
 
-  // Product Registration and Registered Units screens are NOT accessible to Retailer.
+
+  // Product Registration is disabled for Retailer.
   if (profile.role == UserRole.retailer &&
       (uri.path == AppRoutes.productRegistration ||
-       uri.path == AppRoutes.serialScanRegister ||
-       uri.path == AppRoutes.userRegistrations)) {
+       uri.path == AppRoutes.serialScanRegister)) {
     return landing;
   }
 

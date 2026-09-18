@@ -465,6 +465,7 @@ mixin _$ProductDraft {
   List<DraftImage> get images => throw _privateConstructorUsedError;
   bool get isManualCode => throw _privateConstructorUsedError;
   String get customCode => throw _privateConstructorUsedError;
+  Map<String, dynamic> get extraMetadata => throw _privateConstructorUsedError;
   String? get id => throw _privateConstructorUsedError;
   String? get productCode => throw _privateConstructorUsedError;
 
@@ -498,6 +499,7 @@ abstract class $ProductDraftCopyWith<$Res> {
       List<DraftImage> images,
       bool isManualCode,
       String customCode,
+      Map<String, dynamic> extraMetadata,
       String? id,
       String? productCode});
 }
@@ -533,6 +535,7 @@ class _$ProductDraftCopyWithImpl<$Res, $Val extends ProductDraft>
     Object? images = null,
     Object? isManualCode = null,
     Object? customCode = null,
+    Object? extraMetadata = null,
     Object? id = freezed,
     Object? productCode = freezed,
   }) {
@@ -601,6 +604,10 @@ class _$ProductDraftCopyWithImpl<$Res, $Val extends ProductDraft>
           ? _value.customCode
           : customCode // ignore: cast_nullable_to_non_nullable
               as String,
+      extraMetadata: null == extraMetadata
+          ? _value.extraMetadata
+          : extraMetadata // ignore: cast_nullable_to_non_nullable
+              as Map<String, dynamic>,
       id: freezed == id
           ? _value.id
           : id // ignore: cast_nullable_to_non_nullable
@@ -638,6 +645,7 @@ abstract class _$$ProductDraftImplCopyWith<$Res>
       List<DraftImage> images,
       bool isManualCode,
       String customCode,
+      Map<String, dynamic> extraMetadata,
       String? id,
       String? productCode});
 }
@@ -671,6 +679,7 @@ class __$$ProductDraftImplCopyWithImpl<$Res>
     Object? images = null,
     Object? isManualCode = null,
     Object? customCode = null,
+    Object? extraMetadata = null,
     Object? id = freezed,
     Object? productCode = freezed,
   }) {
@@ -739,6 +748,10 @@ class __$$ProductDraftImplCopyWithImpl<$Res>
           ? _value.customCode
           : customCode // ignore: cast_nullable_to_non_nullable
               as String,
+      extraMetadata: null == extraMetadata
+          ? _value._extraMetadata
+          : extraMetadata // ignore: cast_nullable_to_non_nullable
+              as Map<String, dynamic>,
       id: freezed == id
           ? _value.id
           : id // ignore: cast_nullable_to_non_nullable
@@ -772,10 +785,12 @@ class _$ProductDraftImpl extends _ProductDraft {
       final List<DraftImage> images = const <DraftImage>[],
       this.isManualCode = false,
       this.customCode = '',
+      final Map<String, dynamic> extraMetadata = const <String, dynamic>{},
       this.id,
       this.productCode})
       : _specifications = specifications,
         _images = images,
+        _extraMetadata = extraMetadata,
         super._();
 
   @override
@@ -837,6 +852,15 @@ class _$ProductDraftImpl extends _ProductDraft {
   @override
   @JsonKey()
   final String customCode;
+  final Map<String, dynamic> _extraMetadata;
+  @override
+  @JsonKey()
+  Map<String, dynamic> get extraMetadata {
+    if (_extraMetadata is EqualUnmodifiableMapView) return _extraMetadata;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableMapView(_extraMetadata);
+  }
+
   @override
   final String? id;
   @override
@@ -844,7 +868,7 @@ class _$ProductDraftImpl extends _ProductDraft {
 
   @override
   String toString() {
-    return 'ProductDraft(name: $name, modelNumber: $modelNumber, description: $description, capacity: $capacity, category: $category, mrp: $mrp, wholesalePrice: $wholesalePrice, retailPrice: $retailPrice, warrantyMonths: $warrantyMonths, stockQuantity: $stockQuantity, inStock: $inStock, isActive: $isActive, specifications: $specifications, images: $images, isManualCode: $isManualCode, customCode: $customCode, id: $id, productCode: $productCode)';
+    return 'ProductDraft(name: $name, modelNumber: $modelNumber, description: $description, capacity: $capacity, category: $category, mrp: $mrp, wholesalePrice: $wholesalePrice, retailPrice: $retailPrice, warrantyMonths: $warrantyMonths, stockQuantity: $stockQuantity, inStock: $inStock, isActive: $isActive, specifications: $specifications, images: $images, isManualCode: $isManualCode, customCode: $customCode, extraMetadata: $extraMetadata, id: $id, productCode: $productCode)';
   }
 
   @override
@@ -880,32 +904,36 @@ class _$ProductDraftImpl extends _ProductDraft {
                 other.isManualCode == isManualCode) &&
             (identical(other.customCode, customCode) ||
                 other.customCode == customCode) &&
+            const DeepCollectionEquality()
+                .equals(other._extraMetadata, _extraMetadata) &&
             (identical(other.id, id) || other.id == id) &&
             (identical(other.productCode, productCode) ||
                 other.productCode == productCode));
   }
 
   @override
-  int get hashCode => Object.hash(
-      runtimeType,
-      name,
-      modelNumber,
-      description,
-      capacity,
-      category,
-      mrp,
-      wholesalePrice,
-      retailPrice,
-      warrantyMonths,
-      stockQuantity,
-      inStock,
-      isActive,
-      const DeepCollectionEquality().hash(_specifications),
-      const DeepCollectionEquality().hash(_images),
-      isManualCode,
-      customCode,
-      id,
-      productCode);
+  int get hashCode => Object.hashAll([
+        runtimeType,
+        name,
+        modelNumber,
+        description,
+        capacity,
+        category,
+        mrp,
+        wholesalePrice,
+        retailPrice,
+        warrantyMonths,
+        stockQuantity,
+        inStock,
+        isActive,
+        const DeepCollectionEquality().hash(_specifications),
+        const DeepCollectionEquality().hash(_images),
+        isManualCode,
+        customCode,
+        const DeepCollectionEquality().hash(_extraMetadata),
+        id,
+        productCode
+      ]);
 
   /// Create a copy of ProductDraft
   /// with the given fields replaced by the non-null parameter values.
@@ -934,6 +962,7 @@ abstract class _ProductDraft extends ProductDraft {
       final List<DraftImage> images,
       final bool isManualCode,
       final String customCode,
+      final Map<String, dynamic> extraMetadata,
       final String? id,
       final String? productCode}) = _$ProductDraftImpl;
   const _ProductDraft._() : super._();
@@ -970,6 +999,8 @@ abstract class _ProductDraft extends ProductDraft {
   bool get isManualCode;
   @override
   String get customCode;
+  @override
+  Map<String, dynamic> get extraMetadata;
   @override
   String? get id;
   @override

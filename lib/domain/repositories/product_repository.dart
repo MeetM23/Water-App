@@ -45,6 +45,12 @@ abstract interface class ProductRepository {
   /// Deliberately unpaged: a PDF of the catalogue is by definition the whole
   /// catalogue, and it is generated on demand rather than while scrolling.
   Future<Result<List<Product>>> fetchAllForExport();
+
+  /// Updates the sequential label tracking state for a product.
+  Future<Result<Product>> updateLabelSequence(
+    String productId,
+    Map<String, dynamic> trackerJson,
+  );
 }
 
 /// Headline catalogue numbers for the dashboard.

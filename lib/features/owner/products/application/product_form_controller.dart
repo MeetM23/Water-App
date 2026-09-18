@@ -11,6 +11,7 @@ import '../../../../domain/models/price_validation.dart';
 import '../../../../domain/models/product.dart';
 import '../../../../domain/models/product_draft.dart';
 import '../../../../domain/models/product_image.dart';
+import '../../labels/domain/product_label_tracker.dart';
 
 part 'product_form_controller.g.dart';
 
@@ -301,8 +302,57 @@ class ProductFormController extends _$ProductFormController {
   /// owner who has typed a long specification list must never lose it because
   /// the network dropped.
   Future<({Product? product, AppFailure? failure})> save() async {
-    final draft = _draft;
+    var draft = _draft;
     final repository = ref.read(productRepositoryProvider);
+
+    if (!draft.isEditing) {
+      final initialStock = draft.stockQuantityValue ?? (draft.inStock ? 1 : 0);
+      final tracker = ProductLabelTracker.forNewProduct(
+        productId: '',
+        productCode: draft.isManualCode ? draft.customCode : '',
+        initialStock: initialStock,
+      );
+      final extra = Map<String, dynamic>.from(draft.extraMetadata);
+      extra['_label_tracker'] = tracker.toJson();
+      draft = draft.copyWith(extraMetadata: extra);
+    } else {
+      final prevStock = _initial.stockQuantityValue ?? (_initial.inStock ? 1 : 0);
+      final newStock = draft.stockQuantityValue ?? (draft.inStock ? 1 : 0);
+      final extra = Map<String, dynamic>.from(draft.extraMetadata);
+
+      if (newStock > prevStock) {
+        final added = newStock - prevStock;
+        final rawTracker = extra['_label_tracker'];
+        ProductLabelTracker tracker;
+        if (rawTracker is Map) {
+          tracker = ProductLabelTracker.fromJson(
+            Map<String, dynamic>.from(rawTracker),
+            productId: draft.id ?? '',
+            productCode: draft.isManualCode && draft.customCode.trim().isNotEmpty
+                ? draft.customCode
+                : (draft.productCode ?? ''),
+          );
+        } else {
+          final mockProduct = Product(
+            id: draft.id ?? '',
+            productCode: draft.productCode ?? '',
+            name: draft.name,
+            category: draft.category ?? ProductCategory.domestic,
+            wholesalePrice: draft.wholesaleValue ?? 0,
+            retailPrice: draft.retailValue ?? 0,
+            inStock: draft.inStock,
+            isActive: draft.isActive,
+            stockQuantity: prevStock,
+            createdAt: DateTime.now(),
+            updatedAt: DateTime.now(),
+          );
+          tracker = ProductLabelTracker.fromProduct(mockProduct);
+        }
+        final updatedTracker = tracker.addStockCapacity(added);
+        extra['_label_tracker'] = updatedTracker.toJson();
+        draft = draft.copyWith(extraMetadata: extra);
+      }
+    }
 
     final saved = draft.isEditing
         ? await repository.update(draft)
@@ -379,6 +429,7 @@ class ProductFormController extends _$ProductFormController {
 
   static List<SpecificationEntry> _entriesFrom(Map<String, dynamic> map) => map
       .entries
+      .where((MapEntry<String, dynamic> entry) => !entry.key.startsWith('_'))
       .map(
         (MapEntry<String, dynamic> entry) => SpecificationEntry(
           id: '${entry.key}-${entry.value}',

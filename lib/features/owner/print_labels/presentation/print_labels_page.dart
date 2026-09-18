@@ -3,20 +3,24 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:printing/printing.dart';
 
 import '../../../../core/errors/app_failure.dart';
-import '../../../../core/errors/failure_presentation.dart';
 import '../../../../core/extensions/build_context_x.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/utils/app_logger.dart';
+import '../../../../core/widgets/app_badge.dart';
 import '../../../../core/widgets/app_button.dart';
 import '../../../../core/widgets/app_card.dart';
 import '../../../../core/widgets/app_empty_state.dart';
 import '../../../../core/widgets/app_error_state.dart';
 import '../../../../core/widgets/app_snackbar.dart';
+import '../../../../data/repositories/supabase_product_repository.dart';
+import '../../../../domain/models/business_settings.dart';
 import '../../../../domain/models/product.dart';
 import '../../labels/data/label_pdf_builder.dart';
 import '../../labels/domain/label_sheet_spec.dart';
+import '../../labels/domain/product_label_tracker.dart';
 import '../../products/application/product_list_controller.dart';
-import '../application/label_generation_service.dart';
+import '../../settings/application/business_settings_controller.dart';
 
 /// Local format option definition for UI selection.
 class _FormatOption {
@@ -37,6 +41,13 @@ class _FormatOption {
 
 const List<_FormatOption> _kFormatOptions = <_FormatOption>[
   _FormatOption(
+    id: 'thermal',
+    title: 'Thermal Label',
+    sub1: '50 × 25 mm',
+    sub2: 'Continuous roll',
+    icon: Icons.label_outlined,
+  ),
+  _FormatOption(
     id: 'a4_24',
     title: 'A4 Sheet',
     sub1: '24 labels',
@@ -50,16 +61,9 @@ const List<_FormatOption> _kFormatOptions = <_FormatOption>[
     sub2: '38.1 × 21.2 mm',
     icon: Icons.apps_rounded,
   ),
-  _FormatOption(
-    id: 'thermal',
-    title: 'Thermal Label',
-    sub1: '50 × 25 mm',
-    sub2: 'Continuous roll',
-    icon: Icons.label_outlined,
-  ),
 ];
 
-/// The new Admin Print Labels page powered by real product data and PDF compilation.
+/// The dedicated Admin Print Labels page for sequential product label control.
 class PrintLabelsPage extends ConsumerStatefulWidget {
   /// Creates the page.
   const PrintLabelsPage({super.key});
@@ -70,11 +74,8 @@ class PrintLabelsPage extends ConsumerStatefulWidget {
 
 class _PrintLabelsPageState extends ConsumerState<PrintLabelsPage> {
   String _selectedFormatId = 'thermal';
-  final Set<String> _selectedProductIds = <String>{};
-  final Map<String, int> _productQuantities = <String, int>{};
-
-  bool _isGenerating = false;
-  List<LabelJobItem>? _cachedJobItems;
+  String? _selectedProductId;
+  bool _isPrinting = false;
 
   LabelSheetSpec get _selectedSpec {
     return switch (_selectedFormatId) {
@@ -84,85 +85,109 @@ class _PrintLabelsPageState extends ConsumerState<PrintLabelsPage> {
     };
   }
 
-  void _clearCache() {
-    _cachedJobItems = null;
-  }
+  Future<void> _printNewLabels(Product product, ProductLabelTracker tracker) async {
+    if (_isPrinting) return;
+    final available = tracker.newLabelsAvailable;
+    if (available <= 0) {
+      AppSnackbar.error(context, 'No new labels available to print.');
+      return;
+    }
 
-  void _toggleProduct(Product product) {
-    final id = product.id;
-    if (_isGenerating) return;
-    setState(() {
-      _clearCache();
-      if (_selectedProductIds.contains(id)) {
-        _selectedProductIds.remove(id);
-        _productQuantities.remove(id);
-      } else {
-        _selectedProductIds.add(id);
-        _productQuantities[id] = product.availableStock > 0 ? product.availableStock : 1;
-      }
-    });
-  }
-
-  void _updateQuantity(String id, int delta) {
-    if (_isGenerating) return;
-    setState(() {
-      _clearCache();
-      final current = _productQuantities[id] ?? 1;
-      final updated = (current + delta).clamp(1, 100);
-      _productQuantities[id] = updated;
-    });
-  }
-
-  Future<void> _onDownloadPressed(List<Product> availableProducts) async {
-    if (_isGenerating || _selectedProductIds.isEmpty) return;
-
-    setState(() {
-      _isGenerating = true;
-    });
-
-    final selectedProducts = availableProducts
-        .where((p) => _selectedProductIds.contains(p.id))
-        .toList();
-
+    setState(() => _isPrinting = true);
     try {
-      final result = await ref
-          .read(labelGenerationServiceProvider)
-          .generateLabelsPdf(
-            selectedProducts: selectedProducts,
-            quantities: _productQuantities,
-            spec: _selectedSpec,
-            existingJobItems: _cachedJobItems,
-          );
+      final allocation = tracker.allocateLabels(available);
+      final updatedTracker = allocation.tracker;
+      final serials = allocation.newLabels;
+
+      // 1. Persist updated sequence tracker state to database
+      await ref
+          .read(productRepositoryProvider)
+          .updateLabelSequence(product.id, updatedTracker.toJson());
+
+      // 2. Fetch business settings
+      BusinessSettings business;
+      try {
+        business = await ref.read(businessSettingsControllerProvider.future);
+      } catch (_) {
+        business = const BusinessSettings(businessName: 'Maruti Water Solution');
+      }
+
+      // 3. Build PDF with allocated serial numbers
+      final pdfBytes = await LabelPdfBuilder.build(
+        items: <LabelJobItem>[
+          LabelJobItem(
+            product: product,
+            serialNumbers: serials,
+          ),
+        ],
+        spec: _selectedSpec,
+        business: business,
+      );
+
+      // 4. Refresh product list to sync UI
+      await ref.read(productListControllerProvider.notifier).refresh();
 
       if (!mounted) return;
 
-      result.fold(
-        onSuccess: (data) async {
-          _cachedJobItems = data.jobItems;
-          await Printing.layoutPdf(
-            onLayout: (format) async => data.pdfBytes,
-            name: 'Labels_${DateTime.now().millisecondsSinceEpoch}',
-          );
-        },
-        onFailure: (failure) {
-          AppSnackbar.error(
-            context,
-            failure.title(context.l10n),
-          );
-        },
+      // 5. Open print dialog
+      await Printing.layoutPdf(
+        onLayout: (format) async => pdfBytes,
+        name: '${product.productCode}_NewLabels_${serials.first}_${serials.last}',
       );
-    } catch (error) {
+    } catch (error, stackTrace) {
+      AppLog.error('Printing new labels failed', error, stackTrace);
       if (mounted) {
-        AppSnackbar.error(
-          context,
-          'Unable to generate labels. Please try again.',
-        );
+        AppSnackbar.error(context, 'Unable to print labels. Please try again.');
       }
     } finally {
       if (mounted) {
-        setState(() {
-          _isGenerating = false;
-        });
+        setState(() => _isPrinting = false);
+      }
+    }
+  }
+
+  Future<void> _printAllLabels(Product product, ProductLabelTracker tracker) async {
+    if (_isPrinting) return;
+    final allSerials = tracker.getAllLabels();
+    if (allSerials.isEmpty) {
+      AppSnackbar.error(context, 'No existing labels found to print.');
+      return;
+    }
+
+    setState(() => _isPrinting = true);
+    try {
+      BusinessSettings business;
+      try {
+        business = await ref.read(businessSettingsControllerProvider.future);
+      } catch (_) {
+        business = const BusinessSettings(businessName: 'Maruti Water Solution');
+      }
+
+      final pdfBytes = await LabelPdfBuilder.build(
+        items: <LabelJobItem>[
+          LabelJobItem(
+            product: product,
+            serialNumbers: allSerials,
+          ),
+        ],
+        spec: _selectedSpec,
+        business: business,
+      );
+
+      if (!mounted) return;
+
+      await Printing.layoutPdf(
+        onLayout: (format) async => pdfBytes,
+        name: '${product.productCode}_AllLabels_1_${allSerials.length}',
+      );
+    } catch (error, stackTrace) {
+      AppLog.error('Printing all labels failed', error, stackTrace);
+      if (mounted) {
+        AppSnackbar.error(context, 'Unable to print labels. Please try again.');
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isPrinting = false);
       }
     }
   }
@@ -200,53 +225,63 @@ class _PrintLabelsPageState extends ConsumerState<PrintLabelsPage> {
           },
         ),
       ),
-      bottomNavigationBar: listState.maybeWhen(
-        data: (ProductListState state) => _buildBottomBar(state.products),
-        orElse: () => const SizedBox.shrink(),
-      ),
     );
   }
 
   Widget _buildContent(BuildContext context, List<Product> products) {
+    // Select first product if none currently selected
+    final selectedProduct = products.where((p) => p.id == _selectedProductId).firstOrNull ?? products.first;
+    _selectedProductId = selectedProduct.id;
+
+    final tracker = ProductLabelTracker.fromProduct(selectedProduct);
+    final existingLabelsCount = tracker.existingLabelsCount;
+    final newLabelsAvailable = tracker.newLabelsAvailable;
+
+    final newLabelsPreview = tracker.previewNewLabels(newLabelsAvailable);
+    final newPreviewText = newLabelsPreview.isEmpty
+        ? 'No new labels available'
+        : (newLabelsPreview.length == 1
+            ? newLabelsPreview.first
+            : '${newLabelsPreview.first}\n→\n${newLabelsPreview.last}');
+
+    final allLabels = tracker.getAllLabels();
+    final allPreviewText = allLabels.isEmpty
+        ? 'None'
+        : (allLabels.length == 1
+            ? allLabels.first
+            : '${allLabels.first} → ${allLabels.last}');
+
     return ListView(
       padding: const EdgeInsets.symmetric(
         horizontal: Spacing.x4,
         vertical: Spacing.x3,
       ),
       children: <Widget>[
-        _buildSectionHeader(context, 'LABEL FORMAT'),
+        _buildSectionHeader(context, '1. SELECT PRODUCT'),
+        const SizedBox(height: Spacing.x2),
+        _buildProductDropdown(products, selectedProduct),
+        const SizedBox(height: Spacing.x6),
+        _buildSectionHeader(context, '2. STOCK & LABEL INFORMATION'),
+        const SizedBox(height: Spacing.x2),
+        _buildProductInfoCard(context, selectedProduct, tracker, existingLabelsCount, newLabelsAvailable),
+        const SizedBox(height: Spacing.x6),
+        _buildSectionHeader(context, '3. LABEL FORMAT'),
         const SizedBox(height: Spacing.x2),
         _buildFormatOptions(),
         const SizedBox(height: Spacing.x6),
-        _buildSectionHeader(context, 'SELECT PRODUCTS'),
+        _buildSectionHeader(context, '4. PRINT ACTIONS'),
         const SizedBox(height: Spacing.x2),
-        _buildProductList(products),
+        _buildPrintActionsCard(
+          context,
+          selectedProduct,
+          tracker,
+          newLabelsAvailable,
+          existingLabelsCount,
+          newPreviewText,
+          allPreviewText,
+        ),
         const SizedBox(height: Spacing.x8),
       ],
-    );
-  }
-
-  Widget _buildBottomBar(List<Product> products) {
-    final hasSelection = _selectedProductIds.isNotEmpty;
-
-    return Container(
-      padding: const EdgeInsets.all(Spacing.x4),
-      decoration: const BoxDecoration(
-        color: AppColors.surface,
-        border: Border(
-          top: BorderSide(color: AppColors.border),
-        ),
-      ),
-      child: SafeArea(
-        child: AppButton(
-          label: _isGenerating ? 'GENERATING LABELS...' : 'DOWNLOAD LABELS',
-          icon: Icons.download_rounded,
-          isLoading: _isGenerating,
-          onPressed: (!hasSelection || _isGenerating)
-              ? null
-              : () => _onDownloadPressed(products),
-        ),
-      ),
     );
   }
 
@@ -261,6 +296,192 @@ class _PrintLabelsPageState extends ConsumerState<PrintLabelsPage> {
     );
   }
 
+  Widget _buildProductDropdown(List<Product> products, Product selectedProduct) {
+    return AppCard(
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String>(
+          value: selectedProduct.id,
+          isExpanded: true,
+          icon: const Icon(Icons.keyboard_arrow_down_rounded, color: AppColors.primary),
+          items: products.map((Product product) {
+            return DropdownMenuItem<String>(
+              value: product.id,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  Text(
+                    product.name,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 15,
+                      color: AppColors.ink,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  Text(
+                    '${product.productCode} • Stock: ${product.availableStock} pcs',
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: AppColors.textSecondary,
+                      fontFamily: 'monospace',
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }).toList(),
+          onChanged: _isPrinting
+              ? null
+              : (String? newId) {
+                  if (newId != null && newId != _selectedProductId) {
+                    setState(() {
+                      _selectedProductId = newId;
+                    });
+                  }
+                },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildProductInfoCard(
+    BuildContext context,
+    Product product,
+    ProductLabelTracker tracker,
+    int existingCount,
+    int newAvailable,
+  ) {
+    return AppCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Row(
+            children: <Widget>[
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text(
+                      product.name,
+                      style: context.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.ink,
+                      ),
+                    ),
+                    const SizedBox(height: Spacing.x1),
+                    Text(
+                      product.productCode,
+                      style: context.textTheme.bodyMedium?.copyWith(
+                        color: AppColors.primary,
+                        fontWeight: FontWeight.bold,
+                        fontFamily: 'monospace',
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: AppColors.primaryTint,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  product.category.name.toUpperCase(),
+                  style: context.textTheme.bodySmall?.copyWith(
+                    color: AppColors.primaryDark,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const Divider(height: Spacing.x6),
+          Row(
+            children: <Widget>[
+              _buildStatBox(
+                context,
+                title: 'Current Stock',
+                value: '${product.availableStock}',
+                subtitle: 'in inventory',
+                color: AppColors.ink,
+              ),
+              const SizedBox(width: Spacing.x2),
+              _buildStatBox(
+                context,
+                title: 'Existing Labels',
+                value: '$existingCount',
+                subtitle: 'already allocated',
+                color: AppColors.primaryDark,
+              ),
+              const SizedBox(width: Spacing.x2),
+              _buildStatBox(
+                context,
+                title: 'New Labels Avail.',
+                value: '$newAvailable',
+                subtitle: newAvailable > 0 ? 'ready to print' : 'up to date',
+                color: newAvailable > 0 ? AppColors.success : AppColors.textSecondary,
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatBox(
+    BuildContext context, {
+    required String title,
+    required String value,
+    required String subtitle,
+    required Color color,
+  }) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.all(Spacing.x3),
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: AppColors.border),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            Text(
+              title,
+              style: context.textTheme.bodySmall?.copyWith(
+                color: AppColors.textSecondary,
+                fontSize: 11,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+            const SizedBox(height: Spacing.x1),
+            Text(
+              value,
+              style: context.textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: color,
+              ),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              subtitle,
+              style: context.textTheme.bodySmall?.copyWith(
+                color: AppColors.textSecondary,
+                fontSize: 10,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildFormatOptions() {
     return Column(
       children: _kFormatOptions.map((option) {
@@ -269,10 +490,9 @@ class _PrintLabelsPageState extends ConsumerState<PrintLabelsPage> {
           padding: const EdgeInsets.only(bottom: Spacing.x2),
           child: AppCard(
             isSelected: isSelected,
-            onTap: _isGenerating
+            onTap: _isPrinting
                 ? null
                 : () => setState(() {
-                      _clearCache();
                       _selectedFormatId = option.id;
                     }),
             child: Row(
@@ -280,12 +500,11 @@ class _PrintLabelsPageState extends ConsumerState<PrintLabelsPage> {
                 Radio<String>(
                   value: option.id,
                   groupValue: _selectedFormatId,
-                  onChanged: _isGenerating
+                  onChanged: _isPrinting
                       ? null
                       : (val) {
                           if (val != null) {
                             setState(() {
-                              _clearCache();
                               _selectedFormatId = val;
                             });
                           }
@@ -295,9 +514,7 @@ class _PrintLabelsPageState extends ConsumerState<PrintLabelsPage> {
                 const SizedBox(width: Spacing.x2),
                 Icon(
                   option.icon,
-                  color: isSelected
-                      ? AppColors.primary
-                      : AppColors.textSecondary,
+                  color: isSelected ? AppColors.primary : AppColors.textSecondary,
                   size: 22,
                 ),
                 const SizedBox(width: Spacing.x3),
@@ -330,160 +547,130 @@ class _PrintLabelsPageState extends ConsumerState<PrintLabelsPage> {
     );
   }
 
-  Widget _buildProductList(List<Product> products) {
-    return Column(
-      children: products.map((product) {
-        final isSelected = _selectedProductIds.contains(product.id);
-        final quantity = _productQuantities[product.id] ?? (product.availableStock > 0 ? product.availableStock : 1);
-
-        return Padding(
-          padding: const EdgeInsets.only(bottom: Spacing.x3),
-          child: AppCard(
-            isSelected: isSelected,
-            onTap: _isGenerating ? null : () => _toggleProduct(product),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+  Widget _buildPrintActionsCard(
+    BuildContext context,
+    Product product,
+    ProductLabelTracker tracker,
+    int newAvailable,
+    int existingCount,
+    String newPreviewText,
+    String allPreviewText,
+  ) {
+    return AppCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: <Widget>[
+          if (newAvailable > 0) ...<Widget>[
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: <Widget>[
-                Row(
-                  children: <Widget>[
-                    Checkbox(
-                      value: isSelected,
-                      onChanged: _isGenerating
-                          ? null
-                          : (_) => _toggleProduct(product),
-                      activeColor: AppColors.primary,
-                    ),
-                    const SizedBox(width: Spacing.x2),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: <Widget>[
-                          Row(
-                            children: <Widget>[
-                              Expanded(
-                                child: Text(
-                                  product.name,
-                                  style: context.textTheme.titleMedium?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                    color: AppColors.ink,
-                                  ),
-                                ),
-                              ),
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                decoration: BoxDecoration(
-                                  color: product.availableStock > 0
-                                      ? AppColors.primaryTint
-                                      : Colors.red.shade50,
-                                  borderRadius: BorderRadius.circular(6),
-                                ),
-                                child: Text(
-                                  'Stock: ${product.availableStock} pcs',
-                                  style: context.textTheme.bodySmall?.copyWith(
-                                    color: product.availableStock > 0
-                                        ? AppColors.primaryDark
-                                        : AppColors.danger,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: Spacing.x1),
-                          Text(
-                            product.productCode,
-                            style: context.textTheme.bodyMedium?.copyWith(
-                              color: AppColors.textSecondary,
-                              fontFamily: 'monospace',
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
+                Text(
+                  'New Labels Available:',
+                  style: context.textTheme.labelMedium?.copyWith(
+                    color: AppColors.ink,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-                if (isSelected) ...<Widget>[
-                  const Divider(height: Spacing.x5),
+                AppBadge(
+                  label: '$newAvailable labels ready',
+                  tone: AppBadgeTone.success,
+                ),
+              ],
+            ),
+            const SizedBox(height: Spacing.x3),
+            Container(
+              padding: const EdgeInsets.all(Spacing.x3),
+              decoration: BoxDecoration(
+                color: AppColors.primaryTint,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: <Widget>[
+                      const Icon(Icons.qr_code_2_rounded, size: 18, color: AppColors.primaryDark),
+                      const SizedBox(width: Spacing.x2),
                       Text(
-                        'Labels to print',
-                        style: context.textTheme.bodyMedium?.copyWith(
-                          color: AppColors.textSecondary,
-                          fontWeight: FontWeight.w500,
+                        'Will print ($newAvailable labels):',
+                        style: context.textTheme.bodySmall?.copyWith(
+                          color: AppColors.primaryDark,
+                          fontWeight: FontWeight.bold,
                         ),
-                      ),
-                      Row(
-                        children: <Widget>[
-                          _IconButtonCircle(
-                            icon: Icons.remove_rounded,
-                            onPressed: (!_isGenerating && quantity > 1)
-                                ? () => _updateQuantity(product.id, -1)
-                                : null,
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: Spacing.x4,
-                            ),
-                            child: SizedBox(
-                              width: 32,
-                              child: Text(
-                                '$quantity',
-                                textAlign: TextAlign.center,
-                                style: context.textTheme.titleMedium?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                          ),
-                          _IconButtonCircle(
-                            icon: Icons.add_rounded,
-                            onPressed: (!_isGenerating && quantity < 100)
-                                ? () => _updateQuantity(product.id, 1)
-                                : null,
-                          ),
-                        ],
                       ),
                     ],
                   ),
+                  const SizedBox(height: Spacing.x2),
+                  Text(
+                    newPreviewText,
+                    style: context.textTheme.bodyMedium?.copyWith(
+                      color: AppColors.primaryDark,
+                      fontWeight: FontWeight.bold,
+                      fontFamily: 'monospace',
+                    ),
+                  ),
                 ],
-              ],
+              ),
+            ),
+            const SizedBox(height: Spacing.x4),
+            AppButton(
+              label: 'Print New Labels ($newAvailable)',
+              icon: Icons.print_rounded,
+              isLoading: _isPrinting,
+              onPressed: _isPrinting ? null : () => _printNewLabels(product, tracker),
+            ),
+          ] else ...<Widget>[
+            Container(
+              padding: const EdgeInsets.all(Spacing.x4),
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: AppColors.border),
+              ),
+              child: Row(
+                children: <Widget>[
+                  const Icon(Icons.check_circle_outline_rounded, color: AppColors.success, size: 20),
+                  const SizedBox(width: Spacing.x3),
+                  Expanded(
+                    child: Text(
+                      'All labels for current stock capacity have been generated. Adding product stock will unlock new sequential labels.',
+                      style: context.textTheme.bodySmall?.copyWith(
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+          const Divider(height: Spacing.x6),
+          Text(
+            'REPRINT EXISTING SERIES',
+            style: context.textTheme.labelSmall?.copyWith(
+              color: AppColors.textSecondary,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 1.1,
             ),
           ),
-        );
-      }).toList(),
-    );
-  }
-}
-
-class _IconButtonCircle extends StatelessWidget {
-  const _IconButtonCircle({
-    required this.icon,
-    this.onPressed,
-  });
-
-  final IconData icon;
-  final VoidCallback? onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    final isEnabled = onPressed != null;
-
-    return Material(
-      color: isEnabled ? AppColors.primaryTint : AppColors.disabledFill,
-      shape: const CircleBorder(),
-      child: InkWell(
-        onTap: onPressed,
-        customBorder: const CircleBorder(),
-        child: Padding(
-          padding: const EdgeInsets.all(Spacing.x2),
-          child: Icon(
-            icon,
-            size: 20,
-            color: isEnabled ? AppColors.primary : AppColors.disabledInk,
+          const SizedBox(height: Spacing.x2),
+          Text(
+            'Complete tracked series: $allPreviewText ($existingCount labels)',
+            style: context.textTheme.bodySmall?.copyWith(
+              color: AppColors.textSecondary,
+              fontFamily: 'monospace',
+            ),
           ),
-        ),
+          const SizedBox(height: Spacing.x3),
+          AppButton(
+            label: 'Print All Labels ($existingCount)',
+            icon: Icons.replay_rounded,
+            variant: AppButtonVariant.secondary,
+            isLoading: _isPrinting,
+            onPressed: (_isPrinting || existingCount == 0)
+                ? null
+                : () => _printAllLabels(product, tracker),
+          ),
+        ],
       ),
     );
   }
