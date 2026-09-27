@@ -159,7 +159,11 @@ class ProductDraft with _$ProductDraft {
   bool get hasUploadsInFlight => images.any((DraftImage i) => i.isUploading);
 
   /// Generates the list of unit serial numbers for available stock items.
-  List<String> generateStockSerials({int? quantityOverride}) {
+  /// If [startSequence] is provided, numbers begin from [startSequence] (e.g. 11..20 for added stock).
+  List<String> generateStockSerials({
+    int? quantityOverride,
+    int startSequence = 1,
+  }) {
     final qty = quantityOverride ?? stockQuantityValue ?? (inStock ? 1 : 0);
     if (qty <= 0) return <String>[];
 
@@ -168,31 +172,13 @@ class ProductDraft with _$ProductDraft {
         : (productCode ?? '');
 
     if (base.isEmpty) return <String>[];
-    if (qty == 1) return <String>[base];
 
-    // Find trailing digits in base string (e.g. PRD-101 -> PRD- and 101)
-    final match = RegExp(r'^(.*?)(\d+)$').firstMatch(base);
-    if (match != null) {
-      final prefix = match.group(1)!;
-      final numStr = match.group(2)!;
-      final startNum = int.tryParse(numStr) ?? 1;
-      final padLength = numStr.length >= 3 ? numStr.length : 3;
-
-      final list = <String>[];
-      for (var i = 0; i < qty; i++) {
-        final currentNum = (startNum + i).toString().padLeft(padLength, '0');
-        list.add('$prefix$currentNum');
-      }
-      return list;
-    } else {
-      // Append sequential suffix -001, -002...
-      final padLength = 3;
-      final list = <String>[];
-      for (var i = 0; i < qty; i++) {
-        final currentNum = (i + 1).toString().padLeft(padLength, '0');
-        list.add('$base-$currentNum');
-      }
-      return list;
+    final padLength = 3;
+    final list = <String>[];
+    for (var i = 0; i < qty; i++) {
+      final currentNum = (startSequence + i).toString().padLeft(padLength, '0');
+      list.add('$base-$currentNum');
     }
+    return list;
   }
 }

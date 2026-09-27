@@ -81,6 +81,10 @@ class ProductFormController extends _$ProductFormController {
     return current != null && current != _initial;
   }
 
+  /// Initial stock quantity when the form was opened.
+  int get initialStockQuantity =>
+      _initial.stockQuantityValue ?? (_initial.inStock ? 1 : 0);
+
   /// The current pricing verdict, recomputed on every keystroke.
   PriceValidation get priceValidation => PriceRules.check(
     wholesale: _draft.wholesalePrice,
@@ -92,7 +96,7 @@ class ProductFormController extends _$ProductFormController {
   bool get canSubmit =>
       _draft.name.trim().isNotEmpty &&
       _draft.category != null &&
-      (!_draft.isManualCode || _draft.customCode.trim().isNotEmpty) &&
+      _draft.customCode.trim().isNotEmpty &&
       priceValidation.isValid &&
       !_draft.hasUploadsInFlight;
 

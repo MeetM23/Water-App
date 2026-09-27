@@ -292,9 +292,9 @@ class SupabaseProductRepository implements ProductRepository {
       return Success<List<ScannedProduct>>(<ScannedProduct>[
         for (final row in rows.cast<Map<String, dynamic>>())
           ScannedProduct(
-            productId: row['product_id'] as String,
-            name: row['name'] as String,
-            productCode: row['product_code'] as String,
+            productId: (row['product_id'] ?? row['id'] ?? '').toString(),
+            name: (row['product_name'] ?? row['name'] ?? 'Product').toString(),
+            productCode: (row['product_code'] ?? row['code'] ?? '').toString(),
             scanCount: (row['scan_count'] as num?)?.toInt() ?? 0,
           ),
       ]);
@@ -342,6 +342,100 @@ class SupabaseProductRepository implements ProductRepository {
       return Success<Product>(Product.fromJson(row));
     } on Object catch (error, stackTrace) {
       return ResultFailure<Product>(_map(error, stackTrace));
+    }
+  }
+
+  @override
+  Future<Result<List<String>>> allocateQrLabels(String productId, int count) async {
+    try {
+      if (count <= 0) {
+        return const Success<List<String>>(<String>[]);
+      }
+
+      try {
+        final dynamic res = await _client.rpc<dynamic>(
+          'allocate_product_qr_labels',
+          params: <String, dynamic>{
+            'p_product_id': productId,
+            'p_count': count,
+          },
+        );
+
+        if (res is List && res.isNotEmpty) {
+          final labels = res.map((e) => e.toString()).toList();
+          return Success<List<String>>(labels);
+        }
+      } catch (rpcErr) {
+        AppLog.warn('allocate_product_qr_labels RPC fallback: $rpcErr');
+      }
+
+      // Fallback: direct table insert
+      final prodRow = await _client
+          .from(_table)
+          .select('id, product_code')
+          .eq('id', productId)
+          .single();
+      final code = prodRow['product_code'] as String;
+
+      final existingRows = await _client
+          .from('product_qr_labels')
+          .select('sequence_number')
+          .eq('product_id', productId)
+          .order('sequence_number', ascending: false)
+          .limit(1);
+
+      final startSeq = existingRows.isNotEmpty
+          ? (existingRows.first['sequence_number'] as num).toInt()
+          : 0;
+
+      final newLabels = <String>[];
+      final insertPayloads = <Map<String, dynamic>>[];
+      for (var i = 1; i <= count; i++) {
+        final seq = startSeq + i;
+        final label = '$code-${seq.toString().padLeft(3, '0')}';
+        newLabels.add(label);
+        insertPayloads.add(<String, dynamic>{
+          'product_id': productId,
+          'qr_code': label,
+          'sequence_number': seq,
+        });
+      }
+
+      await _client.from('product_qr_labels').insert(insertPayloads);
+      return Success<List<String>>(newLabels);
+    } on Object catch (error, stackTrace) {
+      return ResultFailure<List<String>>(_map(error, stackTrace));
+    }
+  }
+
+  @override
+  Future<Result<List<String>>> fetchQrLabels(String productId) async {
+    try {
+      try {
+        final dynamic res = await _client.rpc<dynamic>(
+          'fetch_product_qr_labels',
+          params: <String, dynamic>{
+            'p_product_id': productId,
+          },
+        );
+        if (res is List) {
+          final labels = res.map((e) => e.toString()).toList();
+          return Success<List<String>>(labels);
+        }
+      } catch (_) {}
+
+      final rows = await _client
+          .from('product_qr_labels')
+          .select('qr_code, sequence_number')
+          .eq('product_id', productId)
+          .order('sequence_number', ascending: true);
+
+      final labels = (rows as List)
+          .map((row) => (row as Map)['qr_code'] as String)
+          .toList();
+      return Success<List<String>>(labels);
+    } on Object catch (error, stackTrace) {
+      return ResultFailure<List<String>>(_map(error, stackTrace));
     }
   }
 

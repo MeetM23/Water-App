@@ -330,10 +330,10 @@ class _$ProductImpl extends _Product {
       required this.productCode,
       required this.name,
       required this.category,
-      required this.wholesalePrice,
-      required this.retailPrice,
-      required this.inStock,
-      required this.isActive,
+      this.wholesalePrice = 0.0,
+      this.retailPrice = 0.0,
+      this.inStock = true,
+      this.isActive = true,
       required this.createdAt,
       required this.updatedAt,
       final Map<String, dynamic> specifications = const <String, dynamic>{},
@@ -359,12 +359,16 @@ class _$ProductImpl extends _Product {
   @override
   final ProductCategory category;
   @override
+  @JsonKey()
   final double wholesalePrice;
   @override
+  @JsonKey()
   final double retailPrice;
   @override
+  @JsonKey()
   final bool inStock;
   @override
+  @JsonKey()
   final bool isActive;
   @override
   final DateTime createdAt;
@@ -483,10 +487,10 @@ abstract class _Product extends Product {
       required final String productCode,
       required final String name,
       required final ProductCategory category,
-      required final double wholesalePrice,
-      required final double retailPrice,
-      required final bool inStock,
-      required final bool isActive,
+      final double wholesalePrice,
+      final double retailPrice,
+      final bool inStock,
+      final bool isActive,
       required final DateTime createdAt,
       required final DateTime updatedAt,
       final Map<String, dynamic> specifications,

@@ -131,6 +131,7 @@ class _WarrantyClaimScreenState extends ConsumerState<WarrantyClaimScreen> {
     final repository = ref.read(warrantyClaimRepositoryProvider);
     final result = await repository.submitClaim(
       unitId: unit.unitId,
+      productId: unit.productId,
       claimType: _selectedClaimType,
       description: _descriptionController.text.trim(),
       contactPhone: _contactPhoneController.text.trim(),

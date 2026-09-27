@@ -7,7 +7,6 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../core/errors/app_failure.dart';
 import '../../core/errors/result.dart';
 import '../../core/utils/app_logger.dart';
-import '../../domain/enums/product_category.dart';
 import '../../domain/models/product_lookup.dart';
 import '../../domain/repositories/product_registration_repository.dart';
 import '../supabase/supabase_providers.dart';
@@ -20,7 +19,6 @@ class SupabaseProductRegistrationRepository implements ProductRegistrationReposi
   SupabaseProductRegistrationRepository(this._client);
 
   final SupabaseClient _client;
-  final List<ProductLookup> _inMemoryUnits = <ProductLookup>[];
   final Set<String> _deletedRegistrationIds = <String>{};
 
   static Map<String, dynamic> sanitizeRegistrationJson(Map<String, dynamic> raw) {
@@ -64,9 +62,10 @@ class SupabaseProductRegistrationRepository implements ProductRegistrationReposi
 
   static String buildProductFilter(String input) {
     final clean = input.trim();
-    return isUuidString(clean)
-        ? 'id.eq.$clean,product_code.ilike.$clean,model_number.ilike.$clean'
-        : 'product_code.ilike.$clean,model_number.ilike.$clean';
+    if (isUuidString(clean)) {
+      return 'id.eq.$clean,product_code.eq.$clean,model_number.eq.$clean';
+    }
+    return 'product_code.eq.$clean,model_number.eq.$clean';
   }
 
   static String buildRegFilter(String input) {
@@ -195,6 +194,24 @@ class SupabaseProductRegistrationRepository implements ProductRegistrationReposi
             } catch (_) {}
           }
 
+          if (prod == null && uId.isNotEmpty) {
+            try {
+              final qrRows = await _client
+                  .from('product_qr_labels')
+                  .select('product_id')
+                  .eq('qr_code', uId)
+                  .limit(1);
+              if (qrRows.isNotEmpty) {
+                final qrProdId = qrRows.first['product_id'] as String;
+                prod = await _client
+                    .from('products')
+                    .select('*')
+                    .eq('id', qrProdId)
+                    .maybeSingle();
+              }
+            } catch (_) {}
+          }
+
           if (prod == null && uId.isNotEmpty && !isUuidString(uId)) {
             try {
               prod = await _client
@@ -238,21 +255,6 @@ class SupabaseProductRegistrationRepository implements ProductRegistrationReposi
         AppLog.warn('Failed to query DB unit_registrations: $dbError');
       }
 
-      for (final local in _inMemoryUnits) {
-        if (local.registration != null) {
-          if (_deletedRegistrationIds.contains(local.registration!.id) ||
-              _deletedRegistrationIds.contains(local.unitId)) {
-            continue;
-          }
-          if (userId != null && userId.isNotEmpty && local.registration!.registeredBy != userId) {
-            continue;
-          }
-          if (!dbUnits.any((u) => u.unitId == local.unitId || u.serialNumber == local.serialNumber)) {
-            dbUnits.add(local);
-          }
-        }
-      }
-
       return Success<List<ProductLookup>>(dbUnits);
     } on Object catch (error, stackTrace) {
       return ResultFailure<List<ProductLookup>>(_map(error, stackTrace));
@@ -267,14 +269,7 @@ class SupabaseProductRegistrationRepository implements ProductRegistrationReposi
         return const Success<ProductLookup?>(null);
       }
 
-      final localMatch = _inMemoryUnits.cast<ProductLookup?>().firstWhere(
-            (u) =>
-                u != null &&
-                (u.serialNumber.toUpperCase() == cleanBarcode ||
-                    u.unitId.toUpperCase() == cleanBarcode),
-            orElse: () => null,
-          );
-
+      // 1. Try authoritative RPC lookup first
       try {
         final response = await _client.rpc<dynamic>(
           'lookup_product_by_barcode',
@@ -284,32 +279,52 @@ class SupabaseProductRegistrationRepository implements ProductRegistrationReposi
         if (response != null) {
           final data = Map<String, dynamic>.from(response as Map);
           final unit = ProductLookup.fromJson(sanitizeUnitJson(data));
-          if (localMatch != null && unit.registration == null) {
-            return Success<ProductLookup?>(
-              unit.copyWith(registration: localMatch.registration),
-            );
-          }
           return Success<ProductLookup?>(unit);
         }
       } catch (rpcError) {
-        AppLog.warn('lookup_product_by_barcode RPC call failed, falling back to direct product query: $rpcError');
+        AppLog.warn('lookup_product_by_barcode RPC call failed, falling back to direct query: $rpcError');
       }
 
+      // 2. Direct fallback query (exact matches only)
       try {
         Map<String, dynamic>? matchedProduct;
-        final isUuid = isUuidString(cleanBarcode);
 
-        final filter = isUuid
-            ? 'product_code.ilike.$cleanBarcode,model_number.ilike.$cleanBarcode,id.eq.$cleanBarcode'
-            : 'product_code.ilike.$cleanBarcode,model_number.ilike.$cleanBarcode';
+        // Check persistent product_qr_labels table
+        try {
+          final qrRows = await _client
+              .from('product_qr_labels')
+              .select('product_id')
+              .eq('qr_code', cleanBarcode)
+              .limit(1);
+          if (qrRows.isNotEmpty) {
+            final qrProdId = qrRows.first['product_id'] as String;
+            final prodRows = await _client
+                .from('products')
+                .select('*')
+                .eq('id', qrProdId)
+                .limit(1);
+            if (prodRows.isNotEmpty) {
+              matchedProduct = Map<String, dynamic>.from(prodRows.first as Map);
+            }
+          }
+        } catch (_) {}
 
-        final exactProds = await _client
-            .from('products')
-            .select('*')
-            .or(filter);
+        // If not in QR labels, check exact product_code, model_number, or id
+        if (matchedProduct == null) {
+          final isUuid = isUuidString(cleanBarcode);
+          final filter = isUuid
+              ? 'id.eq.$cleanBarcode,product_code.eq.$cleanBarcode,model_number.eq.$cleanBarcode'
+              : 'product_code.eq.$cleanBarcode,model_number.eq.$cleanBarcode';
 
-        if (exactProds.isNotEmpty) {
-          matchedProduct = Map<String, dynamic>.from(exactProds.first as Map);
+          final exactProds = await _client
+              .from('products')
+              .select('*')
+              .or(filter)
+              .limit(1);
+
+          if (exactProds.isNotEmpty) {
+            matchedProduct = Map<String, dynamic>.from(exactProds.first as Map);
+          }
         }
 
         if (matchedProduct != null) {
@@ -319,9 +334,21 @@ class SupabaseProductRegistrationRepository implements ProductRegistrationReposi
           final modelNum = matchedProduct['model_number'] as String? ?? matchedProduct['product_code'] as String? ?? cleanBarcode;
           final warranty = (matchedProduct['warranty_months'] as num?)?.toInt() ?? 12;
 
+          Map<String, dynamic>? regMap;
+          try {
+            final regRow = await _client
+                .from('unit_registrations')
+                .select('*')
+                .eq('unit_id', cleanBarcode)
+                .maybeSingle();
+            if (regRow != null) {
+              regMap = sanitizeRegistrationJson(Map<String, dynamic>.from(regRow));
+            }
+          } catch (_) {}
+
           final combined = <String, dynamic>{
-            'unit_id': prodId,
-            'serial_number': matchedProduct['product_code'] as String? ?? cleanBarcode,
+            'unit_id': cleanBarcode,
+            'serial_number': cleanBarcode,
             'manufactured_at': DateTime.now().toIso8601String(),
             'product_id': prodId,
             'product_name': prodName,
@@ -331,50 +358,20 @@ class SupabaseProductRegistrationRepository implements ProductRegistrationReposi
             'description': matchedProduct['description'] as String?,
             'stock_quantity': (matchedProduct['stock_quantity'] as num?)?.toInt() ?? 0,
             'default_warranty_months': warranty,
-            'registration': null,
+            'registration': regMap,
           };
 
           final unit = ProductLookup.fromJson(sanitizeUnitJson(combined));
-          if (localMatch != null && unit.registration == null) {
-            return Success<ProductLookup?>(
-              unit.copyWith(registration: localMatch.registration),
-            );
-          }
           return Success<ProductLookup?>(unit);
         }
       } catch (prodSearchErr) {
         AppLog.warn('Products direct query error: $prodSearchErr');
       }
 
-      if (localMatch != null) {
-        return Success<ProductLookup?>(localMatch);
-      }
-
+      // If no exact match is found, return null (NO fake fallback)
       return const Success<ProductLookup?>(null);
     } on Object catch (error, stackTrace) {
       return ResultFailure<ProductLookup?>(_map(error, stackTrace));
-    }
-  }
-
-  ProductCategory _parseCategory(String? cat) {
-    if (cat == null) return ProductCategory.domestic;
-    switch (cat.toLowerCase()) {
-      case 'commercial':
-        return ProductCategory.commercial;
-      case 'industrial':
-        return ProductCategory.industrial;
-      case 'spare_part':
-      case 'sparepart':
-      case 'spareparts':
-      case 'spare_parts':
-      case 'spares':
-        return ProductCategory.sparePart;
-      case 'accessory':
-      case 'accessories':
-        return ProductCategory.accessory;
-      case 'domestic':
-      default:
-        return ProductCategory.domestic;
     }
   }
 
@@ -397,35 +394,53 @@ class SupabaseProductRegistrationRepository implements ProductRegistrationReposi
     final cleanUnitId = unitId.trim().toUpperCase();
 
     final warrantyStartDate = installationDate;
-    final warrantyEndDate = DateTime(
-      installationDate.year,
-      installationDate.month + warrantyMonths,
-      installationDate.day,
-    );
 
     try {
       String? realProductId;
-      String? realProductName;
-      String? realModelNumber;
-      String? realCategory;
 
       try {
         Map<String, dynamic>? matchedProd;
 
-        final exactProds = await _client
-            .from('products')
-            .select('*')
-            .or(buildProductFilter(cleanUnitId));
+        // 1. Check exact QR label
+        try {
+          final qrRows = await _client
+              .from('product_qr_labels')
+              .select('product_id')
+              .eq('qr_code', cleanUnitId)
+              .limit(1);
+          if (qrRows.isNotEmpty) {
+            final qrProdId = qrRows.first['product_id'] as String;
+            final prodRows = await _client
+                .from('products')
+                .select('*')
+                .eq('id', qrProdId)
+                .limit(1);
+            if (prodRows.isNotEmpty) {
+              matchedProd = Map<String, dynamic>.from(prodRows.first as Map);
+            }
+          }
+        } catch (_) {}
 
-        if (exactProds.isNotEmpty) {
-          matchedProd = Map<String, dynamic>.from(exactProds.first as Map);
+        // 2. Check exact product_code or model_number or id
+        if (matchedProd == null) {
+          final isUuid = isUuidString(cleanUnitId);
+          final filter = isUuid
+              ? 'id.eq.$cleanUnitId,product_code.eq.$cleanUnitId,model_number.eq.$cleanUnitId'
+              : 'product_code.eq.$cleanUnitId,model_number.eq.$cleanUnitId';
+
+          final exactProds = await _client
+              .from('products')
+              .select('*')
+              .or(filter)
+              .limit(1);
+
+          if (exactProds.isNotEmpty) {
+            matchedProd = Map<String, dynamic>.from(exactProds.first as Map);
+          }
         }
 
         if (matchedProd != null) {
           realProductId = matchedProd['id'] as String;
-          realProductName = matchedProd['name'] as String?;
-          realModelNumber = matchedProd['model_number'] as String?;
-          realCategory = matchedProd['category'] as String?;
         }
       } catch (prodErr) {
         AppLog.warn('Product resolution error for registration: $prodErr');
@@ -450,97 +465,24 @@ class SupabaseProductRegistrationRepository implements ProductRegistrationReposi
         insertData['product_id'] = realProductId;
       }
 
-      Map<String, dynamic>? responseMap;
-
-      try {
-        final payload = Map<String, dynamic>.from(insertData);
-        if (registeredRole != null) {
-          payload['registered_role'] = registeredRole;
-        }
-
-        final res = await _client
-            .from('unit_registrations')
-            .insert(payload)
-            .select()
-            .single();
-        responseMap = Map<String, dynamic>.from(res);
-      } catch (firstInsertErr) {
-        AppLog.warn('Initial unit_registrations insert failed: $firstInsertErr. Trying upsert.');
-        try {
-          final res = await _client
-              .from('unit_registrations')
-              .upsert(insertData)
-              .select()
-              .single();
-          responseMap = Map<String, dynamic>.from(res);
-        } catch (upsertErr) {
-          AppLog.warn('Unit registration upsert failed: $upsertErr. Using fallback response.');
-          responseMap = <String, dynamic>{
-            'id': 'reg_${DateTime.now().millisecondsSinceEpoch}',
-            ...insertData,
-          };
-        }
+      final payload = Map<String, dynamic>.from(insertData);
+      if (registeredRole != null) {
+        payload['registered_role'] = registeredRole;
       }
 
-      final sanitizedReg = sanitizeRegistrationJson(responseMap);
+      final res = await _client
+          .from('unit_registrations')
+          .insert(payload)
+          .select()
+          .single();
+
+      final sanitizedReg = sanitizeRegistrationJson(Map<String, dynamic>.from(res));
       final regInfo = ProductRegistrationInfo.fromJson(sanitizedReg);
-
-      final registeredUnit = ProductLookup(
-        unitId: cleanUnitId,
-        serialNumber: cleanUnitId,
-        productId: realProductId ?? cleanUnitId,
-        productName: realProductName ?? realModelNumber ?? cleanUnitId,
-        modelNumber: realModelNumber ?? cleanUnitId,
-        category: _parseCategory(realCategory),
-        manufacturedAt: DateTime.now(),
-        defaultWarrantyMonths: warrantyMonths,
-        registration: regInfo,
-      );
-
-      _inMemoryUnits.removeWhere(
-        (u) => u.serialNumber.toUpperCase() == cleanUnitId || u.unitId.toUpperCase() == cleanUnitId,
-      );
-      _inMemoryUnits.insert(0, registeredUnit);
 
       return Success<ProductRegistrationInfo>(regInfo);
     } on Object catch (error, stackTrace) {
       AppLog.error('Unit registration error', error, stackTrace);
-      final fallbackReg = ProductRegistrationInfo(
-        id: 'reg_${DateTime.now().millisecondsSinceEpoch}',
-        customerName: customerName,
-        customerPhone: customerPhone,
-        customerCity: customerCity,
-        customerAddress: customerAddress,
-        sellerName: sellerName,
-        sellerPhone: sellerPhone,
-        purchaseDate: purchaseDate,
-        installationDate: installationDate,
-        warrantyStartDate: warrantyStartDate,
-        warrantyMonths: warrantyMonths,
-        warrantyEndDate: warrantyEndDate,
-        invoiceNumber: invoiceNumber,
-        registeredBy: userId,
-        createdAt: DateTime.now(),
-      );
-
-      final registeredUnit = ProductLookup(
-        unitId: cleanUnitId,
-        serialNumber: cleanUnitId,
-        productId: cleanUnitId,
-        productName: cleanUnitId,
-        modelNumber: cleanUnitId,
-        category: ProductCategory.domestic,
-        manufacturedAt: DateTime.now(),
-        defaultWarrantyMonths: warrantyMonths,
-        registration: fallbackReg,
-      );
-
-      _inMemoryUnits.removeWhere(
-        (u) => u.serialNumber.toUpperCase() == cleanUnitId,
-      );
-      _inMemoryUnits.insert(0, registeredUnit);
-
-      return Success<ProductRegistrationInfo>(fallbackReg);
+      return ResultFailure<ProductRegistrationInfo>(_map(error, stackTrace));
     }
   }
 
@@ -566,30 +508,17 @@ class SupabaseProductRegistrationRepository implements ProductRegistrationReposi
         if (sellerPhone != null) 'seller_phone': sellerPhone,
       };
 
-      try {
-        await _client
-            .from('unit_registrations')
-            .update(updateData)
-            .eq('id', registrationId);
-      } catch (dbErr) {
-        AppLog.warn('Failed to update unit_registrations in DB: $dbErr');
-      }
+      final res = await _client
+          .from('unit_registrations')
+          .update(updateData)
+          .eq('id', registrationId)
+          .select()
+          .maybeSingle();
 
-      for (int i = 0; i < _inMemoryUnits.length; i++) {
-        final u = _inMemoryUnits[i];
-        if (u.registration?.id == registrationId) {
-          final updatedReg = u.registration!.copyWith(
-            customerName: customerName,
-            customerPhone: customerPhone,
-            customerCity: customerCity ?? u.registration!.customerCity,
-            customerAddress: customerAddress ?? u.registration!.customerAddress,
-            invoiceNumber: invoiceNumber ?? u.registration!.invoiceNumber,
-            sellerName: sellerName ?? u.registration!.sellerName,
-            sellerPhone: sellerPhone ?? u.registration!.sellerPhone,
-          );
-          _inMemoryUnits[i] = u.copyWith(registration: updatedReg);
-          return Success<ProductRegistrationInfo>(updatedReg);
-        }
+      if (res != null) {
+        final sanitizedReg = sanitizeRegistrationJson(Map<String, dynamic>.from(res));
+        final regInfo = ProductRegistrationInfo.fromJson(sanitizedReg);
+        return Success<ProductRegistrationInfo>(regInfo);
       }
 
       final fallbackReg = ProductRegistrationInfo(
@@ -619,28 +548,6 @@ class SupabaseProductRegistrationRepository implements ProductRegistrationReposi
       final cleanId = registrationId.trim();
       _deletedRegistrationIds.add(cleanId);
       _deletedRegistrationIds.add(cleanId.toUpperCase());
-
-      final matching = _inMemoryUnits.where(
-        (u) =>
-            u.registration?.id == cleanId ||
-            u.unitId == cleanId ||
-            u.serialNumber.toUpperCase() == cleanId.toUpperCase(),
-      ).toList();
-
-      for (final u in matching) {
-        if (u.registration?.id != null) _deletedRegistrationIds.add(u.registration!.id);
-        _deletedRegistrationIds.add(u.unitId);
-        _deletedRegistrationIds.add(u.unitId.toUpperCase());
-        _deletedRegistrationIds.add(u.serialNumber);
-        _deletedRegistrationIds.add(u.serialNumber.toUpperCase());
-      }
-
-      _inMemoryUnits.removeWhere(
-        (u) =>
-            u.registration?.id == cleanId ||
-            u.unitId == cleanId ||
-            u.serialNumber.toUpperCase() == cleanId.toUpperCase(),
-      );
 
       try {
         await _client

@@ -234,9 +234,10 @@ class _PriceCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final displayedPrice = viewMode == PriceViewMode.mrpOnly
-        ? (product.mrp ?? product.price)
-        : product.price;
+    final hasDiscount = product.mrp != null && product.mrp! > product.price;
+    final showDiscount = (viewMode == PriceViewMode.mrpOnly ||
+            viewMode == PriceViewMode.retailerWithDiscount) &&
+        hasDiscount;
 
     return AppCard(
       padding: const EdgeInsets.symmetric(
@@ -254,18 +255,60 @@ class _PriceCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: Spacing.x2),
-          FittedBox(
-            fit: BoxFit.scaleDown,
-            alignment: Alignment.centerLeft,
-            child: Text(
-              AppFormat.rupees(displayedPrice),
-              maxLines: 1,
-              style: context.textTheme.headlineLarge?.copyWith(
-                color: AppColors.ink,
-                fontWeight: FontWeight.bold,
+          if (showDiscount) ...<Widget>[
+            Builder(
+              builder: (context) {
+                final discountPercent =
+                    (((product.mrp! - product.price) / product.mrp!) * 100).round();
+                return FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerLeft,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: <Widget>[
+                      Text(
+                        '↓$discountPercent%',
+                        style: context.textTheme.headlineMedium?.copyWith(
+                          color: AppColors.success,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(width: Spacing.x3),
+                      Text(
+                        AppFormat.rupees(product.mrp!),
+                        style: context.textTheme.titleLarge?.copyWith(
+                          color: AppColors.textSecondary,
+                          decoration: TextDecoration.lineThrough,
+                        ),
+                      ),
+                      const SizedBox(width: Spacing.x3),
+                      Text(
+                        AppFormat.rupees(product.price),
+                        style: context.textTheme.headlineLarge?.copyWith(
+                          color: AppColors.ink,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+          ] else ...<Widget>[
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerLeft,
+              child: Text(
+                AppFormat.rupees(product.price),
+                maxLines: 1,
+                style: context.textTheme.headlineLarge?.copyWith(
+                  color: AppColors.ink,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
-          ),
+          ],
         ],
       ),
     );

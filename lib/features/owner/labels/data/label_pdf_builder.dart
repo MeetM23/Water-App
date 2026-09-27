@@ -221,8 +221,6 @@ abstract final class LabelPdfBuilder {
     final nameSize = isCompact ? 5.5 : 7.5;
     final metaSize = isCompact ? 4.2 : 5.5;
     final codeSize = isCompact ? 5.0 : 6.5;
-    final barcodeHeight =
-        (params.labelHeightMm * (isCompact ? 0.34 : 0.38)) * PdfPageFormat.mm;
 
     return pw.Padding(
       padding: pw.EdgeInsets.all(padding * PdfPageFormat.mm),
@@ -269,31 +267,12 @@ abstract final class LabelPdfBuilder {
               padding: const pw.EdgeInsets.symmetric(
                 vertical: 0.4 * PdfPageFormat.mm,
               ),
-              child: pw.Row(
-                crossAxisAlignment: pw.CrossAxisAlignment.center,
-                children: <pw.Widget>[
-                  pw.Expanded(
-                    child: pw.BarcodeWidget(
-                      barcode: pw.Barcode.code128(escapes: false),
-                      data: entry.serialNumber,
-                      drawText: false,
-                      height: barcodeHeight,
-                      width: double.infinity,
-                    ),
-                  ),
-                  if (!isCompact) ...<pw.Widget>[
-                    pw.SizedBox(width: 1.5 * PdfPageFormat.mm),
-                    pw.SizedBox(
-                      width: barcodeHeight,
-                      height: barcodeHeight,
-                      child: pw.BarcodeWidget(
-                        barcode: pw.Barcode.qrCode(),
-                        data: entry.serialNumber,
-                        drawText: false,
-                      ),
-                    ),
-                  ],
-                ],
+              child: pw.Center(
+                child: pw.BarcodeWidget(
+                  barcode: pw.Barcode.qrCode(),
+                  data: entry.serialNumber,
+                  drawText: false,
+                ),
               ),
             ),
           ),

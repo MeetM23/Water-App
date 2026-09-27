@@ -268,8 +268,8 @@ class _$CatalogProductImpl extends _CatalogProduct {
       required this.productCode,
       required this.name,
       required this.category,
-      required this.price,
-      required this.inStock,
+      this.price = 0.0,
+      this.inStock = true,
       final Map<String, dynamic> specifications = const <String, dynamic>{},
       this.modelNumber,
       this.description,
@@ -292,8 +292,10 @@ class _$CatalogProductImpl extends _CatalogProduct {
   @override
   final ProductCategory category;
   @override
+  @JsonKey()
   final double price;
   @override
+  @JsonKey()
   final bool inStock;
   final Map<String, dynamic> _specifications;
   @override
@@ -391,8 +393,8 @@ abstract class _CatalogProduct extends CatalogProduct {
       required final String productCode,
       required final String name,
       required final ProductCategory category,
-      required final double price,
-      required final bool inStock,
+      final double price,
+      final bool inStock,
       final Map<String, dynamic> specifications,
       final String? modelNumber,
       final String? description,

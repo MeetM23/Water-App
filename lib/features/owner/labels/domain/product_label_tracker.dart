@@ -214,18 +214,9 @@ class ProductLabelTracker {
 
   /// Helper to extract prefix, startNumber, and padLength from a productCode string.
   static ({String prefix, int startNumber, int padLength}) _parseCode(String code) {
-    final trimmed = code.trim().toUpperCase();
+    final trimmed = code.trim();
     if (trimmed.isEmpty) {
-      return (prefix: 'MWS-PRD-', startNumber: 1, padLength: 3);
-    }
-
-    final match = RegExp(r'^(.*?)(\d+)$').firstMatch(trimmed);
-    if (match != null) {
-      final prefixPart = match.group(1)!;
-      final numStr = match.group(2)!;
-      final startNum = int.tryParse(numStr) ?? 1;
-      final padLength = numStr.length >= 3 ? numStr.length : 3;
-      return (prefix: prefixPart, startNumber: startNum, padLength: padLength);
+      return (prefix: 'PROD-', startNumber: 1, padLength: 3);
     }
 
     final formattedPrefix = trimmed.endsWith('-') ? trimmed : '$trimmed-';

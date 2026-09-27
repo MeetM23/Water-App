@@ -109,13 +109,6 @@ class CatalogueCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
 
-    // Resolve displayPrice: Guest/Public sees Admin MRP/public price, dealers see their role price.
-    final displayPrice = switch (viewMode) {
-      PriceViewMode.mrpOnly => product.mrp ?? product.price,
-      PriceViewMode.wholesaleOnly => product.price,
-      PriceViewMode.retailerWithDiscount => product.price,
-    };
-
     return Semantics(
       button: true,
       label: product.name,
@@ -160,20 +153,71 @@ class CatalogueCard extends StatelessWidget {
                     tone: AppBadgeTone.info,
                   ),
                   const SizedBox(height: Spacing.x2),
-                  // Shrunk rather than ellipsised: half a price is worse than a
-                  // small one, and a narrow column at a large text scale is
-                  // exactly where a rupee figure runs out of room.
-                  FittedBox(
-                    fit: BoxFit.scaleDown,
-                    alignment: AlignmentDirectional.centerStart,
-                    child: Text(
-                      AppFormat.rupees(displayPrice),
-                      maxLines: 1,
-                      style: context.textTheme.titleMedium?.copyWith(
-                        color: AppColors.ink,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+                  // Render price with discount & strikethrough MRP for Guest and Retailer
+                  Builder(
+                    builder: (context) {
+                      final hasDiscount = product.mrp != null && product.mrp! > product.price;
+                      final showDiscount = (viewMode == PriceViewMode.mrpOnly ||
+                              viewMode == PriceViewMode.retailerWithDiscount) &&
+                          hasDiscount;
+
+                      if (showDiscount) {
+                        final discountPercent =
+                            (((product.mrp! - product.price) / product.mrp!) * 100).round();
+                        return FittedBox(
+                          fit: BoxFit.scaleDown,
+                          alignment: AlignmentDirectional.centerStart,
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: <Widget>[
+                              Text(
+                                '↓$discountPercent%',
+                                style: context.textTheme.labelMedium?.copyWith(
+                                  color: AppColors.success,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(width: Spacing.x1),
+                              Text(
+                                AppFormat.rupees(product.mrp!),
+                                style: context.textTheme.bodySmall?.copyWith(
+                                  color: AppColors.textSecondary,
+                                  decoration: TextDecoration.lineThrough,
+                                ),
+                              ),
+                              const SizedBox(width: Spacing.x1),
+                              Text(
+                                AppFormat.rupees(product.price),
+                                style: context.textTheme.titleMedium?.copyWith(
+                                  color: AppColors.ink,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      }
+
+                      final fallbackPrice = switch (viewMode) {
+                        PriceViewMode.mrpOnly => product.price,
+                        PriceViewMode.wholesaleOnly => product.price,
+                        PriceViewMode.retailerWithDiscount => product.price,
+                      };
+
+                      return FittedBox(
+                        fit: BoxFit.scaleDown,
+                        alignment: AlignmentDirectional.centerStart,
+                        child: Text(
+                          AppFormat.rupees(fallbackPrice),
+                          maxLines: 1,
+                          style: context.textTheme.titleMedium?.copyWith(
+                            color: AppColors.ink,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      );
+                    },
                   ),
                 ],
               ),

@@ -148,11 +148,15 @@ class SupabaseDealerRepository implements DealerRepository {
       return Success<List<DealerActivityEntry>>(<DealerActivityEntry>[
         for (final row in rows.cast<Map<String, dynamic>>())
           DealerActivityEntry(
-            id: row['id'] as String,
-            action: row['action'] as String,
+            id: (row['id'] ?? row['user_id'] ?? '').toString(),
+            action: (row['action'] ?? (row['activity_type'] != null ? 'dealer.${row['activity_type']}' : 'dealer.active')).toString(),
             firmName: (row['firm_name'] as String?) ?? '',
             fullName: (row['full_name'] as String?) ?? '',
-            createdAt: DateTime.parse(row['created_at'] as String),
+            createdAt: row['created_at'] != null
+                ? DateTime.parse(row['created_at'].toString())
+                : (row['last_activity'] != null
+                    ? DateTime.parse(row['last_activity'].toString())
+                    : DateTime.now()),
           ),
       ]);
     } on Object catch (error, stackTrace) {

@@ -204,21 +204,31 @@ class _AdminWarrantyClaimsScreenState
                               ],
                             ),
                             const SizedBox(height: Spacing.x2),
+                            if (claim.productName != null && claim.productName!.isNotEmpty) ...<Widget>[
+                              Text(
+                                claim.productName!,
+                                style: context.textTheme.titleSmall?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.primaryDark,
+                                ),
+                              ),
+                              const SizedBox(height: Spacing.x1),
+                            ],
                             Text(
                               'Type: ${claim.claimType}',
                               style: context.textTheme.bodyMedium?.copyWith(
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
-                            if (claim.serialNumber != null)
+                            if (claim.serialNumber != null && claim.serialNumber!.isNotEmpty)
                               Text(
-                                'Serial: ${claim.serialNumber}',
+                                'QR / Serial: ${claim.serialNumber}',
                                 style: context.textTheme.bodySmall
                                     ?.copyWith(color: Colors.grey.shade700),
                               ),
-                            if (claim.userFullName != null)
+                            if (claim.userFullName != null && claim.userFullName!.isNotEmpty)
                               Text(
-                                'Dealer: ${claim.userFullName} (${claim.userCompany ?? "N/A"})',
+                                'Dealer: ${claim.userFullName}${claim.userCompany != null && claim.userCompany!.isNotEmpty ? " (${claim.userCompany})" : ""}',
                                 style: context.textTheme.bodySmall
                                     ?.copyWith(color: Colors.grey.shade800),
                               ),

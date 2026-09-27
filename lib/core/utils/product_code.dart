@@ -20,12 +20,18 @@ abstract final class ProductCode {
 
   static const String _alphabet = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 
-  static final RegExp _pattern = RegExp(
+  static final RegExp _legacyPattern = RegExp(
     r'^MWS-(DOM|COM|IND|SPR|ACC)-([0-9]{6})-([0-9A-Z])$',
   );
 
   static final RegExp _unitSerialPattern = RegExp(
     r'^MWS-SN-(DOM|COM|IND|SPR|ACC)-([0-9]{6,12})-([0-9A-Z])$',
+  );
+
+  /// General pattern supporting arbitrary code patterns:
+  /// e.g. MWS-DOM-001, ABC-500, RO2026-001, MARUTI-X-0001, PRODUCT-A-25, etc.
+  static final RegExp _generalPattern = RegExp(
+    r'^[A-Z0-9][A-Z0-9_\-\.\/]{0,58}[A-Z0-9]$',
   );
 
   /// Computes the base36 check character for a run of digits.
@@ -43,23 +49,30 @@ abstract final class ProductCode {
     return _alphabet[sum % 36];
   }
 
-  /// Whether [code] is a valid catalogue product code.
+  /// Whether [code] is a valid catalogue product code or label identifier.
   static bool isValid(String? code) {
     if (code == null) {
       return false;
     }
 
-    final match = _pattern.firstMatch(code.trim().toUpperCase());
-    if (match == null) {
+    final candidate = code.trim().toUpperCase();
+    if (candidate.length < 2 || candidate.length > 60) {
       return false;
     }
 
-    final digits = match.group(2)!;
-    final expected = match.group(3)!;
-    return checkCharacter(digits) == expected;
+    // Check if matches legacy checksum format
+    final legacyMatch = _legacyPattern.firstMatch(candidate);
+    if (legacyMatch != null) {
+      final digits = legacyMatch.group(2)!;
+      final expected = legacyMatch.group(3)!;
+      return checkCharacter(digits) == expected;
+    }
+
+    // Check if valid general code format
+    return _generalPattern.hasMatch(candidate);
   }
 
-  /// Whether [code] is a physical unit serial number.
+  /// Whether [code] is a physical unit serial number or legacy serial.
   static bool isUnitSerial(String? code) {
     if (code == null) {
       return false;

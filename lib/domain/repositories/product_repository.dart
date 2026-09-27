@@ -51,6 +51,12 @@ abstract interface class ProductRepository {
     String productId,
     Map<String, dynamic> trackerJson,
   );
+
+  /// Atomically allocates [count] new sequential QR labels in `product_qr_labels`.
+  Future<Result<List<String>>> allocateQrLabels(String productId, int count);
+
+  /// Fetches all persisted QR label codes for a product from `product_qr_labels`.
+  Future<Result<List<String>>> fetchQrLabels(String productId);
 }
 
 /// Headline catalogue numbers for the dashboard.

@@ -134,12 +134,29 @@ Future<CatalogProduct?> productByCode(
       .read(productLookupControllerProvider.notifier)
       .lookup(cleanCode);
 
-  return switch (outcome) {
-    LookupFound(:final product) => product,
-    LookupUnitFound(:final unit) => ref
-        .read(catalogueControllerProvider.notifier)
-        .findInLoaded(unit.productCode ?? unit.serialNumber),
-    LookupNotFound() || LookupInvalidCode() => null,
-    LookupFailed(:final failure) => throw failure,
-  };
+  switch (outcome) {
+    case LookupFound(:final product):
+      return product;
+    case LookupUnitFound(:final unit):
+      final inCache = ref
+          .read(catalogueControllerProvider.notifier)
+          .findInLoaded(unit.productCode ?? unit.serialNumber);
+      if (inCache != null) {
+        return inCache;
+      }
+      final byCode = await ref
+          .read(catalogRepositoryProvider)
+          .findByCode(unit.productCode ?? '');
+      if (byCode.valueOrNull != null) {
+        return byCode.valueOrNull;
+      }
+      final bySerial = await ref
+          .read(catalogRepositoryProvider)
+          .findByCode(unit.serialNumber);
+      return bySerial.valueOrNull;
+    case LookupNotFound() || LookupInvalidCode():
+      return null;
+    case LookupFailed(:final failure):
+      throw failure;
+  }
 }

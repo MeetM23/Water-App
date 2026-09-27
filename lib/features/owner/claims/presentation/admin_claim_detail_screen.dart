@@ -204,16 +204,17 @@ class _AdminWarrantyClaimDetailScreenState
                         ),
                         const SizedBox(height: Spacing.x3),
                         Text(
-                          'Product: ${claim.productName ?? "Maruti RO Purifier"}',
+                          'Product: ${(claim.productName != null && claim.productName!.isNotEmpty) ? claim.productName! : (claim.serialNumber ?? "N/A")}',
                           style: context.textTheme.bodyMedium
                               ?.copyWith(fontWeight: FontWeight.w600),
                         ),
+                        if (claim.modelNumber != null && claim.modelNumber!.isNotEmpty)
+                          Text(
+                            'Model: ${claim.modelNumber}',
+                            style: context.textTheme.bodyMedium,
+                          ),
                         Text(
-                          'Model: ${claim.modelNumber ?? "Standard"}',
-                          style: context.textTheme.bodyMedium,
-                        ),
-                        Text(
-                          'Serial: ${claim.serialNumber ?? "N/A"}',
+                          'QR / Unit Code: ${(claim.serialNumber != null && claim.serialNumber!.isNotEmpty) ? claim.serialNumber! : claim.unitId}',
                           style: context.textTheme.bodyMedium
                               ?.copyWith(color: Colors.grey.shade800),
                         ),
@@ -245,13 +246,13 @@ class _AdminWarrantyClaimDetailScreenState
                         ),
                         const SizedBox(height: Spacing.x3),
                         Text(
-                          'Name: ${claim.userFullName ?? "Dealer User"}',
+                          'Name: ${claim.userFullName ?? "N/A"}${claim.userRole != null && claim.userRole!.isNotEmpty ? " (${claim.userRole!.toUpperCase()})" : ""}',
                           style: context.textTheme.bodyMedium
                               ?.copyWith(fontWeight: FontWeight.w600),
                         ),
-                        if (claim.userCompany != null)
+                        if (claim.userCompany != null && claim.userCompany!.isNotEmpty)
                           Text(
-                            'Company: ${claim.userCompany}',
+                            'Firm / Company: ${claim.userCompany}',
                             style: context.textTheme.bodyMedium,
                           ),
                         Text(

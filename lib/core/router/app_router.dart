@@ -61,13 +61,6 @@ part 'app_router.g.dart';
 // GoRouter manages branch and root navigator keys dynamically to prevent
 // Flutter keyReservation assertion collisions when providers rebuild.
 
-final GlobalKey<StatefulNavigationShellState> _ownerShellKey =
-    GlobalKey<StatefulNavigationShellState>(debugLabel: 'ownerShell');
-final GlobalKey<StatefulNavigationShellState> _wholesalerShellKey =
-    GlobalKey<StatefulNavigationShellState>(debugLabel: 'wholesalerShell');
-final GlobalKey<StatefulNavigationShellState> _retailerShellKey =
-    GlobalKey<StatefulNavigationShellState>(debugLabel: 'retailerShell');
-
 /// The application router.
 ///
 /// Access is decided in one place, [_redirect], which runs on every navigation.
@@ -184,7 +177,6 @@ GoRouter appRouter(Ref<GoRouter> ref) {
       // navigation stack, so switching tabs does not lose a scroll position or
       // a half-read dealer record.
       StatefulShellRoute.indexedStack(
-        key: _ownerShellKey,
         builder:
             (
               BuildContext context,
@@ -342,11 +334,7 @@ GoRouter appRouter(Ref<GoRouter> ref) {
 /// and then checks their saved list comes back to the product they were looking
 /// at rather than to a fresh camera.
 StatefulShellRoute _dealerShell(DealerExperience experience) {
-  final key = experience == wholesalerExperience
-      ? _wholesalerShellKey
-      : _retailerShellKey;
   return StatefulShellRoute.indexedStack(
-    key: key,
     builder:
         (
           BuildContext context,

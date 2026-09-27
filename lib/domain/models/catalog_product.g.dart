@@ -12,8 +12,8 @@ _$CatalogProductImpl _$$CatalogProductImplFromJson(Map<String, dynamic> json) =>
       productCode: json['product_code'] as String,
       name: json['name'] as String,
       category: $enumDecode(_$ProductCategoryEnumMap, json['category']),
-      price: (json['price'] as num).toDouble(),
-      inStock: json['in_stock'] as bool,
+      price: (json['price'] as num?)?.toDouble() ?? 0.0,
+      inStock: json['in_stock'] as bool? ?? true,
       specifications: json['specifications'] as Map<String, dynamic>? ??
           const <String, dynamic>{},
       modelNumber: json['model_number'] as String?,

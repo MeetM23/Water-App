@@ -34,13 +34,35 @@ class BarcodeModeSection extends ConsumerWidget {
       productFormControllerProvider(productId).notifier,
     );
 
-    final generatedSerials = draft.generateStockSerials();
+    final isEditing = draft.isEditing;
+    final initialStock = isEditing ? controller.initialStockQuantity : 0;
+    final currentStock = draft.stockQuantityValue ?? (draft.inStock ? 1 : 0);
+
+    final List<String> generatedSerials;
+    final String sectionTitle;
+
+    if (!isEditing) {
+      generatedSerials = draft.generateStockSerials();
+      sectionTitle = 'Generated QR Labels (${generatedSerials.length} units):';
+    } else {
+      final added = currentStock - initialStock;
+      if (added > 0) {
+        generatedSerials = draft.generateStockSerials(
+          quantityOverride: added,
+          startSequence: initialStock + 1,
+        );
+        sectionTitle = 'Newly Added QR Labels ($added units):';
+      } else {
+        generatedSerials = <String>[];
+        sectionTitle = '';
+      }
+    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
         Text(
-          'PRODUCT BARCODE & CODE',
+          'PRODUCT CODE',
           style: context.textTheme.labelLarge?.copyWith(
             color: AppColors.ink,
             fontWeight: FontWeight.w600,
@@ -48,55 +70,16 @@ class BarcodeModeSection extends ConsumerWidget {
         ),
         const SizedBox(height: Spacing.x2),
         AppTextField(
-          label: 'Custom Barcode / Serial Code',
-          hint: 'e.g. PRD-DOM-101 (Leave blank for auto-code)',
+          label: 'Product Code',
+          hint: 'e.g. ABC-500-X or MWS-COM-001013-Q',
           controller: customCodeController,
-          trailingLabel: 'Optional',
+          trailingLabel: 'Required',
           textCapitalization: TextCapitalization.characters,
+          validator: (val) =>
+              val == null || val.trim().isEmpty ? 'Product code is required' : null,
           onChanged: (String val) {
             controller.setCustomCode(val);
           },
-        ),
-        const SizedBox(height: Spacing.x2),
-        Row(
-          children: <Widget>[
-            ChoiceChip(
-              label: const Row(
-                mainAxisSize: MainAxisSize.min,
-                children: <Widget>[
-                  Icon(Icons.auto_awesome, size: 14),
-                  SizedBox(width: Spacing.x1),
-                  Text('Auto Code', style: TextStyle(fontSize: 12)),
-                ],
-              ),
-              selected: customCodeController.text.trim().isEmpty,
-              showCheckmark: false,
-              onSelected: (_) {
-                customCodeController.clear();
-                controller.setCustomCode('');
-                controller.setIsManualCode(false);
-              },
-            ),
-            const SizedBox(width: Spacing.x2),
-            ChoiceChip(
-              label: const Row(
-                mainAxisSize: MainAxisSize.min,
-                children: <Widget>[
-                  Icon(Icons.edit_note, size: 14),
-                  SizedBox(width: Spacing.x1),
-                  Text('Custom Code', style: TextStyle(fontSize: 12)),
-                ],
-              ),
-              selected: customCodeController.text.trim().isNotEmpty,
-              showCheckmark: false,
-              onSelected: (_) {
-                if (customCodeController.text.trim().isEmpty) {
-                  customCodeController.text = 'PRD-101';
-                  controller.setCustomCode('PRD-101');
-                }
-              },
-            ),
-          ],
         ),
         if (generatedSerials.isNotEmpty) ...<Widget>[
           const SizedBox(height: Spacing.x4),
@@ -115,7 +98,7 @@ class BarcodeModeSection extends ConsumerWidget {
                     const Icon(Icons.qr_code_2, size: 18, color: AppColors.primary),
                     const SizedBox(width: Spacing.x2),
                     Text(
-                      'Generated Stock Barcodes (${generatedSerials.length} units):',
+                      sectionTitle,
                       style: context.textTheme.labelMedium?.copyWith(
                         color: AppColors.ink,
                         fontWeight: FontWeight.w600,
@@ -142,6 +125,30 @@ class BarcodeModeSection extends ConsumerWidget {
                         AppBadge(label: serial, tone: AppBadgeTone.info),
                     ],
                   ],
+                ),
+              ],
+            ),
+          ),
+        ] else if (isEditing && initialStock > 0) ...<Widget>[
+          const SizedBox(height: Spacing.x4),
+          Container(
+            padding: const EdgeInsets.all(Spacing.x3),
+            decoration: BoxDecoration(
+              color: AppColors.surface,
+              borderRadius: BorderRadius.circular(Spacing.x2),
+              border: Border.all(color: AppColors.border),
+            ),
+            child: Row(
+              children: <Widget>[
+                const Icon(Icons.info_outline_rounded, size: 18, color: AppColors.textSecondary),
+                const SizedBox(width: Spacing.x2),
+                Expanded(
+                  child: Text(
+                    'Existing $initialStock labels remain active in database. Increase stock quantity to generate new labels.',
+                    style: context.textTheme.bodySmall?.copyWith(
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
                 ),
               ],
             ),

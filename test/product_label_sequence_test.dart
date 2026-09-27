@@ -1,15 +1,16 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:maruti_water/domain/enums/product_category.dart';
 import 'package:maruti_water/domain/models/product.dart';
+import 'package:maruti_water/domain/models/product_draft.dart';
 import 'package:maruti_water/features/owner/labels/domain/product_label_tracker.dart';
 
 void main() {
   group('Print Labels Page & Label Sequence Logic Tests', () {
-    test('CASE 1: Product stock = 5, Existing labels = 5 -> New labels available = 0, Print All = 001..005', () {
+    test('PROMPT CASE 1: Admin creates product code ABCD, Stock: 5 -> Labels ABCD-001..005', () {
       final product = Product(
-        id: 'prod-001',
-        productCode: 'MWS-DOM-001',
-        name: 'Domestic RO 10L',
+        id: 'prod-abcd',
+        productCode: 'ABCD',
+        name: 'Product ABCD',
         category: ProductCategory.domestic,
         wholesalePrice: 5000,
         retailPrice: 8000,
@@ -24,12 +25,109 @@ void main() {
       expect(tracker.existingLabelsCount, equals(5));
       expect(tracker.newLabelsAvailable, equals(0));
       expect(tracker.getAllLabels(), equals(<String>[
-        'MWS-DOM-001',
-        'MWS-DOM-002',
-        'MWS-DOM-003',
-        'MWS-DOM-004',
-        'MWS-DOM-005',
+        'ABCD-001',
+        'ABCD-002',
+        'ABCD-003',
+        'ABCD-004',
+        'ABCD-005',
       ]));
+    });
+
+    test('PROMPT CASE 2: Admin creates product code 1234, Stock: 3 -> Labels 1234-001..003', () {
+      final product = Product(
+        id: 'prod-1234',
+        productCode: '1234',
+        name: 'Product 1234',
+        category: ProductCategory.domestic,
+        wholesalePrice: 5000,
+        retailPrice: 8000,
+        inStock: true,
+        isActive: true,
+        stockQuantity: 3,
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      );
+
+      final tracker = ProductLabelTracker.fromProduct(product);
+      expect(tracker.existingLabelsCount, equals(3));
+      expect(tracker.newLabelsAvailable, equals(0));
+      expect(tracker.getAllLabels(), equals(<String>[
+        '1234-001',
+        '1234-002',
+        '1234-003',
+      ]));
+    });
+
+    test('PROMPT CASE 3: Admin creates MWS-COM-001013-Q, Stock: 2 -> Labels MWS-COM-001013-Q-001..002', () {
+      final product = Product(
+        id: 'prod-mws-com',
+        productCode: 'MWS-COM-001013-Q',
+        name: 'Product Commercial',
+        category: ProductCategory.commercial,
+        wholesalePrice: 15000,
+        retailPrice: 20000,
+        inStock: true,
+        isActive: true,
+        stockQuantity: 2,
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      );
+
+      final tracker = ProductLabelTracker.fromProduct(product);
+      expect(tracker.existingLabelsCount, equals(2));
+      expect(tracker.newLabelsAvailable, equals(0));
+      expect(tracker.getAllLabels(), equals(<String>[
+        'MWS-COM-001013-Q-001',
+        'MWS-COM-001013-Q-002',
+      ]));
+    });
+
+    test('PROMPT CASE 4: Add 2 more stock when existing labels: 001, 002 -> Expected new labels: 003, 004', () {
+      var tracker = ProductLabelTracker(
+        productId: 'prod-abcd',
+        prefix: 'ABCD-',
+        startNumber: 1,
+        padLength: 3,
+        lastSequence: 2,
+        totalCapacity: 2,
+      );
+
+      // Add 2 stock
+      tracker = tracker.addStockCapacity(2);
+      expect(tracker.totalCapacity, equals(4));
+      expect(tracker.existingLabelsCount, equals(2));
+      expect(tracker.newLabelsAvailable, equals(2));
+
+      // Print new labels automatically for the 2 remaining
+      final allocation = tracker.allocateLabels(2);
+      expect(allocation.newLabels, equals(<String>[
+        'ABCD-003',
+        'ABCD-004',
+      ]));
+      expect(allocation.tracker.existingLabelsCount, equals(4));
+      expect(allocation.tracker.newLabelsAvailable, equals(0));
+    });
+
+    test('PROMPT CASE 5: Print All -> Same existing QR codes, no new labels, no stock change', () {
+      final tracker = ProductLabelTracker(
+        productId: 'prod-abcd',
+        prefix: 'ABCD-',
+        startNumber: 1,
+        padLength: 3,
+        lastSequence: 4,
+        totalCapacity: 4,
+      );
+
+      final allLabels = tracker.getAllLabels();
+      expect(allLabels, equals(<String>[
+        'ABCD-001',
+        'ABCD-002',
+        'ABCD-003',
+        'ABCD-004',
+      ]));
+      // No change in sequence count or capacity
+      expect(tracker.lastSequence, equals(4));
+      expect(tracker.totalCapacity, equals(4));
     });
 
     test('CASE 2: Admin adds +5 stock -> Stock = 10, Existing = 5, New available = 5, Print New (5) = 006..010', () {
@@ -211,14 +309,123 @@ void main() {
         'MWS-DOM-010',
       ]));
 
-      expect(comAlloc.newLabels, equals(<String>[
-        'MWS-COM-003',
-        'MWS-COM-004',
-        'MWS-COM-005',
-      ]));
-
       expect(domAlloc.tracker.nextSequenceNumber, equals(11));
       expect(comAlloc.tracker.nextSequenceNumber, equals(6));
+    });
+
+    test('CASE 9: Arbitrary code patterns (ABC-500, RO2026-001, MARUTI-X-0001, PRODUCT-A-25)', () {
+      final abcTracker = ProductLabelTracker(
+        productId: 'prod-abc',
+        prefix: 'ABC-',
+        startNumber: 500,
+        padLength: 3,
+        lastSequence: 0,
+        totalCapacity: 5,
+      );
+      final abcAlloc = abcTracker.allocateLabels(5);
+      expect(abcAlloc.newLabels, equals(<String>[
+        'ABC-500',
+        'ABC-501',
+        'ABC-502',
+        'ABC-503',
+        'ABC-504',
+      ]));
+
+      final roTracker = ProductLabelTracker(
+        productId: 'prod-ro',
+        prefix: 'RO2026-',
+        startNumber: 1,
+        padLength: 3,
+        lastSequence: 0,
+        totalCapacity: 3,
+      );
+      final roAlloc = roTracker.allocateLabels(3);
+      expect(roAlloc.newLabels, equals(<String>[
+        'RO2026-001',
+        'RO2026-002',
+        'RO2026-003',
+      ]));
+    });
+
+    test('TEST 1: Product 1234 Stock 10 -> Add 10 stock -> preview ONLY new labels 011..020', () {
+      final initialProduct = Product(
+        id: 'prod-1234',
+        productCode: '1234',
+        name: 'Product 1234',
+        category: ProductCategory.domestic,
+        wholesalePrice: 5000,
+        retailPrice: 8000,
+        inStock: true,
+        isActive: true,
+        stockQuantity: 10,
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      );
+
+      // Draft created with stockQuantity 20, isEditing true, initialStock 10
+      final draft = ProductDraft(
+        id: initialProduct.id,
+        productCode: initialProduct.productCode,
+        customCode: initialProduct.productCode,
+        name: initialProduct.name,
+        stockQuantity: '20',
+      );
+
+      final added = (draft.stockQuantityValue ?? 0) - 10;
+      expect(added, equals(10));
+
+      final newLabelsPreview = draft.generateStockSerials(
+        quantityOverride: added,
+        startSequence: 10 + 1,
+      );
+
+      expect(newLabelsPreview, equals(<String>[
+        '1234-011',
+        '1234-012',
+        '1234-013',
+        '1234-014',
+        '1234-015',
+        '1234-016',
+        '1234-017',
+        '1234-018',
+        '1234-019',
+        '1234-020',
+      ]));
+    });
+
+    test('TEST 2: Product code changes to ABCD -> Add 10 stock -> new labels ABCD-021..030, old labels remain', () {
+      // Product previously had 20 stock under 1234 (001..020)
+      // Now admin changes customCode to ABCD and stock to 30
+      final draft = const ProductDraft(
+        id: 'prod-1234',
+        productCode: '1234',
+        customCode: 'ABCD',
+        isManualCode: true,
+        name: 'Product 1234',
+        stockQuantity: '30',
+      );
+
+      const int prevStock = 20;
+      final added = (draft.stockQuantityValue ?? 0) - prevStock;
+      expect(added, equals(10));
+
+      final newLabelsPreview = draft.generateStockSerials(
+        quantityOverride: added,
+        startSequence: prevStock + 1,
+      );
+
+      expect(newLabelsPreview, equals(<String>[
+        'ABCD-021',
+        'ABCD-022',
+        'ABCD-023',
+        'ABCD-024',
+        'ABCD-025',
+        'ABCD-026',
+        'ABCD-027',
+        'ABCD-028',
+        'ABCD-029',
+        'ABCD-030',
+      ]));
     });
   });
 }

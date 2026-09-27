@@ -1,4 +1,3 @@
-import 'package:barcode_widget/barcode_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -9,17 +8,12 @@ import '../../../../../core/theme/app_typography.dart';
 import '../../../../../core/widgets/app_card.dart';
 import '../../../../../core/widgets/app_snackbar.dart';
 
-/// The permanent product code, rendered in both symbologies.
-///
-/// Code 128 is what a shop's handheld laser scanner reads off a printed label.
-/// QR is faster and far more forgiving from a phone camera held at an angle,
-/// which is how a dealer standing in a warehouse will actually scan it. Both
-/// encode the identical string, so either resolves to the same product.
+/// Displays the permanent product code with a one-tap copy button.
 class BarcodeBlock extends StatelessWidget {
   /// Creates the barcode block.
   const BarcodeBlock({required this.productCode, super.key});
 
-  /// The code issued by the database.
+  /// The code defined by the Admin.
   final String productCode;
 
   Future<void> _copy(BuildContext context) async {
@@ -35,94 +29,55 @@ class BarcodeBlock extends StatelessWidget {
 
     return AppCard(
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           Text(
             l10n.createdCodeLabel,
             style: context.textTheme.labelSmall?.copyWith(
               color: AppColors.textSecondary,
+              fontWeight: FontWeight.w600,
             ),
           ),
           const SizedBox(height: Spacing.x2),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              Flexible(
-                child: Text(
-                  productCode,
-                  textAlign: TextAlign.center,
-                  style: AppTypography.mono.copyWith(
-                    fontSize: 20,
-                    color: AppColors.ink,
+          Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: Spacing.x3,
+              vertical: Spacing.x2,
+            ),
+            decoration: BoxDecoration(
+              color: AppColors.background,
+              borderRadius: BorderRadius.circular(Spacing.x2),
+              border: Border.all(color: AppColors.border),
+            ),
+            child: Row(
+              children: <Widget>[
+                const Icon(
+                  Icons.tag_rounded,
+                  size: 20,
+                  color: AppColors.primary,
+                ),
+                const SizedBox(width: Spacing.x2),
+                Expanded(
+                  child: SelectableText(
+                    productCode,
+                    style: AppTypography.mono.copyWith(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.ink,
+                    ),
                   ),
                 ),
-              ),
-              IconButton(
-                onPressed: () => _copy(context),
-                icon: const Icon(Icons.copy_rounded, size: 18),
-                tooltip: l10n.actionCopy,
-                color: AppColors.textSecondary,
-              ),
-            ],
-          ),
-          const SizedBox(height: Spacing.x5),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: <Widget>[
-              Expanded(
-                flex: 3,
-                child: _Symbology(
-                  caption: l10n.barcodeCode128,
-                  child: BarcodeWidget(
-                    barcode: Barcode.code128(escapes: false),
-                    data: productCode,
-                    drawText: false,
-                    height: 64,
-                    color: AppColors.ink,
-                  ),
+                IconButton(
+                  onPressed: () => _copy(context),
+                  icon: const Icon(Icons.copy_rounded, size: 18),
+                  tooltip: l10n.actionCopy,
+                  color: AppColors.textSecondary,
                 ),
-              ),
-              const SizedBox(width: Spacing.x4),
-              Expanded(
-                flex: 2,
-                child: _Symbology(
-                  caption: l10n.barcodeQr,
-                  child: BarcodeWidget(
-                    barcode: Barcode.qrCode(),
-                    data: productCode,
-                    drawText: false,
-                    height: 80,
-                    width: 80,
-                    color: AppColors.ink,
-                  ),
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
         ],
       ),
-    );
-  }
-}
-
-class _Symbology extends StatelessWidget {
-  const _Symbology({required this.caption, required this.child});
-
-  final String caption;
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: <Widget>[
-        child,
-        const SizedBox(height: Spacing.x2),
-        Text(
-          caption,
-          style: context.textTheme.labelSmall?.copyWith(
-            color: AppColors.textSecondary,
-          ),
-        ),
-      ],
     );
   }
 }

@@ -6,6 +6,7 @@ abstract interface class WarrantyClaimRepository {
   /// Submits a new warranty claim for a physical unit.
   Future<Result<WarrantyClaim>> submitClaim({
     required String unitId,
+    String? productId,
     required String claimType,
     required String description,
     required String contactPhone,
